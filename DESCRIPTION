@@ -1,0 +1,18 @@
+Package: VDPO
+Title: Functions for the development of some papers.
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Pavel", family = "Hernandez", role = c("aut", "cre"),
+           email = "pahernan@est-econ.uc3m.es"),
+    person(given = "Jose Ignacio", family = "Diez", role = c("ctr"),
+           email = "jodiezru@pa.uc3m.es")
+    )
+Description: Empty description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 3.5.0)
+Imports:
+    SOP,
+    splines
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
