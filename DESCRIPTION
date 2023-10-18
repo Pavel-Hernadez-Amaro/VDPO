@@ -1,5 +1,5 @@
 Package: VDPO
-Title: Functions for the development of some papers
+Title: Functions for the development of some papers.
 Version: 0.0.0.9000
 Authors@R: c(
     person(given = "Pavel", family = "Hernandez", role = c("aut", "cre"),
@@ -7,7 +7,8 @@ Authors@R: c(
     person(given = "Jose Ignacio", family = "Diez", role = c("ctr"),
            email = "jodiezru@pa.uc3m.es")
     )
-Description: Empty description.
+Description: The current name of the package stands for Variable Domain
+    Partially Observed.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
