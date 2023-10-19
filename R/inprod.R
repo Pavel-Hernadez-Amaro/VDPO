@@ -8,7 +8,6 @@
 #' @param wtfd .
 #'
 #' @return .
-#' @export
 #'
 inprod <- function (fdobj1, fdobj2 = NULL, Lfdobj1 = fda::int2Lfd(0), Lfdobj2 = fda::int2Lfd(0), rng = range1, wtfd = 0) {
 

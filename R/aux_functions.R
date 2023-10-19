@@ -1,13 +1,9 @@
-#' This Rten2 function, is, atm, a mystery to me.
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/sommer/index.html}{sommer} package authors.
 Rten2 <- function(X1,X2) {
   one.1 <- matrix(1,1,ncol(X1))
   one.2 <- matrix(1,1,ncol(X2))
   kronecker(X1,one.2)*kronecker(one.1,X2)
 }
-
-
-
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/fda/index.html}{fda} package authors.
 fdchk <- function (fdobj) {
@@ -52,11 +48,52 @@ knotmultchk <- function (basisobj, knotmult) {
   return(knotmult)
 }
 
-#' Modified version of sop.fit with a new if added in order to improve numerical stability.
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/MASS/}{MASS} package authors.
+ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
+  #
+  # based on suggestions of R. M. Heiberger, T. M. Hesterberg and WNV
+  #
+  if(length(dim(X)) > 2L || !(is.numeric(X) || is.complex(X)))
+    stop("'X' must be a numeric or complex matrix")
+  if(!is.matrix(X)) X <- as.matrix(X)
+  Xsvd <- svd(X)
+  if(is.complex(X)) Xsvd$u <- Conj(Xsvd$u)
+  Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
+  if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
+  else if (!any(Positive)) array(0, dim(X)[2L:1L])
+  else Xsvd$v[, Positive, drop=FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop=FALSE]))
+}
+
+#' @references This is a modified version of sop.fit to improve numerical stability.
+#' All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.matrices <- function (X, Z, z, w) {
+  XtW. <- t(X * w)
+  XtX. <- XtW. %*% X
+  XtZ. <- XtW. %*% Z
+  ZtX. <- t(XtZ.)
+  ZtW. <- t(Z * w)
+  ZtZ. <- ZtW. %*% Z
+  Xty. <- XtW. %*% z
+  Zty. <- ZtW. %*% z
+  yty. <- sum((z^2) * w)
+  ZtXtZ <- rbind(XtZ., ZtZ.)
+  u <- c(Xty., Zty.)
+  res <- list(XtX. = XtX., XtZ. = XtZ., ZtX. = ZtX., ZtZ. = ZtZ.,
+              Xty. = Xty., Zty. = Zty., yty. = yty., ZtXtZ = ZtXtZ,
+              u = u)
+}
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.block <- function(A1, A2, A3, A4) {
+  block <- rbind(cbind(A1, A2), cbind(A3, A4))
+  return(block)
+}
+
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
 sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
-                  etastart = NULL, mustart = NULL, offset = NULL, family = gaussian(),
-                  control = sop.control()) {
+                  etastart = NULL, mustart = NULL, offset = NULL, family = stats::gaussian(),
+                  control = SOP::sop.control()) {
   deviance <- function(C, G, w, sigma2, ssr, edf) {
     log_det_C <- determinant(C)$modulus
     log_det_G <- determinant(G)$modulus
@@ -168,7 +205,7 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
     w <- as.vector(deriv^2/family$variance(mu))
     w <- w * weights
     z[!weights] <- 0
-    mat <- construct.matrices(X, Z, z, w,GLAM = FALSE)
+    mat <- construct.matrices(X, Z, z, w) # GLAM = FALSE is now the only option
     if (trace)
       start1 <- proc.time()[3]
     for (it in 1:control$maxit) {
@@ -262,8 +299,8 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
   dev.residuals <- family$dev.resids(y, mu, weights)
   dev.residuals[na.ind] <- NA
   deviance <- sum(dev.residuals, na.rm = TRUE)
-  null.deviance <- glm(y ~ offset(offset), family = family,
-                       weights = prior.weights)$deviance
+  null.deviance <- stats::glm(y ~ offset(offset), family = family,
+                              weights = prior.weights)$deviance
   out <- list(tol.ol = tol, it.ol = i, tol.il = dla, it.in = it,
               vc = la, edf = ied)
   fit <- list()

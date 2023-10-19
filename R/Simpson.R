@@ -13,7 +13,6 @@
 #' @param wtfd .
 #'
 #' @return .
-#' @export
 Simpson <- function(fdobj1, fdobj2=NULL, fdobj3=NULL, Lfdobj1=fda::int2Lfd(0), Lfdobj2=fda::int2Lfd(0), rng, sub = 25, wtfd = 0) {
 
   #  Check FDOBJ1 and get no. replications and basis object
