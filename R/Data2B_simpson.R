@@ -163,7 +163,7 @@ Data2B_simpson <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 25
 
   # need to rewrite this for statement
   for (i in 1:N) {
-    PROD <- Simpson(L_X_aux[[i]], L_Phi_aux[[i]], B_T$B[i,], rng = c(1,M[i]), sub = sub) / M[i]
+    PROD <- Simpson(L_X_aux[[i]], L_Phi_aux[[i]], B_T$B[i, ], rng = c(1,M[i]), sub = sub) / M[i]
     K    <- rbind(K,PROD)
   }
 
