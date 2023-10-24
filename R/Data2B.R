@@ -1,4 +1,4 @@
-#' Title
+#' Data to B matrix
 #'
 #' @param X .
 #' @param M .
@@ -10,7 +10,7 @@
 #' @return .
 #' @export
 #'
-Data2B_simpson <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 25, lim=NULL){
+Data2B <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 500, lim = NULL){
   ## SETTING SOME MATRICES AND PARAMETERS
 
   # X is the matrix of Data # dim(X) == N x max(M)
@@ -36,12 +36,10 @@ Data2B_simpson <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 25
   # L_Phi_aux=L_X_aux=L_Phi=L_X=L_y=L_theta=list()
   # vector(mode = "list", length = N)
 
-  L_Phi_aux <- list()
-  L_X_aux   <- list()
-  L_Phi     <- list()
-  L_X       <- list()
-  L_y       <- list()
-  L_theta   <- list()
+  L_Phi     <- vector(mode = "list", length = N)
+  L_X       <- vector(mode = "list", length = N)
+  L_y       <- vector(mode = "list", length = N)
+  L_theta   <- vector(mode = "list", length = N)
 
   A <- matrix(0,nrow = N, ncol = N*c1)
 
@@ -107,63 +105,41 @@ Data2B_simpson <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 25
 
   c_T <- c3 - bdeg[3] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-  # if (is.null(lim)) {
-  #
-  #   B_T <- bspline(M, XL_T, XR_T, c_T, bdeg[3])
-  #
-  # }else{
-  #
-  #   B_T <- bspline(M, lim[1]-0.001, lim[2]+0.001, c_T, bdeg[3])
-  # }
+  if (is.null(lim)) {
 
-  B_T <- ifelse(is.null(lim),
-                bspline(M, XL_T, XR_T, c_T, bdeg[3]),
-                bspline(M, lim[1] - 1e-06, lim[2] + 1e-06, c_T, bdeg[3])
-         )
+    B_T <- bspline(M, XL_T, XR_T, c_T, bdeg[3])
+
+  }else{
+
+    B_T <- bspline(M, lim[1]-0.001, lim[2]+0.001, c_T, bdeg[3])
+  }
+
+  # B_T <- ifelse(is.null(lim),
+  #               bspline(M, XL_T, XR_T, c_T, bdeg[3]),
+  #               bspline(M, lim[1] - 1e-06, lim[2] + 1e-06, c_T, bdeg[3])
+  #        )
+
 
 
   # matplot(B_T$B,type="l") ## THIS PLOT WILL HELP TO SEE IF THE B-SPLINES BASIS ARE CORRECT
 
   ################# HERE WE ARE GOING TO TRASNFORM THE B-SPLINES BASIS INTO THE RAMSAY TYPE B-SPLINES BASIS TO PERFORM THE INNER PRODUCT
   # IS NOT MECESSARY TO DO THIS FOR THE T MARGINAL BASIS
-  for (i in 1:N) {
-
-    # DATA BASIS
-
-    breaks <- L_X[[i]]$knots
-
-    dife   <- diff(breaks)[1]
-    breaks <- c(breaks[1] - dife, breaks, breaks[length(breaks)] + dife)
-    breaks <- c(breaks[1] - dife, breaks, breaks[length(breaks)] + dife)
-    n      <- length(breaks)
-
-    # nam_X_aux <- paste("B_aux", i, sep = "_")
-    # L_X_aux[[i]]=assign(nam_X_aux, create.bspline.basis(breaks=breaks,norder=bdeg[1]+1,dropin=c(1:5,(n-2):(n+2))))
-
-    L_X_aux[[i]] <- fda::create.bspline.basis(breaks = breaks, norder = bdeg[1] + 1, dropin = c(1:5,(n-2):(n+2)))
-
-    # t MARGINAL BASIS
-
-    breaks <- L_Phi[[i]]$knots
-
-    dife   <- diff(breaks)[1]
-    breaks <- c(breaks[1] - dife,breaks, breaks[length(breaks)] + dife)
-    breaks <- c(breaks[1] - dife,breaks, breaks[length(breaks)] + dife)
-    n      <- length(breaks)
-
-    # nam_Phi_aux <- paste("Phi_aux", i, sep = "_")
-    # L_Phi_aux[[i]]=assign(nam_Phi_aux, create.bspline.basis(breaks=breaks,norder=bdeg[2]+1,dropin=c(1:5,(n-2):(n+2))))
-
-    L_Phi_aux[[i]] <- fda::create.bspline.basis(breaks = breaks, norder = bdeg[2] + 1, dropin = c(1:5,(n-2):(n+2)))
-
-  }
 
   # PERFORMING THE INNER PRODUCT
 
 
   # need to rewrite this for statement
   for (i in 1:N) {
-    PROD <- Simpson(L_X_aux[[i]], L_Phi_aux[[i]], B_T$B[i, ], rng = c(1,M[i]), sub = sub) / M[i]
+    # PROD <- Simpson(L_X_aux[[i]], L_Phi_aux[[i]], B_T$B[i, ], rng = c(1,M[i]), sub = sub) / M[i]
+    PROD <- partial_inprod(n_intervals   = sub,
+                           knots1        = L_X[[i]]$knots,
+                           knots2        = L_Phi[[i]]$knots,
+                           bdeg          = bdeg[1:2],
+                           spline_domain = B_T$B[i, , drop = FALSE],
+                           rng           = c(1,M[i]))
+    PROD <- PROD / M[i]
+
     K    <- rbind(K,PROD)
   }
 

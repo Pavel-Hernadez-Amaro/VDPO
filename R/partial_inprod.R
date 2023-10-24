@@ -47,6 +47,6 @@ partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng
   aux_1[length(aux_1)] <- 1
   W <- diag(aux_1)
 
-  fx %*% W %*% fBeta
+  t(fx) %*% W %*% fBeta
 
 }

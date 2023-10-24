@@ -5,49 +5,6 @@ Rten2 <- function(X1,X2) {
   kronecker(X1,one.2)*kronecker(one.1,X2)
 }
 
-#' @references All credits to the \href{https://cran.r-project.org/web/packages/fda/index.html}{fda} package authors.
-fdchk <- function (fdobj) {
-  if (inherits(fdobj, "fd")) {
-    coef <- fdobj$coefs
-  }
-  else {
-    if (inherits(fdobj, "basisfd")) {
-      coef <- diag(rep(1, fdobj$nbasis - length(fdobj$dropind)))
-      fdobj <- fda::fd(coef, fdobj)
-    }
-    else {
-      stop("FDOBJ is not an FD object.")
-    }
-  }
-  coefd <- dim(as.matrix(coef))
-  if (length(coefd) > 2)
-    stop("Functional data object must be univariate")
-  nrep <- coefd[2]
-  basisobj <- fdobj$basis
-  return(list(nrep, fdobj))
-}
-
-#' @references All credits to the \href{https://cran.r-project.org/web/packages/fda/index.html}{fda} package authors.
-knotmultchk <- function (basisobj, knotmult) {
-  type <- basisobj$type
-  if (type == "bspline") {
-    params <- basisobj$params
-    nparams <- length(params)
-    norder <- basisobj$nbasis - nparams
-    if (norder == 1) {
-      knotmult <- c(knotmult, params)
-    }
-    else {
-      if (nparams > 1) {
-        for (i in 2:nparams) if (params[i] == params[i -
-                                                     1])
-          knotmult <- c(knotmult, params[i])
-      }
-    }
-  }
-  return(knotmult)
-}
-
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/MASS/}{MASS} package authors.
 ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
@@ -88,6 +45,15 @@ construct.matrices <- function (X, Z, z, w) {
 construct.block <- function(A1, A2, A3, A4) {
   block <- rbind(cbind(A1, A2), cbind(A3, A4))
   return(block)
+}
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+sop.control <- function (maxit = 200, epsilon = 1e-06, trace = FALSE) {
+  if (!is.numeric(epsilon) || epsilon <= 0)
+    stop("value of 'epsilon' must be > 0")
+  if (!is.numeric(maxit) || maxit <= 0)
+    stop("maximum number of iterations must be > 0")
+  list(maxit = maxit, epsilon = epsilon, trace = trace)
 }
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
