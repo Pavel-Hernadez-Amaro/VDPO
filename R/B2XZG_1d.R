@@ -21,18 +21,12 @@ B2XZG_1d <- function (B, pord = c(2), c = c(10)) {
   T_n <- U_1n
   T_s <- U_1s
 
-
   Z <- B %*% T_s
   X <- B %*% T_n
 
-  ####
   G <- list(d1)
 
-
-  # G=list(t_1,t_2)
-  # names(G)=c("t_1","t_2")
-  #
-  T <- cbind(T_n,T_s)
+  T_ <- cbind(T_n,T_s)
 
   ####
 
@@ -40,7 +34,7 @@ B2XZG_1d <- function (B, pord = c(2), c = c(10)) {
     X    = X,
     Z    = Z,
     G    = G,
-    T    = T,
+    T    = T_,
     d1   = d1,
     D_1  = D_1,
     U_1n = U_1n,
