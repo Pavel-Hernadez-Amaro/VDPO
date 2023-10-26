@@ -25,35 +25,24 @@ partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng
 
   width <- (rng[[2]] - rng[[1]]) / n_intervals
 
+  x <- seq(rng[[1]], rng[[2]], width)
 
-  fx <- splines::spline.des(knots1, rng, bdeg[[1]] + 1, 0 * rng)$design
-  ft <- splines::spline.des(knots2, rng, bdeg[[2]] + 1, 0 * rng)$design
+  fx <- splines::spline.des(knots1, x, bdeg[[1]] + 1, 0 * x)$design
+  ft <- splines::spline.des(knots2, x, bdeg[[2]] + 1, 0 * x)$design
 
   fT <- spline_domain
   fBeta <- kronecker(ft, fT)
 
-  XI0 <- matrix(crossprod(ft, fBeta), nrow = ncol(ft), ncol = ncol(fBeta))
-  XI1 <- 0
-  XI2 <- 0
+  w <- seq_along(x)
+  aux_1 <- ifelse(w %% 2 == 0,
+                  2,
+                  4)
+  aux_1[1] <- 1
+  aux_1[length(aux_1)] <- 1
+  W <- diag(aux_1)
 
-  for (i in 1:(n_intervals-1)) {
-    x <- rng[[1]] + i * width
+  W <- width * W / 3
 
-    fx <- splines::spline.des(knots1, x, bdeg[[1]] + 1, 0 * x)$design
-    ft <- splines::spline.des(knots2, x, bdeg[[2]] + 1, 0 * x)$design
+  t(fx) %*% W %*% fBeta
 
-    fBeta <- kronecker(ft, fT)
-
-    FX <- matrix(crossprod(fT, fBeta), nrow = ncol(fT), ncol = ncol(fBeta))
-
-    if (i %% 2 == 0) {
-      XI2 <- XI2 + FX
-    } else {
-      XI1 <- XI1 + FX
-    }
-  }
-
-  XI <- width * (XI0 + 2 * XI2 + 4 * XI1) / 3
-
-  XI
 }
