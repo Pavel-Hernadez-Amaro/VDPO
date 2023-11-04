@@ -1,7 +1,8 @@
 #' Data to B matrix
 #'
 #' @param X .
-#' @param M .
+#' @param M Cantidad de elementos que hay en las filas de X que no es NA.
+#' Se puede suprimir.
 #' @param nbasis .
 #' @param bdeg .
 #' @param sub .

@@ -34,9 +34,7 @@ partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng
   fBeta <- kronecker(ft, fT)
 
   w <- seq_along(x)
-  aux_1 <- ifelse(w %% 2 == 0,
-                  2,
-                  4)
+  aux_1 <- ifelse(w %% 2 == 0, 2, 4)
   aux_1[1] <- 1
   aux_1[length(aux_1)] <- 1
   W <- diag(aux_1)
