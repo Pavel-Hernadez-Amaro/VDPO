@@ -9,7 +9,8 @@ Data2B(X, M, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3), sub = 500, lim = NULL)
 \arguments{
 \item{X}{.}
 
-\item{M}{.}
+\item{M}{Cantidad de elementos que hay en las filas de X que no es NA.
+Se puede suprimir.}
 
 \item{nbasis}{.}
 

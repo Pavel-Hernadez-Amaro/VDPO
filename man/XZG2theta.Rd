@@ -4,7 +4,7 @@
 \alias{XZG2theta}
 \title{XZG2theta function}
 \usage{
-XZG2theta(X, Z, G, T, y, family = stats::gaussian(), offset = NULL)
+XZG2theta(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
 \item{X}{Fixed part of the mixed model.}
@@ -13,13 +13,13 @@ XZG2theta(X, Z, G, T, y, family = stats::gaussian(), offset = NULL)
 
 \item{G}{Variance-covariance matrix.}
 
-\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
-
 \item{y}{Response variable.}
 
 \item{family}{Family of the distrbution.}
 
 \item{offset}{.}
+
+\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
 }
 \value{
 .

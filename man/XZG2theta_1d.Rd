@@ -4,7 +4,7 @@
 \alias{XZG2theta_1d}
 \title{One dimensional version of XZG2theta.}
 \usage{
-XZG2theta_1d(X, Z, G, T, y, family = stats::gaussian())
+XZG2theta_1d(X, Z, G, TMatrix, y, family = stats::gaussian())
 }
 \arguments{
 \item{X}{Fixed part of the mixed model.}
@@ -13,11 +13,11 @@ XZG2theta_1d(X, Z, G, T, y, family = stats::gaussian())
 
 \item{G}{Variance-covariance matrix.}
 
-\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
-
 \item{y}{Response variable.}
 
 \item{family}{Family of the distrbution.}
+
+\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
 }
 \value{
 .

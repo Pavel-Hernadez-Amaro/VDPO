@@ -41,7 +41,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   non_funcional_variables <- variables[-specials]
   functional_variables    <- variables[specials]
 
-  terms(formula)
+  # terms(formula)
   vdfoenv <- environment(formula)
 
   for (var in names(data))
