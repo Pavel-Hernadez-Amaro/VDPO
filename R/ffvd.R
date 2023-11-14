@@ -11,7 +11,7 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
   M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
 
   if (any(M[, 1] >= M[, 2]))
-    stop("Ninguna curva puede un número de observaciones negativa", call. = FALSE)
+    stop("Ninguna curva puede tener un número de observaciones negativa", call. = FALSE)
 
   N <- nrow(X)
 
@@ -55,14 +55,22 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
 
-  xlim_T <- c(min(M), max(M)) ##
+  M_diff= (M[,2]-M[,1]+1)
+
+  xlim_T <- c(min(M_diff), max(M_diff)) ##
 
   XL_T <- xlim_T[1] - 1e-06
   XR_T <- xlim_T[2] + 1e-06
 
   c_T <- c3 - bdeg[3] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-  B_T <- bspline(M, XL_T, XR_T, c_T, bdeg[3])
+  if (all(M[,1]==1)) {
+
+    B_T <- bspline(M[,2], XL_T, XR_T, c_T, bdeg[3])
+
+  }else{
+    B_T <- bspline((M[,2]-M[,1]+1), XL_T, XR_T, c_T, bdeg[3])
+  }
   ################# HERE WE ARE GOING TO TRASNFORM THE B-SPLINES BASIS INTO THE RAMSAY TYPE B-SPLINES BASIS TO PERFORM THE INNER PRODUCT
   # IS NOT MECESSARY TO DO THIS FOR THE T MARGINAL BASIS
 

@@ -67,21 +67,22 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   M       <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # matrix
   TMatrix <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # matrix
 
-  lffvd_counter <- 1
+  ffvd_counter <- 1
   for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
     X_ffvd <- cbind(X_ffvd, ffvd_evaluation[["X_ffvd"]])
     Z_ffvd <- cbind(Z_ffvd, ffvd_evaluation[["Z_ffvd"]])
+    # G_ffvd <- append(G_ffvd, ffvd_evaluation[["G_ffvd"]])
     G_ffvd <- append(G_ffvd,
                      list(c(ffvd_evaluation[["G_ffvd"]][[1]], rep(0, length(ffvd_evaluation[["G_ffvd"]][[2]]))),
                           c(rep(0, length(ffvd_evaluation[["G_ffvd"]][[1]])), ffvd_evaluation[["G_ffvd"]][[2]]))
                      )
 
-    L_Phi[[lffvd_counter]]   <- ffvd_evaluation[["L_Phi"]]
-    B_T[[lffvd_counter]]     <- ffvd_evaluation[["B_T"]]
-    M[[lffvd_counter]]       <- ffvd_evaluation[["M"]]
-    TMatrix[[lffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
+    L_Phi[[ffvd_counter]]   <- ffvd_evaluation[["L_Phi"]]
+    B_T[[ffvd_counter]]     <- ffvd_evaluation[["B_T"]]
+    M[[ffvd_counter]]       <- ffvd_evaluation[["M"]]
+    TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
 
-    lffvd_counter <- lffvd_counter + 1
+    ffvd_counter <- ffvd_counter + 1
 
   }
 
@@ -115,7 +116,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     fit       = fit,
     theta     = theta,
     Beta_ffvd = Beta_ffvd,
-    M_ffvd    = evals$M
+    M_ffvd    = M
   )
 
   class(res) <- "VDFO"
