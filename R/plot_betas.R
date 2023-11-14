@@ -1,24 +1,30 @@
 #' @export
-plot.VDFO <- function(x, ...) {
+plot.VDFO <- function(x, plot_index = 1,...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("Package 'ggplot2' is required for this functionality", call. = FALSE)
+    stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
 
   if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
-    stop("Package 'RColorBrewer' is required for this functionality", call. = FALSE)
+    stop("package 'RColorBrewer' is required for this functionality", call. = FALSE)
+  }
+
+  if (plot_index < 1 || plot_index > length(x$M_ffvd)) {
+    stop("'plot_index' should be between 1 and the number of variable domain
+         functional variables used in the formula", call. = FALSE)
   }
 
   N <- attr(x, "N")
-  max_M <- max(x$M_ffvd)
-  T_dat <- IND <- NULL
-  t_dat <- rep(1:max_M,N)
 
-  Beta_estimated <- t(x$Beta_ffvd)
-  dim(Beta_estimated) <- c(nrow(x$Beta_ffvd) * ncol(x$Beta_ffvd), 1)
+  max_M <- max(x$M_ffvd[[plot_index]])
+  T_dat <- IND <- NULL
+  t_dat <- rep(1:max_M, N)
+
+  Beta_estimated <- t(x$Beta_ffvd[[plot_index]])
+  dim(Beta_estimated) <- c(nrow(x$Beta_ffvd[[plot_index]]) * ncol(x$Beta_ffvd[[plot_index]]), 1)
 
   for (ind in 1:N) {
-    T_dat <- c(T_dat, rep(x$M_ffvd[ind],max_M))
-    IND   <- c(IND, rep(ind,x$M_ffvd[ind]))
+    T_dat <- c(T_dat, rep(x$M_ffvd[[plot_index]][ind], max_M))
+    IND   <- c(IND, rep(ind, x$M_ffvd[[plot_index]][ind]))
   }
 
   Heat_map_data <- data.frame(t = t_dat, M = T_dat, Beta = Beta_estimated)

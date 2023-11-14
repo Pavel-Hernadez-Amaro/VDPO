@@ -18,7 +18,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     offset <- rep(0L, nobs)
   }
 
-  tf <- terms.formula(formula, specials = c("ffvd"))
+  tf <- stats::terms.formula(formula, specials = c("ffvd"))
 
   terms    <- attr(tf, "term.labels")
   nterms   <- length(terms)
@@ -44,7 +44,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
 
-  specials <- length(unlist(na.omit(specials_indices))) > 0
+  specials <- length(unlist(stats::na.omit(specials_indices))) > 0
 
   # if (specials) {
   #   non_funcional_variables <- variables[-specials_indices]
