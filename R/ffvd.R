@@ -8,10 +8,10 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
   # X is the matrix of Data # dim(X) == N x max(M)
   # M is the vector of numbers of observations dim(M) == N x 1
 
-  M <- apply(X, 1, function(x) length(na.omit(x))) ##
+  M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
 
-  if (any(M < 10))
-    stop("Ninguna curva puede tener menos de 10 observaciones", call. = FALSE)
+  if (any(M[, 1] >= M[, 2]))
+    stop("Ninguna curva puede un número de observaciones negativa", call. = FALSE)
 
   N <- nrow(X)
 
@@ -19,34 +19,30 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
   c2 <- nbasis[2]
   c3 <- nbasis[3]
 
-  # error <- NULL puede que no haga falta el error
-  K     <- NULL
+  K <- NULL
+  rng <- M
 
-  rng <- matrix(0, ncol = 2, nrow = N)
-  rng[, 1] <- 1 ##
-  rng[, 2] <- M
-
-  L_Phi     <- vector(mode = "list", length = N)
-  L_X       <- vector(mode = "list", length = N)
+  L_Phi <- vector(mode = "list", length = N)
+  L_X   <- vector(mode = "list", length = N)
 
   A <- matrix(0, nrow = N, ncol = N * c1)
 
   for (i in 1:N) {
 
     ############### HERE WE CREATE THE BASIS FOR THE DATA
-    XL <- rng[i,1] - 1e-6
-    XR <- rng[i,2] + 1e-6
+    XL <- rng[i, 1] - 1e-6
+    XR <- rng[i, 2] + 1e-6
 
     c <- c1 - bdeg[1] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
 
-    L_X[[i]] <- bspline(1:M[i], XL, XR, c, bdeg[1]) ##
+    L_X[[i]] <- bspline(M[i, 1]:M[i, 2], XL, XR, c, bdeg[1])
 
     ######### Estimating the coefficients of the data (matrix A)
 
     aux   <- L_X[[i]]$B
     aux_2 <- B2XZG_1d(aux, pord[1], c1)
-    aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = X[i,1:M[i]])
+    aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = X[i,M[i, 1]:M[i, 2]])
 
     A[i,((c1 * (i - 1)) + 1):(i * c1)] <- aux_3$theta
 
@@ -54,7 +50,7 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
     c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-    L_Phi[[i]] <- bspline(1:M[i], XL, XR, c_t, bdeg[2]) ##
+    L_Phi[[i]] <- bspline(M[i, 1]:M[i, 2], XL, XR, c_t, bdeg[2])
   }
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
@@ -80,8 +76,8 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
                            knots2        = L_Phi[[i]]$knots,
                            bdeg          = bdeg[1:2],
                            spline_domain = B_T$B[i, , drop = FALSE],
-                           rng           = c(1,M[i])) ##
-    PROD <- PROD / M[i] ##
+                           rng           = c(M[i, 1], M[i, 2]))
+    PROD <- PROD / (M[i, 2] - M[i, 1] + 1)
 
     K    <- rbind(K,PROD)
   }
