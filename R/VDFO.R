@@ -71,7 +71,10 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
     X_ffvd <- cbind(X_ffvd, ffvd_evaluation[["X_ffvd"]])
     Z_ffvd <- cbind(Z_ffvd, ffvd_evaluation[["Z_ffvd"]])
-    G_ffvd <- append(G_ffvd, ffvd_evaluation[["G_ffvd"]])
+    G_ffvd <- append(G_ffvd,
+                     list(c(ffvd_evaluation[["G_ffvd"]][[1]], rep(0, length(ffvd_evaluation[["G_ffvd"]][[2]]))),
+                          c(rep(0, length(ffvd_evaluation[["G_ffvd"]][[1]])), ffvd_evaluation[["G_ffvd"]][[2]]))
+                     )
 
     L_Phi[[lffvd_counter]]   <- ffvd_evaluation[["L_Phi"]]
     B_T[[lffvd_counter]]     <- ffvd_evaluation[["B_T"]]
