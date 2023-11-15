@@ -92,6 +92,8 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
   B <- A %*% K
 
+#### HAY QUE CREAR UNA NUEVA FUNCIÓN A PARTIR DE AQUÍ PARA UN MODELO ADDITIVE
+
   ##### EMPEZAMOS A TRANSFORMAR EL MODELO MULTIVARIANTE AL MODELO MIXTO (B2XGZ)
 
   D_1 <- diff(diag(c1), differences = pord[1])
