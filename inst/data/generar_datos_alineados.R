@@ -138,7 +138,7 @@ data = data.frame(y = y)
 data[["X"]] <- X_se
 data[["Y"]] <- X_s
 
-formula = y~ffvd(X)# + ffvd(Y)
+formula = y ~ ffvd(X, nbasis = c(21, 22, 23)) + ffvd(Y, nbasis = c(24, 25, 26))# + ffvd(Y)
 
 res <- VDFO(formula, data = data)
 
