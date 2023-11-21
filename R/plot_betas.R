@@ -1,5 +1,5 @@
 #' @export
-plot.VDFO <- function(x, plot_index = 1,...) {
+plot.VDFO <- function(x, plot_index = 1, ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }

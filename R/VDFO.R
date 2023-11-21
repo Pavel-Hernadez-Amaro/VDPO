@@ -9,14 +9,13 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   vdfoenv <- environment(formula)
   vdfons  <- loadNamespace("VDPO")
 
-  for (var in names(data)) {
+  for (var in names(data))
     vdfoenv[[var]] <- data[[var]]
-  }
 
   nobs <- nrow(data)
-  if (is.null(offset)) {
+
+  if (is.null(offset))
     offset <- rep(0L, nobs)
-  }
 
   tf <- stats::terms.formula(formula, specials = c("ffvd"))
 
@@ -58,48 +57,62 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     function(term) eval(parse(text = term), envir = vdfons, enclos = vdfoenv)
   )
   names(evals) <- terms
+  nffvd <- sum(grepl("ffvd", names(evals)))
 
-  X_ffvd  <- c() # matrix
-  Z_ffvd  <- c() # matrix
-  G_ffvd  <- list() # list
-  L_Phi   <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # list of matrices
-  B_T     <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # matrix
-  M       <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # matrix
-  TMatrix <- vector(mode = "list", length = sum(grepl("ffvd", names(evals)))) # matrix
+  if (nffvd > 0) {
+    B_all   <- c()
+    deglist <- vector(mode = "list", length = nffvd)
 
-  ffvd_counter <- 1
-  for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
-    X_ffvd <- cbind(X_ffvd, ffvd_evaluation[["X_ffvd"]])
-    Z_ffvd <- cbind(Z_ffvd, ffvd_evaluation[["Z_ffvd"]])
-    # G_ffvd <- append(G_ffvd, ffvd_evaluation[["G_ffvd"]])
-    G_ffvd <- append(G_ffvd,
-                     list(c(ffvd_evaluation[["G_ffvd"]][[1]], rep(0, length(ffvd_evaluation[["G_ffvd"]][[2]]))),
-                          c(rep(0, length(ffvd_evaluation[["G_ffvd"]][[1]])), ffvd_evaluation[["G_ffvd"]][[2]]))
-                     )
+    X_ffvd  <- c() # matrix
+    Z_ffvd  <- c() # matrix
+    G_ffvd  <- list() # list
+    L_Phi   <- vector(mode = "list", length = nffvd) # list of matrices
+    B_T     <- vector(mode = "list", length = nffvd) # matrix
+    M       <- vector(mode = "list", length = nffvd) # matrix
+    # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
-    L_Phi[[ffvd_counter]]   <- ffvd_evaluation[["L_Phi"]]
-    B_T[[ffvd_counter]]     <- ffvd_evaluation[["B_T"]]
-    M[[ffvd_counter]]       <- ffvd_evaluation[["M"]]
-    TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
+    ffvd_counter <- 0
+    for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
+      ffvd_counter <- ffvd_counter + 1
 
-    ffvd_counter <- ffvd_counter + 1
+      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
+      deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
+      # X_ffvd <- cbind(X_ffvd, ffvd_evaluation[["X_ffvd"]])
+      # Z_ffvd <- cbind(Z_ffvd, ffvd_evaluation[["Z_ffvd"]])
+      # # G_ffvd <- append(G_ffvd, ffvd_evaluation[["G_ffvd"]])
+      # G_ffvd <- append(G_ffvd,
+      #                  list(c(ffvd_evaluation[["G_ffvd"]][[1]], rep(0, length(ffvd_evaluation[["G_ffvd"]][[2]]))),
+      #                       c(rep(0, length(ffvd_evaluation[["G_ffvd"]][[1]])), ffvd_evaluation[["G_ffvd"]][[2]]))
+      #                  )
+      #
+      L_Phi[[ffvd_counter]]   <- ffvd_evaluation[["L_Phi"]]
+      B_T[[ffvd_counter]]     <- ffvd_evaluation[["B_T"]]
+      M[[ffvd_counter]]       <- ffvd_evaluation[["M"]]
+      # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
+
+
+    }
   }
 
+  foo <- B2XZG(B_all, deglist)
+
+
   fit <- sop.fit(
-    X = X_ffvd, Z = Z_ffvd, G = G_ffvd,
+    X = foo$X_ffvd, Z = foo$Z_ffvd, G = foo$G_ffvd,
     y = data[[response]], family = family,
     control = list(trace = FALSE), offset = offset
   )
 
   theta_aux <- c(fit$b.fixed, fit$b.random) ##
-  theta <- lapply(TMatrix, function (x) x %*% theta_aux) # x is a TMatrix
+  theta <- foo$TMatrix %*% theta_aux# x is a TMatrix
   # theta <- evals[["TMatrix"]] %*% theta_aux
 
   # covar_theta <- evals[["TMatrix"]] %*% fit$Vp %*% t(evals[["TMatrix"]])
-  covar_theta <- lapply(TMatrix, function(x) x %*% fit$Vp %*% t(x)) ##
+  covar_theta <- foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)
   # std_error_theta <- sqrt(diag(evals[["TMatrix"]] %*% fit$Vp %*% t(evals[["TMatrix"]])))
-  std_error_theta <- lapply(TMatrix, function(x) sqrt(diag(x %*% fit$Vp %*% t(x)))) ##
+  # std_error_theta <- lapply(TMatrix, function(x) sqrt(diag(x %*% fit$Vp %*% t(x)))) ##
+  std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)))
 
   # Beta_ffvd <- matrix(NA, nrow = length(data[[response]]),
   #                     ncol = max(evals$M)) ##
@@ -107,10 +120,12 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
                       function (x) matrix(NA, nrow = length(data[[response]]),
                                           ncol = max(x))
                       )
-  for (j in 1:sum(grepl("ffvd", names(evals)))) {
+  it <- 1
+  for (j in 1:nffvd) {
     for (i in 1:length(data[[response]])) {
-      Beta_ffvd[[j]][i, M[[j]][i, 1]:M[[j]][i, 2]] <- as.matrix(kronecker(L_Phi[[j]][[i]]$B, t(B_T[[j]]$B[i,]))) %*% theta[[j]]
+      Beta_ffvd[[j]][i, M[[j]][i, 1]:M[[j]][i, 2]] <- as.matrix(kronecker(L_Phi[[j]][[i]]$B, t(B_T[[j]]$B[i,]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
     }
+    it <- it + prod(deglist[[j]])
   }
   res <- list(
     fit       = fit,

@@ -92,76 +92,131 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
   B <- A %*% K
 
-#### HAY QUE CREAR UNA NUEVA FUNCIÓN A PARTIR DE AQUÍ PARA UN MODELO ADDITIVE
+  list(
+    B_ffvd = B,
+    A_ffvd = A,
+    K_ffvd = K,
+    nbasis = nbasis,
+    L_Phi  = L_Phi,
+    B_T    = B_T,
+    M      = M
+  )
+
+  # list(
+  #   X_ffvd  = X,
+  #   Z_ffvd  = Z,
+  #   G_ffvd  = G,
+  #   L_Phi   = L_Phi,
+  #   B_T     = B_T,
+  #   M       = M,
+  #   TMatrix = TMatrix
+  # )
+
+
+}
+
+
+B2XZG <- function(B_all, deglist) {
+  #### HAY QUE CREAR UNA NUEVA FUNCIÓN A PARTIR DE AQUÍ PARA UN MODELO ADDITIVE
 
   ##### EMPEZAMOS A TRANSFORMAR EL MODELO MULTIVARIANTE AL MODELO MIXTO (B2XGZ)
 
-  D_1 <- diff(diag(c1), differences = pord[1])
-  D_2 <- diff(diag(c2), differences = pord[2])
+  nffvd <- length(deglist)
 
-  P1.svd <- svd(crossprod(D_1))
-  P2.svd <- svd(crossprod(D_2))
+  pord <- c(2, 2)
 
-  U_1s <- P1.svd$u[,1:(c1-pord[1])] # eigenvectors
-  U_1n <- P1.svd$u[,-(1:(c1-pord[1]))]
-  d1   <- P1.svd$d[1:(c1-pord[1])]  # eigenvalues
+  Tnlist <- vector(mode = "list", length = nffvd)
+  Tslist <- vector(mode = "list", length = nffvd)
 
-  U_2s <- P2.svd$u[,1:(c2-pord[2])] # eigenvectors
-  U_2n <- P2.svd$u[,-(1:(c2-pord[2]))]
-  d2   <- P2.svd$d[1:(c2-pord[2])]  # eigenvalues
+  t1list <- vector(mode = "list", length = nffvd)
+  t2list <- vector(mode = "list", length = nffvd)
 
-  T_n <- kronecker(U_1n,U_2n)
+  G <- vector(mode = "list", length = 2 * nffvd)
 
-  AUX_1 <- kronecker(U_1n,U_2s)
-  AUX_2 <- kronecker(U_1s,U_2n)
-  AUX_3 <- kronecker(U_1s,U_2s)
+  for (i in seq_along(deglist)) {
+    c1 <- deglist[[i]][1]
+    c2 <- deglist[[i]][2]
 
-  T_s <- cbind(AUX_1,AUX_2,AUX_3)
+    D_1 <- diff(diag(c1), differences = pord[1])
+    D_2 <- diff(diag(c2), differences = pord[2])
 
-  Z <- B %*% T_s
-  X <- B %*% T_n
+    P1.svd <- svd(crossprod(D_1))
+    P2.svd <- svd(crossprod(D_2))
+
+    U_1s <- P1.svd$u[,1:(c1-pord[1])] # eigenvectors
+    U_1n <- P1.svd$u[,-(1:(c1-pord[1]))]
+    d1   <- P1.svd$d[1:(c1-pord[1])]  # eigenvalues
+
+    U_2s <- P2.svd$u[,1:(c2-pord[2])] # eigenvectors
+    U_2n <- P2.svd$u[,-(1:(c2-pord[2]))]
+    d2   <- P2.svd$d[1:(c2-pord[2])]  # eigenvalues
+
+    Tnlist[[i]] <- kronecker(U_1n,U_2n) # this is T_n
+
+    AUX_1 <- kronecker(U_1n,U_2s)
+    AUX_2 <- kronecker(U_1s,U_2n)
+    AUX_3 <- kronecker(U_1s,U_2s)
+
+    Tslist[[i]] <- cbind(AUX_1,AUX_2,AUX_3) # this is T_s
+
+    d_1s <- diag(P1.svd$d)[1:(c1-pord[1]),1:(c1-pord[1])]
+    d_2s <- diag(P2.svd$d)[1:(c2-pord[2]),1:(c2-pord[2])]
+
+    T_1 <- kronecker(diag(pord[1]),d_2s)
+    T_2 <- matrix(0, nrow = pord[2] * (c1-pord[1]), ncol = pord[2] * (c1-pord[1]))
+    T_3 <- kronecker(diag(c1-pord[1]),d_2s)
+
+    T_21 <- cbind(T_1, matrix(0, nrow = dim(T_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2]))
+    T_22 <- cbind(matrix(0, nrow = dim(T_2)[1], ncol = dim(T_1)[2]), T_2, matrix(0, nrow = dim(T_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2] - dim(T_2)[2]))
+    T_23 <- cbind(matrix(0,nrow=((c2-pord[2])*(c1-pord[1])),ncol=(c1*c2-pord[1]*pord[2])-dim(T_3)[2]),T_3)
+
+    H_1 <- matrix(0, nrow = pord[1] * (c2 - pord[2]),ncol = pord[1] * (c2 - pord[2]))
+    H_2 <- kronecker(d_1s, diag(pord[2]))
+    H_3 <- kronecker(d_1s, diag(c2-pord[2]))
+
+    H_11 <- cbind(H_1, matrix(0, nrow = dim(H_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2]))
+    H_12 <- cbind(matrix(0, nrow = dim(H_2)[1],ncol = dim(H_1)[2]), H_2, matrix(0, nrow = dim(H_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]))
+    H_13 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])),ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]), H_3)
+
+    L_2 <- rbind(T_21, T_22, T_23)
+    L_1 <- rbind(H_11, H_12, H_13)
+
+    t1list[[i]] <- diag(L_2) # no mistake, diag(L_2) is t1
+    t2list[[i]] <- diag(L_1)
+
+  }
+
+  T_n <- Matrix::bdiag(Tnlist)
+  T_s <- Matrix::bdiag(Tslist)
+
+  TMatrix <- cbind(T_n, T_s)
+
+  Z <- B_all %*% T_s
+  X <- B_all %*% T_n
+
+  it <- 1
+  for (i in seq_along(deglist)) {
+    G[[2 * i - 1]] <- rep(0, ncol(Z))
+    G[[2 * i]] <- rep(0, ncol(Z))
+
+    G[[2 * i - 1]][it:((it + length(t1list[[i]])) - 1)] <- t1list[[i]]
+    G[[2 * i]][it:((it + length(t2list[[i]])) - 1)] <- t2list[[i]]
+
+    it <- it + length(t1list[[i]])
+  }
 
   ####
 
-  d_1s <- diag(P1.svd$d)[1:(c1-pord[1]),1:(c1-pord[1])]
-  d_2s <- diag(P2.svd$d)[1:(c2-pord[2]),1:(c2-pord[2])]
-
-  T_1 <- kronecker(diag(pord[1]),d_2s)
-  T_2 <- matrix(0, nrow = pord[2] * (c1-pord[1]), ncol = pord[2] * (c1-pord[1]))
-  T_3 <- kronecker(diag(c1-pord[1]),d_2s)
-
-  T_21 <- cbind(T_1, matrix(0, nrow = dim(T_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2]))
-  T_22 <- cbind(matrix(0, nrow = dim(T_2)[1], ncol = dim(T_1)[2]), T_2, matrix(0, nrow = dim(T_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2] - dim(T_2)[2]))
-  T_23 <- cbind(matrix(0,nrow=((c2-pord[2])*(c1-pord[1])),ncol=(c1*c2-pord[1]*pord[2])-dim(T_3)[2]),T_3)
-
-  H_1 <- matrix(0, nrow = pord[1] * (c2 - pord[2]),ncol = pord[1] * (c2 - pord[2]))
-  H_2 <- kronecker(d_1s, diag(pord[2]))
-  H_3 <- kronecker(d_1s, diag(c2-pord[2]))
-
-  H_11 <- cbind(H_1, matrix(0, nrow = dim(H_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2]))
-  H_12 <- cbind(matrix(0, nrow = dim(H_2)[1],ncol = dim(H_1)[2]), H_2, matrix(0, nrow = dim(H_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]))
-  H_13 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])),ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]), H_3)
-
-  L_2 <- rbind(T_21, T_22, T_23)
-  L_1 <- rbind(H_11, H_12, H_13)
-
-  t_2 <- diag(L_1)
-  t_1 <- diag(L_2)
-
-  G <- list(t_1, t_2)
-  names(G) <- c("t_1", "t_2")
+  # G <- list(t_1, t_2)
+  # names(G) <- c("t_1", "t_2")
 
   TMatrix <- cbind(T_n,T_s)
 
   list(
-    X_ffvd  = X,
-    Z_ffvd  = Z,
+    X_ffvd  = as.matrix(X),
+    Z_ffvd  = as.matrix(Z),
     G_ffvd  = G,
-    L_Phi   = L_Phi,
-    B_T     = B_T,
-    M       = M,
-    TMatrix = TMatrix
+    TMatrix = as.matrix(TMatrix)
   )
-
-
 }
+
