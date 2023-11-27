@@ -11,7 +11,7 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
   M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
 
   if (any(M[, 1] >= M[, 2]))
-    stop("Ninguna curva puede tener un número de observaciones negativa", call. = FALSE)
+    stop("no curve can have a negative number of observations", call. = FALSE)
 
   N <- nrow(X)
 
@@ -34,7 +34,6 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
     XR <- rng[i, 2] + 1e-6
 
     c <- c1 - bdeg[1] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
-
 
     L_X[[i]] <- bspline(M[i, 1]:M[i, 2], XL, XR, c, bdeg[1])
 
@@ -64,12 +63,10 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
   c_T <- c3 - bdeg[3] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-  if (all(M[,1]==1)) {
-
-    B_T <- bspline(M[,2], XL_T, XR_T, c_T, bdeg[3])
-
-  }else{
-    B_T <- bspline((M[,2]-M[,1]+1), XL_T, XR_T, c_T, bdeg[3])
+  if (all(M[, 1] == 1)) {
+    B_T <- bspline(M[, 2], XL_T, XR_T, c_T, bdeg[3])
+  } else {
+    B_T <- bspline((M[, 2] - M[, 1] + 1), XL_T, XR_T, c_T, bdeg[3])
   }
   ################# HERE WE ARE GOING TO TRASNFORM THE B-SPLINES BASIS INTO THE RAMSAY TYPE B-SPLINES BASIS TO PERFORM THE INNER PRODUCT
   # IS NOT MECESSARY TO DO THIS FOR THE T MARGINAL BASIS
@@ -101,18 +98,6 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
     B_T    = B_T,
     M      = M
   )
-
-  # list(
-  #   X_ffvd  = X,
-  #   Z_ffvd  = Z,
-  #   G_ffvd  = G,
-  #   L_Phi   = L_Phi,
-  #   B_T     = B_T,
-  #   M       = M,
-  #   TMatrix = TMatrix
-  # )
-
-
 }
 
 
@@ -143,40 +128,79 @@ B2XZG <- function(B_all, deglist) {
     P1.svd <- svd(crossprod(D_1))
     P2.svd <- svd(crossprod(D_2))
 
-    U_1s <- P1.svd$u[,1:(c1-pord[1])] # eigenvectors
-    U_1n <- P1.svd$u[,-(1:(c1-pord[1]))]
-    d1   <- P1.svd$d[1:(c1-pord[1])]  # eigenvalues
+    U_1s <- P1.svd$u[, 1:(c1 - pord[1])] # eigenvectors
+    U_1n <- P1.svd$u[, -(1:(c1 - pord[1]))]
+    d1   <- P1.svd$d[1:(c1 - pord[1])]  # eigenvalues
 
-    U_2s <- P2.svd$u[,1:(c2-pord[2])] # eigenvectors
-    U_2n <- P2.svd$u[,-(1:(c2-pord[2]))]
-    d2   <- P2.svd$d[1:(c2-pord[2])]  # eigenvalues
+    U_2s <- P2.svd$u[, 1:(c2 - pord[2])] # eigenvectors
+    U_2n <- P2.svd$u[, -(1:(c2 - pord[2]))]
+    d2   <- P2.svd$d[1:(c2 - pord[2])]  # eigenvalues
 
-    Tnlist[[i]] <- kronecker(U_1n,U_2n) # this is T_n
+    Tnlist[[i]] <- kronecker(U_1n, U_2n) # this is T_n
 
-    AUX_1 <- kronecker(U_1n,U_2s)
-    AUX_2 <- kronecker(U_1s,U_2n)
-    AUX_3 <- kronecker(U_1s,U_2s)
+    AUX_1 <- kronecker(U_1n, U_2s)
+    AUX_2 <- kronecker(U_1s, U_2n)
+    AUX_3 <- kronecker(U_1s, U_2s)
 
-    Tslist[[i]] <- cbind(AUX_1,AUX_2,AUX_3) # this is T_s
+    Tslist[[i]] <- cbind(AUX_1, AUX_2, AUX_3) # this is T_s
 
-    d_1s <- diag(P1.svd$d)[1:(c1-pord[1]),1:(c1-pord[1])]
-    d_2s <- diag(P2.svd$d)[1:(c2-pord[2]),1:(c2-pord[2])]
+    d_1s <- diag(P1.svd$d)[1:(c1 - pord[1]), 1:(c1 - pord[1])]
+    d_2s <- diag(P2.svd$d)[1:(c2 - pord[2]), 1:(c2 - pord[2])]
 
-    T_1 <- kronecker(diag(pord[1]),d_2s)
-    T_2 <- matrix(0, nrow = pord[2] * (c1-pord[1]), ncol = pord[2] * (c1-pord[1]))
-    T_3 <- kronecker(diag(c1-pord[1]),d_2s)
+    T_1 <- kronecker(diag(pord[1]), d_2s)
+    T_2 <-
+      matrix(0,
+             nrow = pord[2] * (c1 - pord[1]),
+             ncol = pord[2] * (c1 - pord[1]))
+    T_3 <- kronecker(diag(c1 - pord[1]), d_2s)
 
-    T_21 <- cbind(T_1, matrix(0, nrow = dim(T_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2]))
-    T_22 <- cbind(matrix(0, nrow = dim(T_2)[1], ncol = dim(T_1)[2]), T_2, matrix(0, nrow = dim(T_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2] - dim(T_2)[2]))
-    T_23 <- cbind(matrix(0,nrow=((c2-pord[2])*(c1-pord[1])),ncol=(c1*c2-pord[1]*pord[2])-dim(T_3)[2]),T_3)
+    T_21 <-
+      cbind(T_1, matrix(
+        0,
+        nrow = dim(T_1)[1],
+        ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2]
+      ))
+    T_22 <-
+      cbind(matrix(0, nrow = dim(T_2)[1], ncol = dim(T_1)[2]),
+            T_2,
+            matrix(
+              0,
+              nrow = dim(T_2)[1],
+              ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2] - dim(T_2)[2]
+            ))
+    T_23 <-
+      cbind(matrix(
+        0,
+        nrow = ((c2 - pord[2]) * (c1 - pord[1])),
+        ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_3)[2]
+      ), T_3)
 
-    H_1 <- matrix(0, nrow = pord[1] * (c2 - pord[2]),ncol = pord[1] * (c2 - pord[2]))
+    H_1 <- matrix(0,
+             nrow = pord[1] * (c2 - pord[2]),
+             ncol = pord[1] * (c2 - pord[2]))
     H_2 <- kronecker(d_1s, diag(pord[2]))
-    H_3 <- kronecker(d_1s, diag(c2-pord[2]))
+    H_3 <- kronecker(d_1s, diag(c2 - pord[2]))
 
-    H_11 <- cbind(H_1, matrix(0, nrow = dim(H_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2]))
-    H_12 <- cbind(matrix(0, nrow = dim(H_2)[1],ncol = dim(H_1)[2]), H_2, matrix(0, nrow = dim(H_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]))
-    H_13 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])),ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]), H_3)
+    H_11 <-
+      cbind(H_1, matrix(
+        0,
+        nrow = dim(H_1)[1],
+        ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2]
+      ))
+    H_12 <-
+      cbind(matrix(0, nrow = dim(H_2)[1], ncol = dim(H_1)[2]),
+            H_2,
+            matrix(
+              0,
+              nrow = dim(H_2)[1],
+              ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]
+            ))
+    H_13 <-
+      cbind(matrix(
+        0,
+        nrow = ((c2 - pord[2]) * (c1 - pord[1])),
+        ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]
+      ), H_3)
 
     L_2 <- rbind(T_21, T_22, T_23)
     L_1 <- rbind(H_11, H_12, H_13)
@@ -186,8 +210,8 @@ B2XZG <- function(B_all, deglist) {
 
   }
 
-  T_n <- Matrix::bdiag(Tnlist)
-  T_s <- Matrix::bdiag(Tslist)
+  T_n <- pracma::blkdiag(Tnlist)
+  T_s <- pracma::blkdiag(Tslist)
 
   TMatrix <- cbind(T_n, T_s)
 
@@ -200,7 +224,7 @@ B2XZG <- function(B_all, deglist) {
     G[[2 * i]] <- rep(0, ncol(Z))
 
     G[[2 * i - 1]][it:((it + length(t1list[[i]])) - 1)] <- t1list[[i]]
-    G[[2 * i]][it:((it + length(t2list[[i]])) - 1)] <- t2list[[i]]
+    G[[2 * i]][it:((it + length(t2list[[i]])) - 1)]     <- t2list[[i]]
 
     it <- it + length(t1list[[i]])
   }
@@ -210,13 +234,13 @@ B2XZG <- function(B_all, deglist) {
   # G <- list(t_1, t_2)
   # names(G) <- c("t_1", "t_2")
 
-  TMatrix <- cbind(T_n,T_s)
+  TMatrix <- cbind(T_n, T_s)
 
   list(
-    X_ffvd  = as.matrix(X),
-    Z_ffvd  = as.matrix(Z),
+    X_ffvd  = X,
+    Z_ffvd  = Z,
     G_ffvd  = G,
-    TMatrix = as.matrix(TMatrix)
+    TMatrix = TMatrix
   )
 }
 

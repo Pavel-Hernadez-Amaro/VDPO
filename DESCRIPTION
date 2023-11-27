@@ -13,7 +13,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
 Imports:
-    Matrix,
+    pracma,
     SOP,
     splines,
     stats
@@ -22,3 +22,4 @@ Suggests:
     RColorBrewer
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+LazyData: true
