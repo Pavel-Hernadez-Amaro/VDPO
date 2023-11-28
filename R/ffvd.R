@@ -210,8 +210,8 @@ B2XZG <- function(B_all, deglist) {
 
   }
 
-  T_n <- pracma::blkdiag(Tnlist)
-  T_s <- pracma::blkdiag(Tslist)
+  T_n <- Matrix::bdiag(Tnlist)
+  T_s <- Matrix::bdiag(Tslist)
 
   TMatrix <- cbind(T_n, T_s)
 
@@ -237,10 +237,10 @@ B2XZG <- function(B_all, deglist) {
   TMatrix <- cbind(T_n, T_s)
 
   list(
-    X_ffvd  = X,
-    Z_ffvd  = Z,
+    X_ffvd  = as.matrix(X),
+    Z_ffvd  = as.matrix(Z),
     G_ffvd  = G,
-    TMatrix = TMatrix
+    TMatrix = as.matrix(TMatrix)
   )
 }
 

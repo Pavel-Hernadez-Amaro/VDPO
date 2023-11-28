@@ -23,6 +23,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   nterms <- length(terms)
   specials_indices <- attr(tf, "specials") # indices for the special terms
 
+
   if (attr(tf, "response")) {
     response  <- as.character(attr(tf, "variables"))[2]
     variables <- as.character(attr(tf, "variables"))[-c(1,2)]
@@ -31,15 +32,16 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     # special term
 
     specials_indices <- lapply(specials_indices,
-                       function(x) if (is.null(x)) NA else x - 1)
+                               function(x) if (is.null(x)) NA else x - 1)
   } else {
     variables <- as.character(attr(tf, "variables"))[-1]
 
     # No need to lower the index of the specials terms if the response exists
     specials_indices <- lapply(specials_indices,
-                      function(x) if (is.null(x)) NA else x)
+                               function(x) if (is.null(x)) NA else x)
   }
-
+  all_indices <- seq_along(variables)
+  non_special_indices <- setdiff(all_indices, specials_indices)
 
   specials <- length(unlist(stats::na.omit(specials_indices))) > 0
 
@@ -93,23 +95,32 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   foo <- B2XZG(B_all, deglist)
 
+  for (column_index in rev(non_special_indices))
+    foo$X_ffvd <- cbind(evals[[column_index]], foo$X_ffvd)
+
   fit <- sop.fit(
     X = foo$X_ffvd, Z = foo$Z_ffvd, G = foo$G_ffvd,
     y = data[[response]], family = family,
     control = list(trace = FALSE), offset = offset
   )
 
-  theta_aux <- c(fit$b.fixed, fit$b.random) ##
+
+  if (nrow(fit$Vp) == nrow(foo$TMatrix)) {
+    theta_aux       <- c(fit$b.fixed,fit$b.random)
+    covar_theta     <- foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)))
+  } else {
+    aux             <- nrow(fit$Vp) - nrow(foo$TMatrix)
+    theta_aux       <- c(fit$b.fixed[-(1:aux)], fit$b.random)
+    covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    std_error_nf    <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
+    WALD            <-  (fit$b.fixed[(1:aux)] / std_error_nf)
+    p_values        <- 2 * pnorm(abs(WALD), lower.tail = FALSE)
+  }
+
   theta <- foo$TMatrix %*% theta_aux
-  # theta <- evals[["TMatrix"]] %*% theta_aux
 
-  # covar_theta <- evals[["TMatrix"]] %*% fit$Vp %*% t(evals[["TMatrix"]])
-  covar_theta <- foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)
-  # std_error_theta <- sqrt(diag(evals[["TMatrix"]] %*% fit$Vp %*% t(evals[["TMatrix"]])))
-  std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)))
-
-  # Beta_ffvd <- matrix(NA, nrow = length(data[[response]]),
-  #                     ncol = max(evals$M)) ##
   Beta_ffvd <- lapply(M,
                       function (x) matrix(NA,
                                           nrow = length(data[[response]]),
@@ -122,12 +133,31 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     }
     it <- it + prod(deglist[[j]])
   }
-  res <- list(
-    fit       = fit,
-    theta     = theta,
-    Beta_ffvd = Beta_ffvd,
-    M_ffvd    = M
-  )
+
+  if (nrow(fit$Vp) == nrow(foo$TMatrix)) {
+    res <- list(
+      fit              = fit,
+      theta            = theta,
+      covar_theta      = covar_theta,
+      std_error_theta  = std_error_theta,
+      Beta_ffvd        = Beta_ffvd,
+      M_ffvd           = M
+    )
+  } else { # if there are nf variables
+    res <- list(
+      fit             = fit,
+      theta_nf        = fit$b.fixed[(1:aux)],
+      theta           = theta,
+      covar_theta     = covar_theta,
+      std_error_theta = std_error_theta,
+      std_error_nf    = std_error_nf,
+      p_values        = p_values,
+      Beta_ffvd       = Beta_ffvd,
+      M_ffvd          = M
+    )
+  }
+
+
 
   class(res) <- "VDFO"
   attr(res, "N") <- length(data[[response]])
