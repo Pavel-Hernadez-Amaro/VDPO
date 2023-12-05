@@ -1,10 +1,25 @@
 VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
+  if (inherits(formula, "character")) {
+    formula <- as.formula(formula)
+  }
   if (inherits(data, what = "data.frame")) {
     data <- as.data.frame(data)
   } else {
     stop("The data specified in the 'data' argument should be a data frame",
          call. = FALSE)
   }
+
+  na_indices <- c()
+  for (name in names(data)) {
+    if (is.null(dim(data[[name]]))) {
+      na_indices <- c(na_indices, which(is.na(data[[name]])))
+    }
+  }
+
+  na_indices <- unique(na_indices)
+
+  if (length(na_indices) != 0)
+    data <- data[-na_indices, ]
 
   vdfoenv <- environment(formula)
   vdfons  <- loadNamespace("VDPO")
@@ -17,7 +32,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (is.null(offset))
     offset <- rep(0L, nobs)
 
-  tf <- stats::terms.formula(formula, specials = c("ffvd"))
+  tf <- stats::terms.formula(formula, specials = c("ffvd", "f"))
 
   terms  <- attr(tf, "term.labels")
   nterms <- length(terms)
@@ -41,7 +56,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
                                function(x) if (is.null(x)) NA else x)
   }
   all_indices <- seq_along(variables)
-  non_special_indices <- setdiff(all_indices, specials_indices)
+  non_special_indices <- setdiff(all_indices, unlist(specials_indices))
 
   specials <- length(unlist(stats::na.omit(specials_indices))) > 0
 
@@ -57,15 +72,49 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     function(term) eval(parse(text = term), envir = vdfons, enclos = vdfoenv)
   )
   names(evals) <- terms
-  nffvd <- sum(grepl("ffvd", names(evals)))
+  nffvd <- sum(grepl("\\bffvd\\(\\b", names(evals)))
+  nf <- sum(grepl("\\bf\\(\\b", names(evals)))
+
+  X <- c() # matrix
+  Z <- c() # matrix
+  G <- list() # list
+
+  l.f <- NULL
+  if (nf > 0) {
+    names.fun <- NULL
+    for (f_index in which(isTRUE(grepl("\\bf\\(\\b", names(evals))))) {
+      l.f[[f_index]] <- evals[[f_index]]
+      names.fun <- c(names.fun, terms[[f_index]])
+      form <- as.formula(paste("~", terms[[f_index]], sep = ""))
+      aa <- switch(as.character(l.f[[f_index]]$dim), `3` = {
+        l.f[[f_index]]$Xmat <- SOP:::construct.3D.pspline(form,
+                                                          data)
+      }, `2` = {
+        l.f[[f_index]]$Xmat <- SOP:::construct.2D.pspline(form,
+                                                          data)
+      }, `1` = {
+        l.f[[f_index]]$Xmat <- SOP:::construct.1D.pspline(form,
+                                                          data)
+      })
+      X <- cbind(X, l.f[[f_index]]$Xmat$X)
+      Z <- cbind(Z, l.f[[f_index]]$Xmat$Z)
+      G <- c(G, list(l.f[[f_index]]$Xmat$g))
+    }
+    l.f <- l.f[lengths(l.f) != 0]
+
+    aux_sum <- 0
+    for (i in seq_along(l.f)) {
+      aux_prod <- 1
+      for (j in seq_along(l.f[[i]]$nseg)) {
+        aux_prod <- aux_prod * (l.f[[i]]$nseg[j] + l.f[[i]]$degree[j])
+      }
+      aux_sum <- aux_sum + aux_prod
+    }
+  }
 
   if (nffvd > 0) {
     B_all   <- c()
     deglist <- vector(mode = "list", length = nffvd)
-
-    X_ffvd <- c() # matrix
-    Z_ffvd <- c() # matrix
-    G_ffvd <- list() # list
     L_Phi  <- vector(mode = "list", length = nffvd) # list of matrices
     B_T    <- vector(mode = "list", length = nffvd) # list of matrices
     M      <- vector(mode = "list", length = nffvd) # list of matrices
@@ -78,38 +127,57 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
       deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
-      # X_ffvd <- cbind(X_ffvd, ffvd_evaluation[["X_ffvd"]])
-      # Z_ffvd <- cbind(Z_ffvd, ffvd_evaluation[["Z_ffvd"]])
-      # # G_ffvd <- append(G_ffvd, ffvd_evaluation[["G_ffvd"]])
-      # G_ffvd <- append(G_ffvd,
-      #                  list(c(ffvd_evaluation[["G_ffvd"]][[1]], rep(0, length(ffvd_evaluation[["G_ffvd"]][[2]]))),
-      #                       c(rep(0, length(ffvd_evaluation[["G_ffvd"]][[1]])), ffvd_evaluation[["G_ffvd"]][[2]]))
-      #                  )
-      #
       L_Phi[[ffvd_counter]] <- ffvd_evaluation[["L_Phi"]]
       B_T[[ffvd_counter]]   <- ffvd_evaluation[["B_T"]]
       M[[ffvd_counter]]     <- ffvd_evaluation[["M"]]
       # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
     }
+    foo <- B2XZG(B_all, deglist)
+
+    X <- cbind(X, foo$X_ffvd)
+    Z <- cbind(Z, foo$Z_ffvd)
+    G <- c(G, foo$G_ffvd)
   }
 
-  foo <- B2XZG(B_all, deglist)
+
+
+  if (length(G) == 1 & length(G[[1]]) == 1) {
+    # G <- list(unlist(G))
+    G <- G[[1]]
+    # names(G) <- names(G[[1]])
+  } else {
+    G <- SOP:::construct.capital.lambda(G)
+  }
 
   for (column_index in rev(non_special_indices))
-    foo$X_ffvd <- cbind(evals[[column_index]], foo$X_ffvd)
+    X <- cbind(evals[[column_index]], X)
+
+  if (is.null(Z))
+    stop("check the 'lm' function from the 'stats' package.", call. = TRUE)
+
+  if (!is.null(X)) {
+    X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
+  } else {
+    X <- matrix(1, ncol = 1, nrow = nrow(Z))
+  }
+
 
   fit <- sop.fit(
-    X = foo$X_ffvd, Z = foo$Z_ffvd, G = foo$G_ffvd,
+    X = X, Z = Z, G = G,
     y = data[[response]], family = family,
     control = list(trace = FALSE), offset = offset
   )
 
-
-  if (nrow(fit$Vp) == nrow(foo$TMatrix)) {
+  if (length(non_special_indices) == 0 && nf == 0) {
+    # only ffvd
     theta_aux       <- c(fit$b.fixed,fit$b.random)
     covar_theta     <- foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)
     std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp %*% t(foo$TMatrix)))
-  } else {
+  } else if (length(non_special_indices) == 0 && nffvd == 0) {
+    # only f
+    theta_aux       <- c(fit$b.fixed,fit$b.random)
+  } else if (length(non_special_indices) != 0 && nf == 0) {
+    # ffvd and x
     aux             <- nrow(fit$Vp) - nrow(foo$TMatrix)
     theta_aux       <- c(fit$b.fixed[-(1:aux)], fit$b.random)
     covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
@@ -117,9 +185,31 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     std_error_nf    <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
     WALD            <-  (fit$b.fixed[(1:aux)] / std_error_nf)
     p_values        <- 2 * pnorm(abs(WALD), lower.tail = FALSE)
+  } else if (length(non_special_indices) != 0 && nf != 0 && nffvd == 0) {
+    # f and x
+    aux             <- nrow(fit$Vp) - aux_sum
+    theta_aux       <- c(fit$b.fixed[-(1:aux)], fit$b.random)
+    # covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    # std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    # std_error_nf    <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
+    # WALD            <-  (fit$b.fixed[(1:aux)] / std_error_nf)
+    # p_values        <- 2 * pnorm(abs(WALD), lower.tail = FALSE)
+  } else if (length(non_special_indices) != 0 && nf != 0 && nffvd != 0) {
+    # f, ffvd and x
+    aux           <- nrow(fit$Vp) - nrow(foo$TMatrix)
+    theta_f       <- c(fit$b.fixed[(aux + 1):(aux + aux_sum)], fit$b.random[1:aux_sum])
+    theta_aux    <- c(fit$b.fixed[(aux + aux_sum + 1):length(fit$b.fixed)], fit$b.random[(aux_sum + 1):length(fit$b.random)])
+    # theta_aux here is theta_ffvd
+    # covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    # std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    # std_error_nf    <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
+    # WALD            <-  (fit$b.fixed[(1:aux)] / std_error_nf)
+    # p_values        <- 2 * pnorm(abs(WALD), lower.tail = FALSE)
   }
 
-  theta <- foo$TMatrix %*% theta_aux
+  if (nffvd > 0)
+    theta <- foo$TMatrix %*% theta_aux
+
 
   Beta_ffvd <- lapply(M,
                       function (x) matrix(NA,
@@ -134,7 +224,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     it <- it + prod(deglist[[j]])
   }
 
-  if (nrow(fit$Vp) == nrow(foo$TMatrix)) {
+  if (length(non_special_indices) != 0) {
     res <- list(
       fit              = fit,
       theta            = theta,

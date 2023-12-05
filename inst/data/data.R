@@ -95,6 +95,11 @@ beta_generator <- function(N, M, precision = 1) {
 }
 
 
+library(refund)
+library(fda)
+library(mgcv)
+library(SOP)
+
 #' data generator
 #'
 #' @param N Number of subjects.
@@ -102,14 +107,12 @@ beta_generator <- function(N, M, precision = 1) {
 #' @param R Number of simulations per the simulation study.
 #' @param case Total number of scenarios simulated.
 #' @param aligned If the data is aligned or not.
+#' @param multivariate If TRUE, the data is generated with 2 variables.
 #'
 #' @return
-dg <- function(N = 10, J = 100, R = 1, case = 1, aligned = TRUE) {
+dg <- function(N = 100, J = 100, R = 1, case = 1, Rsq = 0.95, aligned = TRUE, multivariate = FALSE) {
   for (iter_out in 1:case) { # HERE WE CAN SELECTED WHICH SCENARIO(S) SIMULATE
-    print(c("case = ",iter_out))
-
     for (iter in 1:R) {
-      print(c("iter = ",iter))
       set.seed(42+iter)
 
       M <-  round(runif(N, 10, J), digits = 0) # HERE WE GENERATE THE DOMAIN FOR ALL SUBJECTS WITH A MINIMUM OF A 10 OBSERVATIONS
@@ -118,10 +121,9 @@ dg <- function(N = 10, J = 100, R = 1, case = 1, aligned = TRUE) {
       if (max(M) > J)
         M[which(M>J)] <- J
 
-
-      if (min(M) <= 10) {
+      if (min(M) <= 10)
         M[which(M <= 10)] <- 10
-      }
+
 
       T <- max(M)
 
@@ -131,12 +133,14 @@ dg <- function(N = 10, J = 100, R = 1, case = 1, aligned = TRUE) {
 
       ############ HERE WE GENERATE THE FUNCTIONAL DATA
 
+      X_s  <- matrix(NA, N, T) # NOT NOISY
       X_se <- matrix(NA, N, T) # NOISY
+      Y_s  <- matrix(NA, N, T) # NOT NOISY
+      Y_se <- matrix(NA, N, T) # NOISY
 
-      X_s <- matrix(NA, N, T) # NOT NOISY
 
       for (i in 1:N) {
-        u <- rnorm(1)
+        u1 <- rnorm(1)
 
         temp <- matrix(NA, 10, T)
 
@@ -156,10 +160,14 @@ dg <- function(N = 10, J = 100, R = 1, case = 1, aligned = TRUE) {
 
         B <- apply(temp,2,sum)
 
-        B <- B+u
 
-        X_s[i,] <- B
-        X_se[i,] <- B+rnorm(T, 0, 1) # WE ADD NOISE
+        B  <- B + u1
+        B2 <- B + rnorm(1, sd = 0.02) + (t / 10)
+
+        X_s[i,]  <- B
+        X_se[i,] <- B + rnorm(T, 0, 1) # WE ADD NOISE
+        Y_s[i,]  <- B2
+        Y_se[i,] <- B2 + rnorm(T, 0, 1) # WE ADD NOISE
 
       }
 
@@ -168,42 +176,69 @@ dg <- function(N = 10, J = 100, R = 1, case = 1, aligned = TRUE) {
         if (length(which(is.na(X_s[,i]))) == N)
           stop("some NA columns exist", call. = FALSE)
 
-
-
       Beta <- array(dim = c(N, T, 4))
       nu <- y <- rep(0, N)
 
       for (i in 1:N) {
-
         # TRUE FUNCTIONAL COEFFICIENTS
 
         Beta[i, 1:(M[i]), 1] <- ((10 * t[1:(M[i])] / M[i]) - 5) / 10
         Beta[i, 1:(M[i]), 2] <- ((1 - (2 * M[i] / T)) * (5 - 40 * ((t[1:(M[i])] / M[i]) - 0.5) ^ 2)) / 10
         Beta[i, 1:(M[i]), 3] <- (5 - 10 * ((M[i] - t[1:(M[i])]) / T)) / 10
         Beta[i, 1:(M[i]), 4] <- (sin(2 * pi * M[i] / T) * (5 - 10 * ((M[i] - t[1:(M[i])]) / T))) / 10
-        #
-
 
         # HERE WE GENERATE THE RESPONSE VARIABLE FOR EVERY BETA FROM THE 2 DIFFERENT FUNCTIONAL DATA (NOISY AND OTHERWISE)
 
-        if (iter_out == 8) {
-          nu[i] <- sum(X_se[i, ] * Beta[i, , 4], na.rm = 1) / (M[i]) # NOISY
-        } else if (iter_out <= 4) {
-          nu[i] <-  sum(X_s[i, ] * Beta[i, , iter_out], na.rm = 1) / (M[i]) #NOT NOISY
-        } else if(iter_out > 4 && iter_out < 8){
-          nu[i] <- sum(X_se[i, ] * Beta[i, , iter_out %% 4], na.rm = 1) / M[i] # NOISY
+        if (multivariate) {
+          if (iter_out == 8) {
+            nu[i] <- sum(X_se[i, ] * Beta[i, , 4], na.rm = 1) / (M[i]) + sum(Y_se[i, ] * Beta[i, , 4], na.rm = 1) / (M[i]) # NOISY
+          } else if (iter_out <= 4) {
+            nu[i] <-  sum(X_s[i, ] * Beta[i, , iter_out], na.rm = 1) / (M[i]) + sum(Y_s[i, ] * Beta[i, , iter_out], na.rm = 1) / (M[i]) #NOT NOISY
+          } else if (iter_out > 4 && iter_out < 8) {
+            nu[i] <- sum(X_se[i, ] * Beta[i, , iter_out %% 4], na.rm = 1) / M[i] + sum(Y_se[i, ] * Beta[i, , iter_out %% 4], na.rm = 1) / M[i] # NOISY
+          }
+        } else {
+          if (iter_out == 8) {
+            nu[i] <- sum(X_se[i, ] * Beta[i, , 4], na.rm = 1) / (M[i]) # NOISY
+          } else if (iter_out <= 4) {
+            nu[i] <-  sum(X_s[i, ] * Beta[i, , iter_out], na.rm = 1) / (M[i]) #NOT NOISY
+          } else if (iter_out > 4 && iter_out < 8) {
+            nu[i] <- sum(X_se[i, ] * Beta[i, , iter_out %% 4], na.rm = 1) / M[i] # NOISY
+          }
         }
+
+
 
       }
 
-
-      y=nu+rnorm(N,sd = 1) # ADDING NOISE TO THE GAUSSIAN MODEL
+      var_e <- (1/Rsq - 1) * var(nu)
+      y <- nu + rnorm(N,sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
     }
   }
 
   data = data.frame(y = y)
-  data[["X"]] <- X_se
-  data[["Y"]] <- X_s
-
+  data[["X_s"]]  <- X_s
+  data[["X_se"]] <- X_se
+  data[["Y_s"]]  <- Y_s
+  data[["Y_se"]] <- Y_se
+  # añadir rnorm. min(range(X)) sea el min del rnorm y el std el std de las X o del range
   data
+}
+
+
+h1 <- function(t) {
+  res <- c()
+  for (value in t) {
+    res <- c(res, max(25 - abs(value - 50), 0))
+  }
+  res
+}
+h2 <- function(t) h1(t - 20)
+h3 <- function(t) h1(t + 20)
+
+x <- function(t, cl = 1) {
+  h <- if (cl == 1) h2 else h3
+  u <- runif(1)
+  e <- rnorm(length(t), mean = 0, sd = 0.1)
+  u * h1(t) + (1 - u) * h(t) + e
 }
