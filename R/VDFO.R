@@ -183,36 +183,46 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   )
 
   intercept <- fit$b.fixed[1]
+  b_fixed_tmp <- fit$b.fixed[-1]
+  Vp_tmp <- fit$Vp[-1,-1]
 
   if (length(non_special_indices) == 0 && nf == 0) {
     # only ffvd
 
-    theta_ffvd      <- c(fit$b.fixed[-1],fit$b.random)
-    covar_theta     <- foo$TMatrix %*% fit$Vp[-1,-1] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-1,-1] %*% t(foo$TMatrix)))
-  } else if (length(non_special_indices) != 0 && nf == 0) {
+    theta_ffvd      <- c( b_fixed_tmp,fit$b.random)
+    covar_theta     <- foo$TMatrix %*%  Vp_tmp %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp %*% t(foo$TMatrix)))
+  } else if (length(non_special_indices) > 0 && nf == 0) {
     # ffvd and x
-    aux             <- nrow(fit$Vp) - nrow(foo$TMatrix)
-    theta_ffvd      <- c(fit$b.fixed[-(1:(aux+1))], fit$b.random)
-    covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:(aux+1)), -(1:(aux+1))] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-(1:(aux+1)), -(1:(aux+1))] %*% t(foo$TMatrix)))
-    std_error_nf    <- sqrt(diag(fit$Vp[2:aux, 2:aux]))
-    WALD            <-  (fit$b.fixed[(2:aux)] / std_error_nf)
+    aux             <- nrow( Vp_tmp) - nrow(foo$TMatrix)
+    theta_ffvd      <- c( b_fixed_tmp[-(1:aux)], fit$b.random)
+    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    std_error_nf    <- sqrt(diag( Vp_tmp[1:aux, 1:aux]))
+    WALD            <-  ( b_fixed_tmp[(1:aux)] / std_error_nf)
     p_values        <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
   } else if (length(non_special_indices) != 0 && nf != 0) {
     # f, ffvd and x
-    aux <- nrow(fit$Vp) - nrow(foo$TMatrix)
-    theta_f <- c(fit$b.fixed[(aux + 1):(aux + aux_sum)], fit$b.random[1:aux_sum])
-    theta_ffvd <- c(fit$b.fixed[(aux + aux_sum + 1):length(fit$b.fixed)], fit$b.random[(aux_sum + 1):length(fit$b.random)])
+    aux <- nrow( Vp_tmp) - nrow(foo$TMatrix)
+    theta_f <- c( b_fixed_tmp[(aux + 1):(aux + aux_sum)], fit$b.random[1:aux_sum])
+    theta_ffvd <- c( b_fixed_tmp[(aux + aux_sum + 1):length( b_fixed_tmp)], fit$b.random[(aux_sum + 1):length(fit$b.random)])
     # theta_aux here is theta_ffvd
-    covar_theta     <- foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
 
-    std_error_nf    <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
-    WALD            <-  (fit$b.fixed[(1:aux)] / std_error_nf)
+    std_error_nf    <- sqrt(diag( Vp_tmp[1:aux, 1:aux]))
+    WALD            <-  ( b_fixed_tmp[(1:aux)] / std_error_nf)
     p_values        <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
-  } else if (length(non_special_indices) == 0 && nf != 0) {
+  } else if (length(non_special_indices) == 0 && nf > 0) {
     # only ffvd and f
+
+    aux <- nrow( Vp_tmp) - nrow(foo$TMatrix)
+    theta_f <- c( fit$b.fixed[1], fit$b.random[1:aux])
+    theta_ffvd <- c( fit$b.fixed[-1], fit$b.random[-(1:aux)])
+    # theta_aux here is theta_ffvd
+    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+
   }
 
 
@@ -231,37 +241,56 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     it <- it + prod(deglist[[j]])
   }
 
-  # if (length(non_special_indices) != 0) {
-  #   res <- list(
-  #     fit              = fit,
-  #     theta            = theta,
-  #     covar_theta      = covar_theta,
-  #     std_error_theta  = std_error_theta,
-  #     Beta_ffvd        = Beta_ffvd,
-  #     M_ffvd           = M
-  #   )
-  # } else { # if there are nf variables
-  #   res <- list(
-  #     fit             = fit,
-  #     # theta_nf        = fit$b.fixed[(1:aux)],
-  #     theta           = theta,
-  #     covar_theta     = covar_theta,
-  #     std_error_theta = std_error_theta,
-  #     std_error_nf    = std_error_nf,
-  #     p_values        = p_values,
-  #     Beta_ffvd       = Beta_ffvd,
-  #     M_ffvd          = M
-  #   )
-  # }
+  if (length(non_special_indices) > 0 && nf > 0) {
+    # ffvd and f and x
+    res <- list(
+      fit             = fit,
+      theta_nf        = fit$b.fixed[(2:(aux+1))],
+      theta_ffvd           = theta,
+      theta_f = theta_f,
+      covar_theta     = covar_theta,
+      std_error_theta = std_error_theta,
+      std_error_nf    = std_error_nf,
+      p_values        = p_values,
+      Beta_ffvd       = Beta_ffvd,
+      M_ffvd          = M
+    )
+  } else if (length(non_special_indices) > 0 && nf == 0) {
+    # ffvd and x
 
-  res <- list(
-    fit              = fit,
-    theta            = theta,
-    covar_theta      = covar_theta,
-    std_error_theta  = std_error_theta,
-    Beta_ffvd        = Beta_ffvd,
-    M_ffvd           = M
-  )
+    res <- list(
+      fit             = fit,
+      theta_nf        = fit$b.fixed[(2:(aux+1))],
+      theta_ffvd           = theta,
+      covar_theta     = covar_theta,
+      std_error_theta = std_error_theta,
+      std_error_nf    = std_error_nf,
+      p_values        = p_values,
+      Beta_ffvd       = Beta_ffvd,
+      M_ffvd          = M
+    )
+  } else if(length(non_special_indices) == 0 && nf > 0) {
+    # only ffvd and f
+    res <- list(
+      fit             = fit,
+      theta_ffvd           = theta,
+      theta_f = theta_f,
+      covar_theta     = covar_theta,
+      std_error_theta = std_error_theta,
+      Beta_ffvd       = Beta_ffvd,
+      M_ffvd          = M
+    )
+  } else {
+    # only ffvd
+    res <- list(
+      fit              = fit,
+      theta_ffvd          = theta,
+      covar_theta      = covar_theta,
+      std_error_theta  = std_error_theta,
+      Beta_ffvd        = Beta_ffvd,
+      M_ffvd           = M
+    )
+  }
 
   class(res) <- "VDFO"
   attr(res, "N") <- length(data[[response]])
