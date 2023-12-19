@@ -3,7 +3,7 @@
 #' @param X Fixed part of the mixed model.
 #' @param Z Random part of the mixed model.
 #' @param G Variance-covariance matrix.
-#' @param T Matrix of transformation from the multivariate model to the mixed model.
+#' @param TMatrix Matrix of transformation from the multivariate model to the mixed model.
 #' @param y Response variable.
 #' @param family Family of the distrbution.
 #' @param offset .
@@ -20,7 +20,7 @@ XZG2theta <- function(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = 
   #   stop("The number of columns of 'Z' must be equal to the length of 'G'")
   # }
 
-  w <-  as.vector(rep(1,dim(X)[1]))
+  w <- as.vector(rep(1,dim(X)[1]))
 
   fit <- sop.fit(
     X = X, Z = Z, G = G,

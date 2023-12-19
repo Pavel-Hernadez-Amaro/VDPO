@@ -13,13 +13,13 @@ XZG2theta(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = NULL)
 
 \item{G}{Variance-covariance matrix.}
 
+\item{TMatrix}{Matrix of transformation from the multivariate model to the mixed model.}
+
 \item{y}{Response variable.}
 
 \item{family}{Family of the distrbution.}
 
 \item{offset}{.}
-
-\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
 }
 \value{
 .
