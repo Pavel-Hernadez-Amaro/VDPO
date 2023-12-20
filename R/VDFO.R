@@ -243,11 +243,12 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   if (length(non_special_indices) > 0 && nf > 0) {
     # ffvd and f and x
+
     res <- list(
       fit             = fit,
       theta_nf        = fit$b.fixed[(2:(aux+1))],
-      theta_ffvd           = theta,
-      theta_f = theta_f,
+      theta_ffvd      = theta,
+      theta_f         = theta_f,
       covar_theta     = covar_theta,
       std_error_theta = std_error_theta,
       std_error_nf    = std_error_nf,
@@ -261,7 +262,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     res <- list(
       fit             = fit,
       theta_nf        = fit$b.fixed[(2:(aux+1))],
-      theta_ffvd           = theta,
+      theta_ffvd      = theta,
       covar_theta     = covar_theta,
       std_error_theta = std_error_theta,
       std_error_nf    = std_error_nf,
@@ -271,10 +272,11 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     )
   } else if(length(non_special_indices) == 0 && nf > 0) {
     # only ffvd and f
+
     res <- list(
       fit             = fit,
-      theta_ffvd           = theta,
-      theta_f = theta_f,
+      theta_ffvd      = theta,
+      theta_f         = theta_f,
       covar_theta     = covar_theta,
       std_error_theta = std_error_theta,
       Beta_ffvd       = Beta_ffvd,
@@ -282,9 +284,10 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     )
   } else {
     # only ffvd
+
     res <- list(
       fit              = fit,
-      theta_ffvd          = theta,
+      theta_ffvd       = theta,
       covar_theta      = covar_theta,
       std_error_theta  = std_error_theta,
       Beta_ffvd        = Beta_ffvd,
@@ -297,3 +300,9 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   res
 }
 
+
+
+#' @export
+summary.VDFO <- function(object, ...) {
+  base::summary(object$fit, ...)
+}
