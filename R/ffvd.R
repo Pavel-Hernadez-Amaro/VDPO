@@ -1,6 +1,6 @@
 ## NO ALINEAR A LA IZDA LAS CURVAS. LINEAS A CAMBIAR CON ##
 
-ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
+ffvd <- function(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3)) {
   sub <- 500
   pord <- c(2,2)
   ## SETTING SOME MATRICES AND PARAMETERS
@@ -54,7 +54,7 @@ ffvd <- function(X, nbasis = c(30, 30, 30), bdeg = c(3, 3, 3)) {
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
 
-  M_diff= (M[,2]-M[,1]+1)
+  M_diff <- (M[,2] - M[,1] + 1)
 
   xlim_T <- c(min(M_diff), max(M_diff)) ##
 

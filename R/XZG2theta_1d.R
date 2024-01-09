@@ -3,7 +3,7 @@
 #' @param X Fixed part of the mixed model.
 #' @param Z Random part of the mixed model.
 #' @param G Variance-covariance matrix.
-#' @param T Matrix of transformation from the multivariate model to the mixed model.
+#' @param TMatrix Matrix of transformation from the multivariate model to the mixed model.
 #' @param y Response variable.
 #' @param family Family of the distrbution.
 #'

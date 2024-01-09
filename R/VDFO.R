@@ -158,7 +158,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     X <- cbind(evals[[column_index]], X)
 
   if (is.null(Z))
-    stop("check the 'lm' function from the 'stats' package.", call. = TRUE)
+    stop("check the 'lm' function from the 'stats' package", call. = TRUE)
 
   X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
 
@@ -241,6 +241,7 @@ VDFO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     it <- it + prod(deglist[[j]])
   }
 
+  # this should be reworked using the 'append' function
   if (length(non_special_indices) > 0 && nf > 0) {
     # ffvd and f and x
 

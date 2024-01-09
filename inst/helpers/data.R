@@ -80,7 +80,8 @@ dg <- function(N = 100, J = 100, R = 1, case = 1, Rsq = 0.95, aligned = TRUE, mu
       Beta <- array(dim = c(N, T, 4))
       nu <- y <- rep(0, N)
       x1 <- runif(N)
-      f0 <- \(x) cos((x-0.5)^2)
+      # f0 <- \(x) cos((x-0.5)^2)
+      f0 <- \(x) 2*sin(pi*x)
 
       for (i in 1:N) {
         # TRUE FUNCTIONAL COEFFICIENTS
@@ -112,6 +113,7 @@ dg <- function(N = 100, J = 100, R = 1, case = 1, Rsq = 0.95, aligned = TRUE, mu
 
       nu <- nu + f0(x1)
       var_e <- (1/Rsq - 1) * var(nu)
+      # y <- x1 + nu + rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
       y <- nu + rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
     }
   }

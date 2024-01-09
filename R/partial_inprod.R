@@ -12,15 +12,15 @@
 #' @export
 partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng) {
   if (n_intervals %% 2 != 0) {
-    stop("The number of intervals should be even", call. = FALSE)
+    stop("the 'n_intervals' parameter should be an even number", call. = FALSE)
   }
 
   if (length(rng) != 2) {
-    stop("Length should be a vector with two elements", call. = FALSE)
+    stop("'rng' should be a vector with two elements", call. = FALSE)
   }
 
   if (length(bdeg) != 2) {
-    stop("bdeg should be a vector with two elements", call. = FALSE)
+    stop("'bdeg' should be a vector with two elements", call. = FALSE)
   }
 
   width <- (rng[[2]] - rng[[1]]) / n_intervals

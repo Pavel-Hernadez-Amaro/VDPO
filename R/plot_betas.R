@@ -10,7 +10,7 @@ plot.VDFO <- function(x, beta_index = 1, ...) {
 
   if (beta_index < 1 || beta_index > length(x$M_ffvd)) {
     stop(
-      "'plot_index' should be between 1 and the number of variable domain
+      "'beta_index' should be between 1 and the number of variable domain
          functional variables used in the formula", call. = FALSE
     )
   }
