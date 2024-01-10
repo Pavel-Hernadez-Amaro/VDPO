@@ -13,11 +13,11 @@ XZG2theta_1d(X, Z, G, TMatrix, y, family = stats::gaussian())
 
 \item{G}{Variance-covariance matrix.}
 
+\item{TMatrix}{Matrix of transformation from the multivariate model to the mixed model.}
+
 \item{y}{Response variable.}
 
 \item{family}{Family of the distrbution.}
-
-\item{T}{Matrix of transformation from the multivariate model to the mixed model.}
 }
 \value{
 .

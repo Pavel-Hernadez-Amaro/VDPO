@@ -296,7 +296,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     )
   }
 
-  class(res) <- "VDFO"
+  class(res) <- "VDPO"
   attr(res, "N") <- length(data[[response]])
   res
 }
@@ -304,6 +304,6 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
 
 #' @export
-summary.VDFO <- function(object, ...) {
+summary.VDPO <- function(object, ...) {
   base::summary(object$fit, ...)
 }

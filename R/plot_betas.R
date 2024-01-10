@@ -36,7 +36,7 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
   lims <- range(Heat_map_data$Beta)
 
   ggplot2::ggplot(Heat_map_data, ggplot2::aes(x = t, y = IND)) +
-    ggplot2::geom_tile(ggplot2::aes(colour = Beta, fill = Beta)) +
+    ggplot2::geom_tile(ggplot2::aes(colour = Heat_map_data$Beta, fill = Heat_map_data$Beta)) +
     ggplot2::scale_fill_gradientn(
       name     = "",
       limits   = lims,
