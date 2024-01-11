@@ -10,7 +10,6 @@
 #'
 #' @return .
 #' @export
-#'
 Data2B <- function(X, M, nbasis = c(30,30,30), bdeg = c(3,3,3), sub = 500, lim = NULL){
   ## SETTING SOME MATRICES AND PARAMETERS
 

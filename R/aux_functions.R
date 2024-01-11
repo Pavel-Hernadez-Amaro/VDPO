@@ -300,6 +300,8 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
 #' @param use_f If the data is generated with f.
 #'
 #' @return Example data.
+#'
+#' @noRd
 dg <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivariate = FALSE, use_x = FALSE, use_f = FALSE) {
 
   for (iter in 1:nsims) {
