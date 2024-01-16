@@ -90,7 +90,8 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   ## TODO add the f function to the package namespace
 
   if (nffvd == 0 && nffpo == 0) {
-    stop("This function should be used with at least one 'ffvd' or 'ffpo' term.")
+    stop("this function should be used with at least one 'ffvd' or 'ffpo' term",
+         call. = FALSE)
   }
 
   X <- c() # matrix
@@ -172,16 +173,15 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     M_ffpo   <- vector(mode = "list", length = nffpo) # list of matrices
     # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
-    ffvd_counter <- 0
+    ffpo_counter <- 0
     for (ffvd_evaluation in evals[grepl("ffpo", names(evals))]) {
-      ffvd_counter <- ffvd_counter + 1
+      ffpo_counter <- ffpo_counter + 1
 
       B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
-      deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
+      deglist[[ffpo_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
-      Phi_ffpo[[ffvd_counter]] <- ffvd_evaluation[["Phi"]]
-      M_ffpo[[ffvd_counter]]   <- ffvd_evaluation[["M"]]
-      # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
+      Phi_ffpo[[ffpo_counter]] <- ffvd_evaluation[["Phi"]]
+      M_ffpo[[ffpo_counter]]   <- ffvd_evaluation[["M"]]
     }
     foo <- B2XZG(B_all, deglist)
 
@@ -190,13 +190,13 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     G <- c(G, foo$G_ffvd)
   }
 
-
-
-  for (column_index in rev(non_special_indices))
+  for (column_index in rev(non_special_indices)) {
     X <- cbind(evals[[column_index]], X)
+  }
 
-  if (is.null(Z))
+  if (is.null(Z)) {
     stop("check the 'lm' function from the 'stats' package", call. = TRUE)
+  }
 
   X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
 
@@ -212,7 +212,6 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   for (i in (nf+1):(2*(nf+nffvd)-1)) {
     G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
   }
-
 
   fit <- sop.fit(
     X = X, Z = Z, G = G,

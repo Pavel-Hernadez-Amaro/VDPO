@@ -19,6 +19,11 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
   is_grid_matrix <- length(setdiff(dim(grid),1)) == 2
 
   SUB <- 500
+  K   <- NULL
+  N   <- nrow(X)
+  c1  <- nbasis[1]
+  c2  <- nbasis[2]
+  A <- matrix(0, nrow = N, ncol = N*c1)
 
   if (!is_grid_matrix) {
     M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
@@ -26,25 +31,15 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
     grid_all <- sort(unique(c(t(grid)))) # Mathematical union of the grid rows
     M <- c(apply(grid, 1, function(x) length(!is.na(x))))
   }
-  N <- nrow(X)
-
-  if (any(M[, 1] >= M[, 2]))
-    stop("no curve can have a negative number of observations", call. = FALSE)
-
-  c1 <- nbasis[1]
-  c2 <- nbasis[2]
-
-  K <- NULL
 
   rng <- matrix(0, ncol = 2, nrow = N)
+  if (any(M[, 1] >= M[, 2])) {
+    stop("no curve can have a negative number of observations", call. = FALSE)
+  }
 
   L_X       <- vector(mode = "list", length = N)
   L_y       <- vector(mode = "list", length = N)
   L_theta   <- vector(mode = "list", length = N)
-
-  A <- matrix(0, nrow = N, ncol = N*c1)
-
-  # TODO re-code the if-else statements
 
   for (i in 1:N) {
     if (!is_grid_matrix) {
@@ -60,22 +55,16 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
 
     if (!is_grid_matrix) {
       L_X[[i]] <- bspline(grid[M[i,1]:M[i,2]], XL, XR, c, bdeg[1])
-    } else {
-      L_X[[i]] <- bspline(grid[i, 1:M[i]], XL, XR, c, bdeg[1])
-    }
-
-    ######### ESTIMATING THE DATA COEFFICIENTS (MATRIX A)
-
-    aux <- L_X[[i]]$B
-
-    aux_2 <- B2XZG_1d(aux,2,c1)
-
-    if (!is_grid_matrix) {
       response_x <- X[i,M[i,1]:M[i,2]]
     } else {
+      L_X[[i]] <- bspline(grid[i, 1:M[i]], XL, XR, c, bdeg[1])
       response_x <- X[i, 1:M[i]]
     }
 
+    # Esrtimating the data coefficients (Matrix A)
+
+    aux <- L_X[[i]]$B
+    aux_2 <- B2XZG_1d(aux,2,c1)
     aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = response_x )
 
     A[i,((c1*(i-1))+1):(i*c1)] <- aux_3$theta
@@ -84,56 +73,29 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
     L_y[[i]] <- L_X[[i]]$B%*%L_theta[[i]]
   }
 
-  # HERE WE CREATE THE BASIS FOR THE t VARIABLE In B(t)
 
-  if (!is_grid_matrix) {
-    rng_t <- range(grid) # THE KNOTS FOR THE FUNCTIONAL COEFFICIENTS HAVE TO BE MAXIMUM
-
-    XL_t <- rng_t[1] - 1e-06
-    XR_t <- rng_t[2] + 1e-06
-
-    c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
-
-    Phi <- bspline(grid, XL_t, XR_t, c_t, bdeg[2])
-  } else {
-    rng_t <- range(grid_all, na.rm = TRUE) # THE KNOTS FOR THE FUNCTIONAL COEFFICIENTS HAVE TO BE MAXIMUM
-
-    XL_t <- rng_t[1] - 1e-06
-    XR_t <- rng_t[2] + 1e-06
-
-    c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
-
-    Phi <- bspline(grid_all, XL_t, XR_t, c_t, bdeg[2])
-  }
+  # The knots for the functional coefficient must be maximum
+  rng_t <- if (!is_grid_matrix) range(grid) else range(grid_all, na.rm = TRUE)
+  XL_t <- rng_t[1] - 1e-06
+  XR_t <- rng_t[2] + 1e-06
+  c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
+  Phi <- bspline(if (!is_grid_matrix) grid else grid_all,
+                 XL_t, XR_t, c_t, bdeg[2])
 
   res <- matrix(nrow = N, ncol = c2)
 
   for (i in 1:N) {
-
-    if (!is_grid_matrix) {
-      Phi_short <- Phi$B[M[i,1]:M[i,2],]
-
-    } else {
-
-      aux_knots <- which(grid_all %in% grid[i, ])
-
-      Phi_short <- Phi$B[aux_knots, ]
-
-    }
+    aux_knots <- if (!is_grid_matrix) M[i,1]:M[i,2] else which(grid_all %in% grid[i, ])
+    Phi_short <- Phi$B[aux_knots,]
 
     aux_del <- which(colSums(Phi_short) == 0)
 
     if (length(aux_del) != 0) {
       Phi_short <- as.matrix(Phi_short[,-aux_del])
     }
-
-    if (!is_grid_matrix) {
-      min_knot <- max(which(Phi$knots <= range(grid[M[i, 1]:M[i, 2]],na.rm = TRUE)[1])) - 3
-      max_knot <- min(which(Phi$knots >= range(grid[M[i, 1]:M[i, 2]],na.rm = TRUE)[2])) + 3
-    } else {
-      min_knot <- max(which(Phi$knots <= range(grid[i, ],na.rm = TRUE)[1])) - 3
-      max_knot <- min(which(Phi$knots >= range(grid[i, ],na.rm = TRUE)[2])) + 3
-    }
+    aux_range <- if (!is_grid_matrix) M[i, 1]:M[i, 2] else i
+    min_knot <- max(which(Phi$knots <= range(grid[aux_range, ],na.rm = TRUE)[1])) - 3
+    max_knot <- min(which(Phi$knots >= range(grid[aux_range, ],na.rm = TRUE)[2])) + 3
 
     if (min_knot<1) {
       min_knot <- 1
@@ -173,12 +135,12 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
       }
     }
 
-    XI <- matrix( 0,nrow = c1, ncol = c2)
+    XI <- matrix(0, nrow = c1, ncol = c2)
 
     if (length(aux_del) != 0) {
-      XI[,-aux_del] <- width*(XIa + XIb + 2*XI2 + 4*XI1)/3
+      XI[,-aux_del] <- width * (XIa + XIb + 2*XI2 + 4*XI1)/3
     } else {
-      XI <- width*(XIa + XIb + 2*XI2 + 4*XI1)/3
+      XI <- width * (XIa + XIb + 2*XI2 + 4*XI1)/3
     }
 
     res[i,] <- t(L_theta[[i]]) %*% XI
