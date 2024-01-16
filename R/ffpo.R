@@ -6,7 +6,6 @@
 #' @param bdeg .
 #'
 #' @return .
-#' @export
 ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
   if (!is.matrix(X)) {
     stop("argument 'X' should be a matrix", call. = FALSE)

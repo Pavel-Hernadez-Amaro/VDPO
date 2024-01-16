@@ -1,3 +1,12 @@
+#' VDPO function
+#'
+#' @param formula .
+#' @param data .
+#' @param family .
+#' @param offset .
+#'
+#' @return .
+#' @export
 VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (inherits(formula, "character")) {
     formula <- stats::as.formula(formula)
