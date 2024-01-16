@@ -18,21 +18,23 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   na_indices <- unique(na_indices)
 
-  if (length(na_indices) != 0)
+  if (length(na_indices) != 0) {
     data <- data[-na_indices, ]
+  }
 
   vdfoenv <- environment(formula)
   vdfons  <- loadNamespace("VDPO")
 
-  for (var in names(data))
+  for (var in names(data)) {
     vdfoenv[[var]] <- data[[var]]
-
+  }
   nobs <- nrow(data)
 
-  if (is.null(offset))
+  if (is.null(offset)) {
     offset <- rep(0L, nobs)
+  }
 
-  tf <- stats::terms.formula(formula, specials = c("ffvd", "f"))
+  tf <- stats::terms.formula(formula, specials = c("ffvd", "ffpo", "f"))
 
   terms  <- attr(tf, "term.labels")
   nterms <- length(terms)
@@ -71,14 +73,16 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     function(term) eval(parse(text = term), envir = vdfons, enclos = vdfoenv)
   )
   names(evals) <- terms
+
+  nf    <- sum(grepl("\\bf\\(\\b", names(evals)))
+  nffpo <- sum(grepl("\\bffpo\\(\\b", names(evals)))
   nffvd <- sum(grepl("\\bffvd\\(\\b", names(evals)))
+
   ## TODO add the f function to the package namespace
 
-  if (nffvd == 0) {
-    stop("This function should be used with at least one 'ffvd' term.")
+  if (nffvd == 0 && nffpo == 0) {
+    stop("This function should be used with at least one 'ffvd' or 'ffpo' term.")
   }
-
-  nf <- sum(grepl("\\bf\\(\\b", names(evals)))
 
   X <- c() # matrix
   Z <- c() # matrix
@@ -152,6 +156,31 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     G <- c(G, foo$G_ffvd)
   }
 
+  if (nffpo > 0) {
+    B_all    <- c()
+    deglist  <- vector(mode = "list", length = nffpo)
+    Phi_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
+    M_ffpo   <- vector(mode = "list", length = nffpo) # list of matrices
+    # TMatrix <- vector(mode = "list", length = nffvd) # matrix
+
+    ffvd_counter <- 0
+    for (ffvd_evaluation in evals[grepl("ffpo", names(evals))]) {
+      ffvd_counter <- ffvd_counter + 1
+
+      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
+      deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
+
+      Phi_ffpo[[ffvd_counter]] <- ffvd_evaluation[["Phi"]]
+      M_ffpo[[ffvd_counter]]   <- ffvd_evaluation[["M"]]
+      # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
+    }
+    foo <- B2XZG(B_all, deglist)
+
+    X <- cbind(X, foo$X_ffvd)
+    Z <- cbind(Z, foo$Z_ffvd)
+    G <- c(G, foo$G_ffvd)
+  }
+
 
 
   for (column_index in rev(non_special_indices))
@@ -163,14 +192,14 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
 
 
-  # We need to add zeros to the right of the f Gs and to to the left of the ffvd
+  # We need to add zeros to the right of the f Gs and to the left of the ffvd
 
   if (nf > 0) {
     for (i in 1:nf) {
       G[[i]] <- c(G[[i]], rep(0, ncol(Z) - length(G[[i]])))
     }
   }
-  # Adding zeros to the right for the ffvd
+  # Adding zeros to the left for the ffvd
   for (i in (nf+1):(2*(nf+nffvd)-1)) {
     G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
   }
@@ -227,11 +256,13 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
 
   theta <- foo$TMatrix %*% theta_ffvd
+  if (nffvd > 0) {
+    Beta_ffvd <- lapply(M,
+                        function (x) matrix(NA,
+                                            nrow = length(data[[response]]),
+                                            ncol = max(x)))
+  }
 
-  Beta_ffvd <- lapply(M,
-                      function (x) matrix(NA,
-                                          nrow = length(data[[response]]),
-                                          ncol = max(x)))
   it <- 1
   for (j in 1:nffvd) {
     for (i in 1:length(data[[response]])) {

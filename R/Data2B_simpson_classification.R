@@ -140,7 +140,7 @@ data2B_simpson_classification <- function(X, M, grid, nbasis=c(80,80), bdeg=c(3,
       fx2 <- splines::spline.des(new_knots, x, bdeg[2]+1, 0*x)$design
       Fx <- t(fx1) %*% fx2
 
-      if (j%%2 == 0) {
+      if (j %% 2 != 0) {
         XI2 <- XI2 + Fx
       } else {
         XI1 <- XI1 + Fx

@@ -398,3 +398,7 @@ dg <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivar
 
   data
 }
+
+
+
+
