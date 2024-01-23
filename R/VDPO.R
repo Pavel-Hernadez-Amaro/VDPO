@@ -174,14 +174,14 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffpo_counter <- 0
-    for (ffvd_evaluation in evals[grepl("ffpo", names(evals))]) {
+    for (ffpo_evaluation in evals[grepl("ffpo", names(evals))]) {
       ffpo_counter <- ffpo_counter + 1
 
-      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
-      deglist[[ffpo_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
+      B_all <- cbind(B_all, ffpo_evaluation[["B_ffvd"]])
+      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1:2]
 
-      Phi_ffpo[[ffpo_counter]] <- ffvd_evaluation[["Phi"]]
-      M_ffpo[[ffpo_counter]]   <- ffvd_evaluation[["M"]]
+      Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
+      M_ffpo[[ffpo_counter]]   <- ffpo_evaluation[["M"]]
     }
     foo <- B2XZG(B_all, deglist)
 
