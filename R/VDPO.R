@@ -31,11 +31,11 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     data <- data[-na_indices, ]
   }
 
-  vdfoenv <- environment(formula)
-  vdfons  <- loadNamespace("VDPO")
+  vdpoenv <- environment(formula)
+  vdpons  <- loadNamespace("VDPO")
 
   for (var in names(data)) {
-    vdfoenv[[var]] <- data[[var]]
+    vdpoenv[[var]] <- data[[var]]
   }
   nobs <- nrow(data)
 
@@ -79,7 +79,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   evals <- lapply(
     terms,
-    function(term) eval(parse(text = term), envir = vdfons, enclos = vdfoenv)
+    function(term) eval(parse(text = term), envir = vdpons, enclos = vdpoenv)
   )
   names(evals) <- terms
 
@@ -177,17 +177,17 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     for (ffpo_evaluation in evals[grepl("ffpo", names(evals))]) {
       ffpo_counter <- ffpo_counter + 1
 
-      B_all <- cbind(B_all, ffpo_evaluation[["B_ffvd"]])
-      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1:2]
+      B_all <- cbind(B_all, ffpo_evaluation[["B_ffpo"]])
+      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1]
 
       Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
       M_ffpo[[ffpo_counter]]   <- ffpo_evaluation[["M"]]
     }
-    foo <- B2XZG(B_all, deglist)
+    foo <- B2XZG_ffpo(B_all, deglist)
 
-    X <- cbind(X, foo$X_ffvd)
-    Z <- cbind(Z, foo$Z_ffvd)
-    G <- c(G, foo$G_ffvd)
+    X <- cbind(X, foo$X)
+    Z <- cbind(Z, foo$Z)
+    G <- c(G, foo$G)
   }
 
   for (column_index in rev(non_special_indices)) {
@@ -209,9 +209,9 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     }
   }
   # Adding zeros to the left for the ffvd
-  for (i in (nf+1):(2*(nf+nffvd)-1)) {
-    G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
-  }
+  # for (i in (nf+1):(2*(nf+nffvd)-1)) {
+  #   G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
+  # }
 
   fit <- sop.fit(
     X = X, Z = Z, G = G,

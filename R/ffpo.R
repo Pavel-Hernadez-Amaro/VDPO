@@ -2,16 +2,24 @@
 #'
 #' @param X .
 #' @param grid .
+#' @param bidimensional_grid .
 #' @param nbasis .
 #' @param bdeg .
 #'
 #' @return .
-ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
+#'
+#' @export
+ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
   if (!is.matrix(X)) {
     stop("argument 'X' should be a matrix", call. = FALSE)
   }
 
-  if (!is.null(dim(grid)) && dim(grid) > 2) {
+  if (!bidimensional_grid) {
+    grid <- c(grid)
+    grid <- grid[!is.na(grid)]
+  }
+
+  if (!is.null(dim(grid)) && length(dim(grid)) > 2) {
     stop("the 'grid' parameter should be at most 2-dimensional", call. = FALSE)
   }
 
@@ -29,13 +37,10 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
     M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
   } else {
     grid_all <- sort(unique(c(t(grid)))) # Mathematical union of the grid rows
-    M <- c(apply(grid, 1, function(x) length(!is.na(x))))
+    M <- c(apply(grid, 1, function(x) sum(!is.na(x))))
   }
 
   rng <- matrix(0, ncol = 2, nrow = N)
-  if (any(M[, 1] >= M[, 2])) {
-    stop("no curve can have a negative number of observations", call. = FALSE)
-  }
 
   L_X       <- vector(mode = "list", length = N)
   L_y       <- vector(mode = "list", length = N)
@@ -61,11 +66,11 @@ ffpo <- function(X, grid, nbasis = c(30, 30), bdeg = c(3, 3)) {
       response_x <- X[i, 1:M[i]]
     }
 
-    # Esrtimating the data coefficients (Matrix A)
+    # Estimating the data coefficients (Matrix A)
 
     aux <- L_X[[i]]$B
     aux_2 <- B2XZG_1d(aux,2,c1)
-    aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = response_x )
+    aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = response_x)
 
     A[i,((c1*(i-1))+1):(i*c1)] <- aux_3$theta
 

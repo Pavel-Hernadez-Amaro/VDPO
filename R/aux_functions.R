@@ -399,6 +399,22 @@ dg <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivar
   data
 }
 
+#' add grid for ffpo
+#'
+#' @param df .
+#' @param grid .
+#'
+#' @return Dataframe with grid
+#' @export
+addgrid <- function(df, grid) {
+  N <- nrow(df)
+  l <- length(grid)
 
+  newgrid <- suppressWarnings(matrix(grid, nrow = N))
+  newgrid[(l+1):length(newgrid)] <- NA
+
+  df["grid"] <- newgrid
+  df
+}
 
 

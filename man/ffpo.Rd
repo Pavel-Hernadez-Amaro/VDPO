@@ -4,12 +4,14 @@
 \alias{ffpo}
 \title{ffpo}
 \usage{
-ffpo(X, grid, nbasis = c(30, 30), bdeg = c(3, 3))
+ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
 }
 \arguments{
 \item{X}{.}
 
 \item{grid}{.}
+
+\item{bidimensional_grid}{.}
 
 \item{nbasis}{.}
 

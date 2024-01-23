@@ -2,10 +2,12 @@
 
 S3method(plot,VDPO)
 S3method(summary,VDPO)
-export(B2XZG_1d)
 export(Data2B)
 export(VDPO)
 export(XZG2theta)
 export(XZG2theta_1d)
+export(addgrid)
 export(data2B_simpson_classification)
+export(ffpo)
+export(ffvd)
 export(partial_inprod)

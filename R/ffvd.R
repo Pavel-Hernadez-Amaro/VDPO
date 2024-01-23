@@ -1,5 +1,13 @@
 ## NO ALINEAR A LA IZDA LAS CURVAS. LINEAS A CAMBIAR CON ##
 
+#' ffvd
+#'
+#' @param X .
+#' @param nbasis .
+#' @param bdeg .
+#'
+#' @return .
+#' @export
 ffvd <- function(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3)) {
   sub <- 500
   pord <- c(2,2)
