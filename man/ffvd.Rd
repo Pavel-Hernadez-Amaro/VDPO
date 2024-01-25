@@ -2,12 +2,12 @@
 % Please edit documentation in R/ffvd.R
 \name{ffvd}
 \alias{ffvd}
-\title{ffvd}
+\title{Fully functional variable domain function.}
 \usage{
 ffvd(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3))
 }
 \arguments{
-\item{X}{.}
+\item{X}{Data matrix.}
 
 \item{nbasis}{.}
 
@@ -17,5 +17,8 @@ ffvd(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3))
 .
 }
 \description{
-ffvd
+Fully functional variable domain function.
+}
+\seealso{
+\code{\link{VDPO}}
 }

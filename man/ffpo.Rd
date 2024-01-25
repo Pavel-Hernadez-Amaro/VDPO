@@ -2,18 +2,20 @@
 % Please edit documentation in R/ffpo.R
 \name{ffpo}
 \alias{ffpo}
-\title{ffpo}
+\title{The fully functional partially observed function}
 \usage{
 ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
 }
 \arguments{
-\item{X}{.}
+\item{X}{Data matrix.}
 
 \item{grid}{.}
 
-\item{bidimensional_grid}{.}
+\item{bidimensional_grid}{Boolean value that specifies id the grid should
+be treated as 1-dimensional or 2-dimensional. The default value is
+\code{FALSE} (1-dimensional).}
 
-\item{nbasis}{.}
+\item{nbasis}{Number of basis to use.}
 
 \item{bdeg}{.}
 }
@@ -21,5 +23,8 @@ ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
 .
 }
 \description{
-ffpo
+This should be used as part of the
+}
+\seealso{
+\code{\link{VDPO}}
 }

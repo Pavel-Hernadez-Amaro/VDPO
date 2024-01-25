@@ -1,12 +1,18 @@
-#' ffpo
+#' The fully functional partially observed function
 #'
-#' @param X .
+#' This should be used as part of the
+#'
+#' @param X Data matrix.
 #' @param grid .
-#' @param bidimensional_grid .
-#' @param nbasis .
+#' @param bidimensional_grid Boolean value that specifies id the grid should
+#' be treated as 1-dimensional or 2-dimensional. The default value is
+#' \code{FALSE} (1-dimensional).
+#' @param nbasis Number of basis to use.
 #' @param bdeg .
 #'
 #' @return .
+#'
+#' @seealso \code{\link{VDPO}}
 #'
 #' @export
 ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {

@@ -5,12 +5,11 @@
 #' @param G Variance-covariance matrix.
 #' @param TMatrix Matrix of transformation from the multivariate model to the mixed model.
 #' @param y Response variable.
-#' @param family Family of the distrbution.
+#' @param family Family of the distribution.
 #' @param offset .
 #'
 #' @return .
 #' @export
-#'
 XZG2theta <- function(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = NULL) {
   if (dim(X)[1] != dim(Z)[1]) {
     stop("'X' and 'Z'must have same numbers of rows", call. = FALSE)

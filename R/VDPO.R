@@ -1,11 +1,14 @@
-#' VDPO function
+#' Variable Domain Partially observed function.
 #'
-#' @param formula .
-#' @param data .
-#' @param family .
-#' @param offset .
+#' This function does ......
 #'
-#' @return .
+#' @param formula A formula object.
+#' @param data A data-frame object.
+#' @param family A family object specifying the distribution from which the
+#' data originates. The default distribution is \code{stats::gaussian}.
+#' @param offset An offset vector. The default value is \code{NULL}.
+#'
+#' @return Object of class \code{VDPO} with the results of the computation.
 #' @export
 VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (inherits(formula, "character")) {

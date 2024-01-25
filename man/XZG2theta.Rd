@@ -17,7 +17,7 @@ XZG2theta(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = NULL)
 
 \item{y}{Response variable.}
 
-\item{family}{Family of the distrbution.}
+\item{family}{Family of the distribution.}
 
 \item{offset}{.}
 }

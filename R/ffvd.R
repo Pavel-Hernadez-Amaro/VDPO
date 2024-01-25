@@ -1,25 +1,26 @@
-## NO ALINEAR A LA IZDA LAS CURVAS. LINEAS A CAMBIAR CON ##
-
-#' ffvd
+#' Fully functional variable domain function.
 #'
-#' @param X .
+#' @param X Data matrix.
 #' @param nbasis .
 #' @param bdeg .
 #'
 #' @return .
+#'
+#' @seealso \code{\link{VDPO}}
+#'
 #' @export
 ffvd <- function(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3)) {
   sub <- 500
   pord <- c(2,2)
-  ## SETTING SOME MATRICES AND PARAMETERS
 
   # X is the matrix of Data # dim(X) == N x max(M)
   # M is the vector of numbers of observations dim(M) == N x 1
 
   M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
 
-  if (any(M[, 1] >= M[, 2]))
+  if (any(M[, 1] >= M[, 2])) {
     stop("no curve can have a negative number of observations", call. = FALSE)
+  }
 
   N <- nrow(X)
 
@@ -236,11 +237,6 @@ B2XZG <- function(B_all, deglist) {
 
     it <- it + length(t1list[[i]])
   }
-
-  ####
-
-  # G <- list(t_1, t_2)
-  # names(G) <- c("t_1", "t_2")
 
   TMatrix <- cbind(T_n, T_s)
 

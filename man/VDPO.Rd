@@ -2,22 +2,23 @@
 % Please edit documentation in R/VDPO.R
 \name{VDPO}
 \alias{VDPO}
-\title{VDPO function}
+\title{Variable Domain Partially observed function.}
 \usage{
 VDPO(formula, data, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
-\item{formula}{.}
+\item{formula}{A formula object.}
 
-\item{data}{.}
+\item{data}{A data-frame object.}
 
-\item{family}{.}
+\item{family}{A family object specifying the distribution from which the
+data originates. The default distribution is \code{stats::gaussian}.}
 
-\item{offset}{.}
+\item{offset}{An offset vector. The default value is \code{NULL}.}
 }
 \value{
-.
+Object of class \code{VDPO} with the results of the computation.
 }
 \description{
-VDPO function
+This function does ......
 }
