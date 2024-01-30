@@ -406,6 +406,8 @@ dg <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivar
 #'
 #' @return Dataframe with grid
 #' @export
+#'
+#' @noRd
 addgrid <- function(df, grid) {
   N <- nrow(df)
   l <- length(grid)
@@ -417,4 +419,176 @@ addgrid <- function(df, grid) {
   df
 }
 
+Data_H=function(x_observations, y_observations, epsilon_1=0.2, epsilon_2=0.2, epsilon_data=0.015){
 
+  x_b=length(x_observations)
+  y_b=length(y_observations)
+
+  DATA_T=DATA_N=matrix(nrow = x_b, ncol=y_b)
+
+  a1=rnorm(1,0,epsilon_1)
+  a2=rnorm(1,0,epsilon_2)
+
+  for (i in 1:x_b) {
+    for (j in 1:y_b) {
+
+
+      DATA_T[i,j] = a1*cos(2*pi*x_observations[i]) + a2*cos(2*pi*y_observations[j]) + 1
+      DATA_N[i,j]= DATA_T[i,j] + rnorm(1,0,epsilon_data)
+    }
+  }
+
+  DATA=data.frame(DATA_T[,1])
+
+  DATA[["DATA_T"]]=DATA_T
+  DATA[["DATA_N"]]=DATA_N
+
+  DATA=DATA[,-1]
+
+}
+
+Stochastic_Data_H <- function(x, y, a1, a2, a_data) {
+  # 'e' stands for epsilon
+
+  x_b <- length(x)
+  y_b <- length(y)
+
+  DATA_T=DATA_N=matrix(nrow = x_b, ncol = y_b)
+
+  for (i in 1:x_b) {
+    for (j in 1:y_b) {
+
+      DATA_T[i,j] = a1*cos(2*pi*x[i]) + a2*cos(2*pi*y[j]) + 1
+      DATA_N[i,j]= DATA_T[i,j] + a_data[i, j]
+    }
+  }
+
+  DATA=data.frame(DATA_T[,1])
+
+  DATA[["DATA_T"]]=DATA_T
+  DATA[["DATA_N"]]=DATA_N
+
+  DATA=DATA[,-1]
+
+}
+
+x = y = seq(from = 0, to = 1, length.out = 20)
+Data_H(x, y) -> res
+plotly::plot_ly(z = res$DATA_T, type = "surface")
+plotly::plot_ly(z = res$DATA_N, type = "surface")
+
+
+#' Title
+#'
+#' @param x_observations
+#' @param y_observations
+#'
+#' @return
+#'
+#' @examples
+Beta_fun=function(x_observations, y_observations){
+
+  Beta_x=-1*(5-40*((x_observations/x_b)-0.5)^2)/50
+  Beta_y=-1*(5-40*((y_observations/y_b)-0.5)^2)/50
+
+  res=matrix(0, nrow = length(x_observations), ncol = length(y_observations))
+  res=kronecker(t(Beta_y),Beta_x)
+  res
+
+}
+Beta_fun(x, y)
+
+Beta_H_saddle <- function(x_observations,y_observations){
+
+  aux_beta=matrix(nrow = length(x_observations), ncol = length(y_observations))
+
+  for (i in 1:length(x_observations)) {
+    for (h in 1:length(y_observations)) {
+      aux_beta[i,h] = (4*x_observations[i]-2)^3 -3*(4*x_observations[i]-2)*(4*y_observations[h]-2)^2
+    }
+  }
+  aux_beta/10
+}
+
+plot_ly(z = Beta_H_saddle(x,y),type="surface")
+
+
+Beta_H_exp <- function(x_observations,y_observations){
+
+  aux_beta=matrix(nrow = length(x_observations), ncol = length(y_observations))
+
+  for (i in 1:length(x_observations)) {
+    for (h in 1:length(y_observations)) {
+      aux_beta[i,h] = 5*exp(-8*((x_observations[i]-0.75)^2 + (y_observations[h] -0.75)^2)) + 5*exp(-8*((x_observations[i]-0.1)^2 + (y_observations[h] -0.1)^2))
+    }
+  }
+  aux_beta/10
+}
+
+plot_ly(z = Beta_H_exp(x,y),type="surface")
+
+response_int_H=function(f_X, f_Beta, x_observations, y_observations, sub_response=50, N=TRUE){
+
+  n_y=m_y=2*sub_response
+
+  W_delta_y=array(dim = (n_y+1)*(m_y+1))
+
+  h=(x_observations[length(x_observations)]-x_observations[1])/n_y  # if y_b and y_a are functions of x_observations
+  HX=(y_observations[length(y_observations)]-y_observations[1])/m_y # this line should go inside the next for loop (the int_i lopp or outer loop)
+
+
+  x = seq(x_observations[1],x_observations[length(x_observations)],h)
+  y = seq(y_observations[1],y_observations[length(y_observations)],HX)
+
+
+  simp_w_y=rep(1,n_y+1)
+  even_y=seq(2,n_y+1-1,2)
+  odd_y=seq(3,n_y+1-1,2)
+
+  simp_w_y[even_y]=2
+  simp_w_y[odd_y]=4
+
+  Sim_w_x_y=(h/3)*simp_w_y
+
+  W_x_y=(HX/3)*Sim_w_x_y
+  W_x_even_y=2*W_x_y
+  W_x_odd_y=4*W_x_y
+
+  for (aux in 1:(m_y+1)) {
+
+    # print(c("aux = ", aux))
+
+    if (aux==1 || aux==(m_y+1)) {
+
+      W_delta_y[((n_y+1)*(aux-1)+1):((n_y+1)*aux)]= W_x_y
+
+    }else{
+
+      if (aux%%2==0) {
+
+        W_delta_y[((n_y+1)*(aux-1)+1):((n_y+1)*aux)]= W_x_even_y
+
+      }else{
+
+        W_delta_y[((n_y+1)*(aux-1)+1):((n_y+1)*aux)]= W_x_odd_y
+      }}
+
+  }
+
+  if (N) {
+    X_eval=f_X(x,y)$DATA_N
+  }else{
+    X_eval=f_X(x,y)$DATA_T
+  }
+
+
+  Beta_eval=f_Beta(x, y)
+
+  y_int=as.double(t(vec(X_eval)) %*% diag(W_delta_y) %*% vec(Beta_eval))
+
+  y_int
+
+
+}
+
+response_int_H(Data_H, Beta_H_saddle, x, y, N = FALSE)
