@@ -11,7 +11,8 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
   if (beta_index < 1 || beta_index > length(x$M_ffvd)) {
     stop(
       "'beta_index' should be between 1 and the number of variable domain
-         functional variables used in the formula", call. = FALSE
+         functional variables used in the formula",
+      call. = FALSE
     )
   }
 
@@ -26,11 +27,11 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
 
   for (ind in 1:N) {
     T_dat <- c(T_dat, rep(x$M_ffvd[[beta_index]][ind, 2], max_M))
-    IND   <- c(IND, rep(ind, x$M_ffvd[[beta_index]][ind, 2]))
+    IND <- c(IND, rep(ind, x$M_ffvd[[beta_index]][ind, 2]))
   }
 
   Heat_map_data <- data.frame(t = t_dat, M = T_dat, Beta = Beta_estimated)
-  Heat_map_data <- Heat_map_data[t_dat <= T_dat,]
+  Heat_map_data <- Heat_map_data[t_dat <= T_dat, ]
   Heat_map_data[["IND"]] <- IND
 
   lims <- range(Heat_map_data$Beta)
@@ -52,7 +53,7 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::theme_bw() +
     ggplot2::labs(y = "T") +
-    ggplot2::ggtitle(paste0("FFVD HeatMap (Beta ", beta_index,")")) -> plot
+    ggplot2::ggtitle(paste0("FFVD HeatMap (Beta ", beta_index, ")")) -> plot
 
   plot
 }

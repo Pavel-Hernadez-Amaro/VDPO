@@ -42,5 +42,4 @@ partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng
   W <- width * W / 3
 
   t(fx) %*% W %*% fBeta
-
 }

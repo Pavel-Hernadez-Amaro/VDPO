@@ -19,15 +19,16 @@ XZG2theta <- function(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = 
   #   stop("The number of columns of 'Z' must be equal to the length of 'G'")
   # }
 
-  w <- as.vector(rep(1,dim(X)[1]))
+  w <- as.vector(rep(1, dim(X)[1]))
 
   fit <- sop.fit(
     X = X, Z = Z, G = G,
     y = y, family = family,
-    control = list(trace = FALSE), offset = offset)
+    control = list(trace = FALSE), offset = offset
+  )
 
   if (dim(fit$Vp)[1] - dim(TMatrix)[1] == 0) {
-    theta_aux <- c(fit$b.fixed,fit$b.random)
+    theta_aux <- c(fit$b.fixed, fit$b.random)
   } else {
     ## nacho:: de la manera en la que esto está programado,
     ## siempre agregar primero la variable no funcional y
@@ -45,9 +46,9 @@ XZG2theta <- function(X, Z, G, TMatrix, y, family = stats::gaussian(), offset = 
     std_error_non_functional <- NULL
     p_values <- NULL
   } else {
-    covar_theta <- TMatrix %*% fit$Vp[-(1:aux),-(1:aux)] %*% t(TMatrix)
-    std_error_theta <- sqrt(diag(TMatrix %*% fit$Vp[-(1:aux),-(1:aux)] %*% t(TMatrix)))
-    std_error_non_functional <- sqrt(diag(fit$Vp[1:aux,1:aux]))
+    covar_theta <- TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(TMatrix)
+    std_error_theta <- sqrt(diag(TMatrix %*% fit$Vp[-(1:aux), -(1:aux)] %*% t(TMatrix)))
+    std_error_non_functional <- sqrt(diag(fit$Vp[1:aux, 1:aux]))
     WALD <- (fit$b.fixed[(1:aux)] / std_error_non_functional)
     p_values <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
   }

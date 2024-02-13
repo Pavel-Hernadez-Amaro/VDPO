@@ -9,15 +9,15 @@
 #'
 #' @return .
 #' @export
-XZG2theta_1d <- function(X, Z, G, TMatrix, y, family = stats::gaussian()){
+XZG2theta_1d <- function(X, Z, G, TMatrix, y, family = stats::gaussian()) {
   fit <- sop.fit(
     X = X, Z = Z, G = G,
-    y = y, family = family, weights = rep(1,dim(X)[1]),
+    y = y, family = family, weights = rep(1, dim(X)[1]),
     control = list(trace = FALSE)
   )
 
-  theta_aux <- c(fit$b.fixed,fit$b.random)
-  theta     <- TMatrix %*% theta_aux
+  theta_aux <- c(fit$b.fixed, fit$b.random)
+  theta <- TMatrix %*% theta_aux
 
   list(fit = fit, theta = theta)
 }

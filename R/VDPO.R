@@ -18,7 +18,8 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     data <- as.data.frame(data)
   } else {
     stop("The data specified in the 'data' argument should be a data frame",
-         call. = FALSE)
+      call. = FALSE
+    )
   }
 
   na_indices <- c()
@@ -35,7 +36,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   vdpoenv <- environment(formula)
-  vdpons  <- loadNamespace("VDPO")
+  vdpons <- loadNamespace("VDPO")
 
   for (var in names(data)) {
     vdpoenv[[var]] <- data[[var]]
@@ -48,25 +49,29 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   tf <- stats::terms.formula(formula, specials = c("ffvd", "ffpo", "f"))
 
-  terms  <- attr(tf, "term.labels")
+  terms <- attr(tf, "term.labels")
   nterms <- length(terms)
   specials_indices <- attr(tf, "specials") # indices for the special terms
 
   if (attr(tf, "response")) {
-    response  <- as.character(attr(tf, "variables"))[2]
-    variables <- as.character(attr(tf, "variables"))[-c(1,2)]
+    response <- as.character(attr(tf, "variables"))[2]
+    variables <- as.character(attr(tf, "variables"))[-c(1, 2)]
 
     # If the response exists, we need to lower in the index for every
     # special term
 
-    specials_indices <- lapply(specials_indices,
-                               function(x) if (is.null(x)) NA else x - 1)
+    specials_indices <- lapply(
+      specials_indices,
+      function(x) if (is.null(x)) NA else x - 1
+    )
   } else {
     variables <- as.character(attr(tf, "variables"))[-1]
 
     # No need to lower the index of the specials terms if the response exists
-    specials_indices <- lapply(specials_indices,
-                               function(x) if (is.null(x)) NA else x)
+    specials_indices <- lapply(
+      specials_indices,
+      function(x) if (is.null(x)) NA else x
+    )
   }
   all_indices <- seq_along(variables)
   non_special_indices <- setdiff(all_indices, unlist(specials_indices))
@@ -86,7 +91,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   )
   names(evals) <- terms
 
-  nf    <- sum(grepl("\\bf\\(\\b", names(evals)))
+  nf <- sum(grepl("\\bf\\(\\b", names(evals)))
   nffpo <- sum(grepl("\\bffpo\\(\\b", names(evals)))
   nffvd <- sum(grepl("\\bffvd\\(\\b", names(evals)))
 
@@ -94,7 +99,8 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   if (nffvd == 0 && nffpo == 0) {
     stop("this function should be used with at least one 'ffvd' or 'ffpo' term",
-         call. = FALSE)
+      call. = FALSE
+    )
   }
 
   X <- c() # matrix
@@ -108,16 +114,26 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       l.f[[f_index]] <- evals[[f_index]]
       names.fun <- c(names.fun, terms[[f_index]])
       form <- stats::as.formula(paste("~", terms[[f_index]], sep = ""))
-      aa <- switch(as.character(l.f[[f_index]]$dim), `3` = {
-        l.f[[f_index]]$Xmat <- SOP:::construct.3D.pspline(form,
-                                                          data)
-      }, `2` = {
-        l.f[[f_index]]$Xmat <- SOP:::construct.2D.pspline(form,
-                                                          data)
-      }, `1` = {
-        l.f[[f_index]]$Xmat <- SOP:::construct.1D.pspline(form,
-                                                          data)
-      })
+      aa <- switch(as.character(l.f[[f_index]]$dim),
+        `3` = {
+          l.f[[f_index]]$Xmat <- SOP:::construct.3D.pspline(
+            form,
+            data
+          )
+        },
+        `2` = {
+          l.f[[f_index]]$Xmat <- SOP:::construct.2D.pspline(
+            form,
+            data
+          )
+        },
+        `1` = {
+          l.f[[f_index]]$Xmat <- SOP:::construct.1D.pspline(
+            form,
+            data
+          )
+        }
+      )
       X <- cbind(X, l.f[[f_index]]$Xmat$X)
       Z <- cbind(Z, l.f[[f_index]]$Xmat$Z)
       G <- c(G, list(l.f[[f_index]]$Xmat$g))
@@ -143,11 +159,11 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   if (nffvd > 0) {
-    B_all   <- c()
+    B_all <- c()
     deglist <- vector(mode = "list", length = nffvd)
-    L_Phi   <- vector(mode = "list", length = nffvd) # list of matrices
-    B_T     <- vector(mode = "list", length = nffvd) # list of matrices
-    M       <- vector(mode = "list", length = nffvd) # list of matrices
+    L_Phi <- vector(mode = "list", length = nffvd) # list of matrices
+    B_T <- vector(mode = "list", length = nffvd) # list of matrices
+    M <- vector(mode = "list", length = nffvd) # list of matrices
     # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffvd_counter <- 0
@@ -158,8 +174,8 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
       L_Phi[[ffvd_counter]] <- ffvd_evaluation[["L_Phi"]]
-      B_T[[ffvd_counter]]   <- ffvd_evaluation[["B_T"]]
-      M[[ffvd_counter]]     <- ffvd_evaluation[["M"]]
+      B_T[[ffvd_counter]] <- ffvd_evaluation[["B_T"]]
+      M[[ffvd_counter]] <- ffvd_evaluation[["M"]]
       # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
     }
     foo <- B2XZG(B_all, deglist)
@@ -170,10 +186,10 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   if (nffpo > 0) {
-    B_all    <- c()
-    deglist  <- vector(mode = "list", length = nffpo)
+    B_all <- c()
+    deglist <- vector(mode = "list", length = nffpo)
     Phi_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
-    M_ffpo   <- vector(mode = "list", length = nffpo) # list of matrices
+    M_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
     # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffpo_counter <- 0
@@ -184,7 +200,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1]
 
       Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
-      M_ffpo[[ffpo_counter]]   <- ffpo_evaluation[["M"]]
+      M_ffpo[[ffpo_counter]] <- ffpo_evaluation[["M"]]
     }
     foo <- B2XZG_ffpo(B_all, deglist)
 
@@ -224,61 +240,65 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   intercept <- fit$b.fixed[1]
   b_fixed_tmp <- fit$b.fixed[-1]
-  Vp_tmp <- fit$Vp[-1,-1]
+  Vp_tmp <- fit$Vp[-1, -1]
 
   if (length(non_special_indices) == 0 && nf == 0) {
     # only ffvd
 
-    theta_ffvd      <- c( b_fixed_tmp,fit$b.random)
-    covar_theta     <- foo$TMatrix %*%  Vp_tmp %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp %*% t(foo$TMatrix)))
+    theta_ffvd <- c(b_fixed_tmp, fit$b.random)
+    covar_theta <- foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)))
   } else if (length(non_special_indices) > 0 && nf == 0) {
     # ffvd and x
-    aux             <- nrow( Vp_tmp) - nrow(foo$TMatrix)
-    theta_ffvd      <- c( b_fixed_tmp[-(1:aux)], fit$b.random)
-    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
-    std_error_nf    <- sqrt(diag( Vp_tmp[1:aux, 1:aux]))
-    WALD            <-  ( b_fixed_tmp[(1:aux)] / std_error_nf)
-    p_values        <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
+    aux <- nrow(Vp_tmp) - nrow(foo$TMatrix)
+    theta_ffvd <- c(b_fixed_tmp[-(1:aux)], fit$b.random)
+    covar_theta <- foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    std_error_nf <- sqrt(diag(Vp_tmp[1:aux, 1:aux]))
+    WALD <- (b_fixed_tmp[(1:aux)] / std_error_nf)
+    p_values <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
   } else if (length(non_special_indices) != 0 && nf != 0) {
     # f, ffvd and x
-    aux <- nrow( Vp_tmp) - nrow(foo$TMatrix)
-    theta_f <- c( b_fixed_tmp[(aux + 1):(aux + aux_sum)], fit$b.random[1:aux_sum])
-    theta_ffvd <- c( b_fixed_tmp[(aux + aux_sum + 1):length( b_fixed_tmp)], fit$b.random[(aux_sum + 1):length(fit$b.random)])
+    aux <- nrow(Vp_tmp) - nrow(foo$TMatrix)
+    theta_f <- c(b_fixed_tmp[(aux + 1):(aux + aux_sum)], fit$b.random[1:aux_sum])
+    theta_ffvd <- c(b_fixed_tmp[(aux + aux_sum + 1):length(b_fixed_tmp)], fit$b.random[(aux_sum + 1):length(fit$b.random)])
     # theta_aux here is theta_ffvd
-    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
+    covar_theta <- foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
 
-    std_error_nf    <- sqrt(diag( Vp_tmp[1:aux, 1:aux]))
-    WALD            <-  ( b_fixed_tmp[(1:aux)] / std_error_nf)
-    p_values        <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
+    std_error_nf <- sqrt(diag(Vp_tmp[1:aux, 1:aux]))
+    WALD <- (b_fixed_tmp[(1:aux)] / std_error_nf)
+    p_values <- 2 * stats::pnorm(abs(WALD), lower.tail = FALSE)
   } else if (length(non_special_indices) == 0 && nf > 0) {
     # only ffvd and f
 
-    aux <- nrow( Vp_tmp) - nrow(foo$TMatrix)
-    theta_f <- c( fit$b.fixed[1], fit$b.random[1:aux])
-    theta_ffvd <- c( fit$b.fixed[-1], fit$b.random[-(1:aux)])
+    aux <- nrow(Vp_tmp) - nrow(foo$TMatrix)
+    theta_f <- c(fit$b.fixed[1], fit$b.random[1:aux])
+    theta_ffvd <- c(fit$b.fixed[-1], fit$b.random[-(1:aux)])
     # theta_aux here is theta_ffvd
-    covar_theta     <- foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*%  Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
-
+    covar_theta <- foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)
+    std_error_theta <- sqrt(diag(foo$TMatrix %*% Vp_tmp[-(1:aux), -(1:aux)] %*% t(foo$TMatrix)))
   }
 
 
   theta <- foo$TMatrix %*% theta_ffvd
   if (nffvd > 0) {
-    Beta_ffvd <- lapply(M,
-                        function (x) matrix(NA,
-                                            nrow = length(data[[response]]),
-                                            ncol = max(x)))
+    Beta_ffvd <- lapply(
+      M,
+      function(x) {
+        matrix(NA,
+          nrow = length(data[[response]]),
+          ncol = max(x)
+        )
+      }
+    )
   }
 
   it <- 1
   for (j in 1:nffvd) {
     for (i in 1:length(data[[response]])) {
       Beta_ffvd[[j]][i, M[[j]][i, 1]:M[[j]][i, 2]] <-
-        as.matrix(kronecker(L_Phi[[j]][[i]]$B, t(B_T[[j]]$B[i,]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
+        as.matrix(kronecker(L_Phi[[j]][[i]]$B, t(B_T[[j]]$B[i, ]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
     }
     it <- it + prod(deglist[[j]])
   }
@@ -289,7 +309,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
     res <- list(
       fit             = fit,
-      theta_nf        = fit$b.fixed[(2:(aux+1))],
+      theta_nf        = fit$b.fixed[(2:(aux + 1))],
       theta_ffvd      = theta,
       theta_f         = theta_f,
       covar_theta     = covar_theta,
@@ -304,7 +324,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
     res <- list(
       fit             = fit,
-      theta_nf        = fit$b.fixed[(2:(aux+1))],
+      theta_nf        = fit$b.fixed[(2:(aux + 1))],
       theta_ffvd      = theta,
       covar_theta     = covar_theta,
       std_error_theta = std_error_theta,
@@ -313,7 +333,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       Beta_ffvd       = Beta_ffvd,
       M_ffvd          = M
     )
-  } else if(length(non_special_indices) == 0 && nf > 0) {
+  } else if (length(non_special_indices) == 0 && nf > 0) {
     # only ffvd and f
 
     res <- list(

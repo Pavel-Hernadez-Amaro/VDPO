@@ -8,14 +8,13 @@
 #'
 #' @noRd
 B2XZG_1d <- function(B, pord = 2, c = 10) {
-
   c1 <- c[1]
   D_1 <- diff(diag(c1), differences = pord)
   P1.svd <- svd(crossprod(D_1))
 
-  U_1s <- P1.svd$u[,1:(c1-pord[1])] # eigenvectors
-  U_1n <- P1.svd$u[,-(1:(c1-pord[1]))]
-  d1   <- P1.svd$d[1:(c1-pord[1])]  # eigenvalues
+  U_1s <- P1.svd$u[, 1:(c1 - pord[1])] # eigenvectors
+  U_1n <- P1.svd$u[, -(1:(c1 - pord[1]))]
+  d1 <- P1.svd$d[1:(c1 - pord[1])] # eigenvalues
 
   T_n <- U_1n
   T_s <- U_1s
@@ -25,7 +24,7 @@ B2XZG_1d <- function(B, pord = 2, c = 10) {
 
   G <- list(d1)
 
-  T_ <- cbind(T_n,T_s)
+  T_ <- cbind(T_n, T_s)
 
   list(
     X    = X,
@@ -55,23 +54,22 @@ B2XZG_ffpo <- function(B_all, deglist) {
 
   Tnlist <- vector(mode = "list", length = nffpo)
   Tslist <- vector(mode = "list", length = nffpo)
-  tlist  <- vector(mode = "list", length = nffpo)
+  tlist <- vector(mode = "list", length = nffpo)
 
   G <- vector(mode = "list", length = nffpo)
 
   for (i in seq_along(deglist)) {
     c1 <- deglist[[i]]
     D_1 <- diff(diag(c1), differences = pord)
-    P1.svd <-  svd(crossprod(D_1))
+    P1.svd <- svd(crossprod(D_1))
 
-    U_1s <- P1.svd$u[,1:(c1-pord)] # eigenvectors
-    U_1n <- P1.svd$u[,-(1:(c1-pord))]
-    d1   <- P1.svd$d[1:(c1-pord)]  # eigenvalues
+    U_1s <- P1.svd$u[, 1:(c1 - pord)] # eigenvectors
+    U_1n <- P1.svd$u[, -(1:(c1 - pord))]
+    d1 <- P1.svd$d[1:(c1 - pord)] # eigenvalues
 
     Tslist[[i]] <- U_1s
     Tnlist[[i]] <- U_1n
     tlist[[i]] <- d1
-
   }
 
   T_n <- Matrix::bdiag(Tnlist)
@@ -88,7 +86,7 @@ B2XZG_ffpo <- function(B_all, deglist) {
     it <- it + length(tlist[[i]])
   }
 
-  T_ <- cbind(T_n,T_s)
+  T_ <- cbind(T_n, T_s)
 
   list(
     X    = as.matrix(X),

@@ -10,8 +10,8 @@
 #' B-spline and the second element is a list with the different knots.
 #'
 #' @noRd
-bspline <-function(x, xl, xr, nseg, bdeg){
-  dx <- (xr - xl)/nseg
+bspline <- function(x, xl, xr, nseg, bdeg) {
+  dx <- (xr - xl) / nseg
   knots <- seq(xl - bdeg * dx, xr + bdeg * dx, by = dx)
   B <- splines::spline.des(knots, x, bdeg + 1, 0 * x)$design
   list(B = B, knots = knots)
