@@ -462,9 +462,18 @@ Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 
   DATA[["DATA_N"]] <- DATA_N
 
   DATA <- DATA[, -1]
+
+
+  # a is the stochastic part of the surface
+  # this is needed for the function `response_int_H` !!!!!!!!!!!
+  res <- list(
+    DATA = DATA,
+    a = c(a1, a2),
+    epsilon_data = epsilon_data
+  )
 }
 
-Stochastic_Data_H <- function(x, y, a1, a2, a_data) {
+Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
   # 'e' stands for epsilon
 
   x_b <- length(x)
@@ -475,7 +484,7 @@ Stochastic_Data_H <- function(x, y, a1, a2, a_data) {
   for (i in 1:x_b) {
     for (j in 1:y_b) {
       DATA_T[i, j] <- a1 * cos(2 * pi * x[i]) + a2 * cos(2 * pi * y[j]) + 1
-      DATA_N[i, j] <- DATA_T[i, j] + a_data[i, j]
+      DATA_N[i, j] <- DATA_T[i, j] + rnorm(1, 0, epsilon_data)
     }
   }
 
@@ -485,6 +494,7 @@ Stochastic_Data_H <- function(x, y, a1, a2, a_data) {
   DATA[["DATA_N"]] <- DATA_N
 
   DATA <- DATA[, -1]
+  DATA
 }
 
 x <- y <- seq(from = 0, to = 1, length.out = 20)
@@ -541,7 +551,7 @@ Beta_H_exp <- function(x_observations, y_observations) {
 
 # plot_ly(z = Beta_H_exp(x, y), type = "surface")
 
-response_int_H <- function(f_X, f_Beta, x_observations, y_observations, sub_response = 50, N = TRUE) {
+response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_observations, sub_response = 50, N = FALSE) {
   n_y <- m_y <- 2 * sub_response
 
   W_delta_y <- array(dim = (n_y + 1) * (m_y + 1))
@@ -581,18 +591,25 @@ response_int_H <- function(f_X, f_Beta, x_observations, y_observations, sub_resp
     }
   }
 
+  X_eval <- f_X(x, y, a1, a2, epsilon_data)
+
   if (N) {
-    X_eval <- f_X(x, y)$DATA_N
+    X_eval <- X_eval$DATA_N
   } else {
-    X_eval <- f_X(x, y)$DATA_T
+    X_eval <- X_eval$DATA_T
   }
 
 
   Beta_eval <- f_Beta(x, y)
 
-  y_int <- as.double(t(vec(X_eval)) %*% diag(W_delta_y) %*% vec(Beta_eval))
+  y_int <- as.double(t(ks::vec(X_eval)) %*% diag(W_delta_y) %*% ks::vec(Beta_eval))
 
-  y_int
+  list(
+    nu = y_int,
+    X_eval = X_eval
+  )
 }
 
 # response_int_H(Data_H, Beta_H_saddle, x, y, N = FALSE)
+
+

@@ -17,25 +17,30 @@ y <- seq(from = 0, to = 1, length.out = py)
 # a2 <- rnorm(1,0,e_2)
 
 
-X <- lapply(1:N, function(a)
-  list(
-    DATA_T = Data_H(x, y)$DATA_T,
-    DATA_N = Data_H(x, y)$DATA_N
+X <- lapply(1:N, function(a) {
+  Data_H(x, y)
+})
+
+
+X_true <- lapply(seq_along(X), function(i) X[[i]]$DATA$DATA_T)
+X_real <- lapply(seq_along(X), function(i) X[[i]]$DATA$DATA_N)
+
+
+
+all.equal(X[[2]]$DATA$DATA_T, X[[5]]$DATA$DATA_T) # false expected
+all.equal(X[[2]]$DATA$DATA_N, X[[5]]$DATA$DATA_N) ###
+
+nu <- sapply(1:5, function(a) {
+  response_int_H(Stochastic_Data_H,
+    X[[a]]$a[[1]],
+    X[[a]]$a[[2]],
+    X[[a]]$epsilon_data,
+    f_Beta = Beta_H_saddle,
+    x = x, y = y
   )
-)
+})
 
 
-X_true <- lapply(seq_along(X), function (i) X[[i]]$DATA_T)
-X_real <- lapply(seq_along(X), function (i) X[[i]]$DATA_N)
+var_e <- (1 / Rsq - 1) * var(nu) # (1-Rsq)*var(nu[ind,])
 
-
-
-all.equal(X[[1]]$DATA_T, X[[2]]$DATA_T)
-all.equal(X[[1]]$DATA_N, X[[2]]$DATA_N)
-
-nu <- sapply(1:5, function(a) response_int_H(Data_H, f_Beta = Beta_H_saddle, x = x, y = y))
-
-
-var_e <- (1/Rsq - 1) * var(nu) #(1-Rsq)*var(nu[ind,])
-
-response=nu+rnorm(N,sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])
+response <- nu + rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])
