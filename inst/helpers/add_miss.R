@@ -60,12 +60,3 @@ add_miss <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) {
     missing_points = missing_points
   )
 }
-
-
-for (ind_miss_points in 1:N) {
-  if (length(miss_points[[ind_miss_points]]) != ncol(X[[j]])) {
-    stop(paste("Revisa que el length de miss point en ", ind_miss_points, "sea", ncol(X[[j]])), call. = FALSE)
-  }
-}
-
-var_e <- (1 / Rsq - 1) * var(n) # (1-Rsq)*var(nu[ind,])

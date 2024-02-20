@@ -11,7 +11,7 @@ ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
 
 \item{grid}{.}
 
-\item{bidimensional_grid}{Boolean value that specifies id the grid should
+\item{bidimensional_grid}{Boolean value that specifies if the grid should
 be treated as 1-dimensional or 2-dimensional. The default value is
 \code{FALSE} (1-dimensional).}
 

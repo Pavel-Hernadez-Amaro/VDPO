@@ -86,12 +86,12 @@ B2XZG_ffpo <- function(B_all, deglist) {
     it <- it + length(tlist[[i]])
   }
 
-  T_ <- cbind(T_n, T_s)
+  TMatrix <- cbind(T_n, T_s)
 
   list(
     X    = as.matrix(X),
     Z    = as.matrix(Z),
     G    = G,
-    T    = T_
+    TMatrix    = as.matrix(TMatrix)
   )
 }

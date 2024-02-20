@@ -2,12 +2,18 @@
 #'
 #' fully functional partially observed for the two dimensional case
 #'
+#' The difference between
+#' miss_points and missing_points is the format in which the data is
+#' presented.
+#'
 #' @param X_miss .
+#' @param miss_points .
+#' @param missing_points .
 #' @param nbasis .
 #' @param bdeg .
 #'
 #' @return .
-ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
+ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
   for (i in 2:length(X_miss)) {
     if (all(dim(X_miss[[1]]) != dim(X_miss[[i]]))) {
       stop("all matrices inside 'X_miss' should have the same dimensions",
@@ -18,6 +24,9 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
 
   x_b <- nrow(X_miss[[1]])
   y_b <- ncol(X_miss[[1]])
+  N <- length(X_miss)
+  x_observations <- seq(from = 0, to = 1, length.out = x_b)
+  y_observations <- seq(from = 0, to = 1, length.out = y_b)
 
   c1 <- nbasis[1]
   c2 <- nbasis[2]
@@ -123,6 +132,9 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
       bdeg[4]
     ) # this domain may not by fulfill by any of the surfaces
 
+  B_kron_beta <- kronecker(aux_2_model_beta$B, aux_model_beta$B)
+
+
   knots_x_beta <- aux_model_beta$knots
   knots_y_beta <- aux_2_model_beta$knots
 
@@ -157,7 +169,7 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
         X = aux_22$X,
         Z = aux_22$Z,
         G = aux_22$G,
-        TMatrix = aux_22$T,
+        TMatrix = aux_22$TMatrix,
         y = c(X_miss[[j]])
       ) # , weights = w)
 
@@ -303,8 +315,8 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
     # all.equal(as.matrix(W_delta[((n+1)*(check-1)+1):(check*(n+1))]),as.matrix(W[,check]))
 
     aux_GLAM <- SOP:::RH(t(Rten2((fy_beta), fy)), SOP:::RH(t(Rten2((
-        fx_beta
-      ), fx)), W))
+      fx_beta
+    ), fx)), W))
     dim(aux_GLAM) <- c(c1, c1_beta, c2, c2_beta)
     aux_GLAM_apperm <- matrix(aperm(aux_GLAM, c(1, 3, 2, 4)), nrow = c1 * c2)
 
@@ -319,7 +331,10 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
   list(
     A = A,
     Inner_matrix = Inner_matrix,
-    K = A %*% Inner_matrix
+    B_ffpo2d = A %*% Inner_matrix,
+    Phi_ffpo2d = B_kron_beta,
+    M_ffpo2d = missing_points,
+    nbasis = nbasis
   )
 }
 
@@ -328,16 +343,15 @@ ffpo_2d <- function(X_miss, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
 #'
 #' This is used as part of the ffpo_2d function
 #'
-#' @param B
-#' @param pord
-#' @param c
+#' @param B .
+#' @param pord .
+#' @param c .
 #'
 #' @return
-B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
-
+B2XZG_2d <- function(B, pord = c(2, 2), c = c(10, 10)) {
   c1 <- c[1]
   c2 <- c[2]
-  c1c2 <-  ncol(B)
+  c1c2 <- ncol(B)
 
   if (c1c2 != c1 * c2) {
     stop("c1 * c2 must me equal to the number of colums of B", call. = FALSE)
@@ -349,22 +363,22 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
   P1.svd <- svd(crossprod(D_1))
   P2.svd <- svd(crossprod(D_2))
 
-  U_1s <- (P1.svd$u)[,1:(c1-pord[1])] # eigenvectors
-  U_1n <- ((P1.svd$u)[,-(1:(c1-pord[1]))])
-  d1   <- (P1.svd$d)[1:(c1-pord[1])]  # eigenvalues
+  U_1s <- (P1.svd$u)[, 1:(c1 - pord[1])] # eigenvectors
+  U_1n <- ((P1.svd$u)[, -(1:(c1 - pord[1]))])
+  d1 <- (P1.svd$d)[1:(c1 - pord[1])] # eigenvalues
 
-  U_2s <- (P2.svd$u)[,1:(c2-pord[2])] # eigenvectors
-  U_2n <- ((P2.svd$u)[,-(1:(c2-pord[2]))])
-  d2   <- (P2.svd$d)[1:(c2-pord[2])]  # eigenvalues
+  U_2s <- (P2.svd$u)[, 1:(c2 - pord[2])] # eigenvectors
+  U_2n <- ((P2.svd$u)[, -(1:(c2 - pord[2]))])
+  d2 <- (P2.svd$d)[1:(c2 - pord[2])] # eigenvalues
 
 
-  T_n <- kronecker(U_1n,U_2n)
+  T_n <- kronecker(U_1n, U_2n)
 
-  AUX_1 <- kronecker(U_1n,U_2s)
-  AUX_2 <- kronecker(U_1s,U_2n)
-  AUX_3 <- kronecker(U_1s,U_2s)
+  AUX_1 <- kronecker(U_1n, U_2s)
+  AUX_2 <- kronecker(U_1s, U_2n)
+  AUX_3 <- kronecker(U_1s, U_2s)
 
-  T_s <- cbind(AUX_1,AUX_2,AUX_3)
+  T_s <- cbind(AUX_1, AUX_2, AUX_3)
 
 
   Z <- B %*% T_s
@@ -372,24 +386,24 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
 
   ####
 
-  d_1s <- diag(P1.svd$d)[1:(c1-pord[1]),1:(c1-pord[1])]
-  d_2s <- diag(P2.svd$d)[1:(c2-pord[2]),1:(c2-pord[2])]
+  d_1s <- diag(P1.svd$d)[1:(c1 - pord[1]), 1:(c1 - pord[1])]
+  d_2s <- diag(P2.svd$d)[1:(c2 - pord[2]), 1:(c2 - pord[2])]
 
-  T_1 <- kronecker(diag(pord[1]),d_2s)
-  T_2 <- matrix(0, nrow = pord[2] * (c1-pord[1]), ncol = pord[2] * (c1-pord[1]))
-  T_3 <- kronecker(diag(c1-pord[1]),d_2s)
+  T_1 <- kronecker(diag(pord[1]), d_2s)
+  T_2 <- matrix(0, nrow = pord[2] * (c1 - pord[1]), ncol = pord[2] * (c1 - pord[1]))
+  T_3 <- kronecker(diag(c1 - pord[1]), d_2s)
 
   T_21 <- cbind(T_1, matrix(0, nrow = dim(T_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2]))
   T_22 <- cbind(matrix(0, nrow = dim(T_2)[1], ncol = dim(T_1)[2]), T_2, matrix(0, nrow = dim(T_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_1)[2] - dim(T_2)[2]))
-  T_23 <- cbind(matrix(0,nrow=((c2-pord[2])*(c1-pord[1])),ncol=(c1*c2-pord[1]*pord[2])-dim(T_3)[2]),T_3)
+  T_23 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])), ncol = (c1 * c2 - pord[1] * pord[2]) - dim(T_3)[2]), T_3)
 
-  H_1 <- matrix(0, nrow = pord[1] * (c2 - pord[2]),ncol = pord[1] * (c2 - pord[2]))
+  H_1 <- matrix(0, nrow = pord[1] * (c2 - pord[2]), ncol = pord[1] * (c2 - pord[2]))
   H_2 <- kronecker(d_1s, diag(pord[2]))
-  H_3 <- kronecker(d_1s, diag(c2-pord[2]))
+  H_3 <- kronecker(d_1s, diag(c2 - pord[2]))
 
   H_11 <- cbind(H_1, matrix(0, nrow = dim(H_1)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2]))
-  H_12 <- cbind(matrix(0, nrow = dim(H_2)[1],ncol = dim(H_1)[2]), H_2, matrix(0, nrow = dim(H_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]))
-  H_13 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])),ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]), H_3)
+  H_12 <- cbind(matrix(0, nrow = dim(H_2)[1], ncol = dim(H_1)[2]), H_2, matrix(0, nrow = dim(H_2)[1], ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_1)[2] - dim(H_2)[2]))
+  H_13 <- cbind(matrix(0, nrow = ((c2 - pord[2]) * (c1 - pord[1])), ncol = (c1 * c2 - pord[1] * pord[2]) - dim(H_3)[2]), H_3)
 
   L_2 <- rbind(T_21, T_22, T_23)
   L_1 <- rbind(H_11, H_12, H_13)
@@ -400,7 +414,7 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
   G <- list(t_1, t_2)
   names(G) <- c("t_1", "t_2")
 
-  T <- cbind(T_n,T_s)
+  TMatrix <- cbind(T_n, T_s)
 
   ####
 
@@ -408,7 +422,7 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
     X    = X,
     Z    = Z,
     G    = G,
-    T    = T,
+    TMatrix    = TMatrix,
     d1   = d1,
     d2   = d2,
     D_1  = D_1,
@@ -423,4 +437,3 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
     t_2  = t_2
   )
 }
-

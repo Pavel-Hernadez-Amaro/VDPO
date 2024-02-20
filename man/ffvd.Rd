@@ -17,7 +17,8 @@ ffvd(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3))
 .
 }
 \description{
-Fully functional variable domain function.
+ffvd function works for both variable domain and fixed domain
+functional data
 }
 \seealso{
 \code{\link{VDPO}}

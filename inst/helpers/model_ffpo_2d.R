@@ -65,7 +65,7 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
   G <- list(t_1, t_2)
   names(G) <- c("t_1", "t_2")
 
-  T <- cbind(T_n,T_s)
+  TMatrix <- cbind(T_n,T_s)
 
   ####
 
@@ -73,7 +73,7 @@ B2XZG_2d <-function (B, pord = c(2, 2), c = c(10, 10)) {
     X    = X,
     Z    = Z,
     G    = G,
-    T    = T,
+    TMatrix    = TMatrix,
     d1   = d1,
     d2   = d2,
     D_1  = D_1,

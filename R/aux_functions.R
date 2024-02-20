@@ -308,115 +308,6 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
   invisible(fit)
 }
 
-#' Data generator function
-#'
-#' @param N Number of subjects.
-#' @param J Number of maximum observations per subject.
-#' @param nsims Number of simulations per the simulation study.
-#' @param aligned If the data is aligned or not.
-#' @param multivariate If TRUE, the data is generated with 2 variables.
-#' @param Rsq .
-#' @param use_x If the data is generated with x.
-#' @param use_f If the data is generated with f.
-#'
-#' @return Example data.
-#'
-#' @noRd
-dg <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivariate = FALSE, use_x = FALSE, use_f = FALSE) {
-  for (iter in 1:nsims) {
-    set.seed(42 + iter)
-
-    # Generating the domain for all subject with a minimum of 10 observations
-    M <- round(stats::runif(N, 10, J), digits = 0)
-
-    if (max(M) > J) {
-      M[which(M > J)] <- J
-    }
-
-    if (min(M) <= 10) {
-      M[which(M <= 10)] <- 10
-    }
-
-    maxM <- max(M)
-    t <- 1:maxM
-
-    # We can sort the data without loss of generality
-    M <- sort(M)
-
-    # Here we generate the functional data
-    X_s <- matrix(NA, N, maxM) # NOT NOISY
-    X_se <- matrix(NA, N, maxM) # NOISY
-    Y_s <- matrix(NA, N, maxM) # NOT NOISY
-    Y_se <- matrix(NA, N, maxM) # NOISY
-
-    for (i in 1:N) {
-      u1 <- stats::rnorm(1)
-
-      temp <- matrix(NA, 10, maxM)
-
-      for (k in 1:10) {
-        v_i1 <- stats::rnorm(1, 0, 4 / k^2)
-        v_i2 <- stats::rnorm(1, 0, 4 / k^2)
-
-        if (aligned) {
-          temp[k, 1:M[i]] <-
-            v_i1 * sin(2 * pi * k * (1:M[i]) / 100) + v_i2 * cos(2 * pi * k * (1:M[i]) / 100)
-        } else {
-          temp[k, (M[i, 1]:M[i, 2])] <-
-            v_i1 * sin(2 * pi * k * (M[i, 1]:M[i, 2]) / 100) + v_i2 * cos(2 * pi * k * (M[i, 1]:M[i, 2]) / 100)
-        }
-      }
-
-      B <- apply(temp, 2, sum)
-
-
-      B <- B + u1
-      B2 <- B + stats::rnorm(1, sd = 0.02) + (t / 10)
-
-      X_s[i, ] <- B
-      X_se[i, ] <- B + stats::rnorm(maxM, 0, 1) # WE ADD NOISE
-      Y_s[i, ] <- B2
-      Y_se[i, ] <- B2 + stats::rnorm(maxM, 0, 1) # WE ADD NOISE
-    }
-
-    Beta <- array(dim = c(N, maxM, 4))
-    nu <- rep(0, N)
-    y <- rep(0, N)
-    x1 <- stats::runif(N)
-    f0 <- function(x) 2 * sin(pi * x)
-
-    for (i in 1:N) {
-      # Computing the true functional coefficients
-
-      Beta[i, 1:(M[i]), 1] <- ((10 * t[1:(M[i])] / M[i]) - 5) / 10
-      Beta[i, 1:(M[i]), 2] <- ((1 - (2 * M[i] / maxM)) * (5 - 40 * ((t[1:(M[i])] / M[i]) - 0.5)^2)) / 10
-
-      if (multivariate) {
-        nu[i] <- sum(X_s[i, ] * Beta[i, , 1], na.rm = 1) / (M[i]) + sum(Y_s[i, ] * Beta[i, , 2], na.rm = 1) / (M[i])
-      } else {
-        nu[i] <- sum(X_s[i, ] * Beta[i, , 1], na.rm = 1) / (M[i]) # NOT NOISY
-      }
-    }
-
-    nu <- if (use_f) nu + f0(x1) else nu
-    var_e <- (1 / Rsq - 1) * stats::var(nu)
-    y <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
-    y <- if (use_x) y + x1 else y
-  }
-
-
-  data <- data.frame(y = y)
-
-  data[["X_s"]] <- X_s
-  data[["X_se"]] <- X_se
-  data[["Y_s"]] <- Y_s
-  data[["Y_se"]] <- Y_se
-  data[["x1"]] <- x1
-  data[["Beta"]] <- Beta
-
-  data
-}
-
 #' add grid for ffpo
 #'
 #' This function should be only used when the \code{bidimensional_grid}
@@ -446,13 +337,13 @@ Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 
 
   DATA_T <- DATA_N <- matrix(nrow = x_b, ncol = y_b)
 
-  a1 <- rnorm(1, 0, epsilon_1)
-  a2 <- rnorm(1, 0, epsilon_2)
+  a1 <- stats::rnorm(1, 0, epsilon_1)
+  a2 <- stats::rnorm(1, 0, epsilon_2)
 
   for (i in 1:x_b) {
     for (j in 1:y_b) {
       DATA_T[i, j] <- a1 * cos(2 * pi * x_observations[i]) + a2 * cos(2 * pi * y_observations[j]) + 1
-      DATA_N[i, j] <- DATA_T[i, j] + rnorm(1, 0, epsilon_data)
+      DATA_N[i, j] <- DATA_T[i, j] + stats::rnorm(1, 0, epsilon_data)
     }
   }
 
@@ -496,12 +387,6 @@ Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
   DATA <- DATA[, -1]
   DATA
 }
-
-x <- y <- seq(from = 0, to = 1, length.out = 20)
-Data_H(x, y) -> res
-plotly::plot_ly(z = res$DATA_T, type = "surface")
-plotly::plot_ly(z = res$DATA_N, type = "surface")
-
 
 #' Title
 #'
@@ -611,5 +496,3 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
 }
 
 # response_int_H(Data_H, Beta_H_saddle, x, y, N = FALSE)
-
-
