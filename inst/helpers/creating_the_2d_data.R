@@ -41,6 +41,6 @@ nu <- sapply(1:5, function(a) {
 })
 
 
-var_e <- (1 / Rsq - 1) * var(nu) # (1-Rsq)*var(nu[ind,])
+var_e <- (1 / Rsq - 1) * stats::var(nu) # (1-Rsq)*var(nu[ind,])
 
 response <- nu + rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])

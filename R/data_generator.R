@@ -188,8 +188,8 @@ data_generator_po <- function() {
 
     p <- ncol(x)
     n <- nrow(x)
-    init <- round(runif(n - 1, 1, round(p / 3))) # generiamo i punti di inizio e fine
-    fin <- round(runif(n - 1, round(2 * p / 3 + 1), p))
+    init <- round(stats::runif(n - 1, 1, round(p / 3))) # generiamo i punti di inizio e fine
+    fin <- round(stats::runif(n - 1, round(2 * p / 3 + 1), p))
     ep <- rbind(c(1, p), cbind(init, fin))
 
     for (i in 2:n) { # generiamo gli NAs
@@ -225,13 +225,13 @@ data_generator_po <- function() {
 
     p <- ncol(x)
     n <- nrow(x)
-    init <- round((1 - rbeta(n - 1, 1, rate)) * (p / 3)) # generiamo i punti di inizio e fine
+    init <- round((1 - stats::rbeta(n - 1, 1, rate)) * (p / 3)) # generiamo i punti di inizio e fine
 
     if (!is.null(which(init == 0))) {
       init[which(init == 0)] <- 1
     }
 
-    fin <- round(2 * p / 3 + rbeta(n - 1, 1, rate) * (p / 3))
+    fin <- round(2 * p / 3 + stats::rbeta(n - 1, 1, rate) * (p / 3))
     ep <- rbind(c(1, p), cbind(init, fin))
 
     for (i in 2:n) { # generiamo gli NAs
@@ -271,16 +271,16 @@ data_generator_po <- function() {
   par.knots <- nknots / 3
 
   knots <- c(
-    sort(runif(par.knots, grid[1], grid[p] / 3)),
-    sort(runif(par.knots, grid[p] / 3, 2 * grid[p] / 3)),
-    sort(runif(par.knots, 2 * grid[p] / 3, grid[p]))
+    sort(stats::runif(par.knots, grid[1], grid[p] / 3)),
+    sort(stats::runif(par.knots, grid[p] / 3, 2 * grid[p] / 3)),
+    sort(stats::runif(par.knots, 2 * grid[p] / 3, grid[p]))
   )
 
   nbasis <- length(knots) + 2
 
   # mean1  <- c(0, 0, 0, 0, 1, 2, 1, 0,-1, 2, 2,-1, 0, 0.5, 1, 0.5, 0, 0, 0, 0)
   # mean2  <- rev(mean1)
-  mean1 <- rnorm(nbasis)
+  mean1 <- stats::rnorm(nbasis)
   mean2 <- rev(mean1)
   coef <- rep(0.3, nbasis)
 
@@ -478,9 +478,9 @@ data_generator_po2d <- function(N = 100, px = 20, py = 20, Rsq = 0.95, n_missing
 
   X_miss = add_miss(X_real, n_missing = n_missing, min_distance_x = min_distance_x, min_distance_y = min_distance_y)
 
-  var_e <- (1 / Rsq - 1) * var(nu) # (1-Rsq)*var(nu[ind,])
+  var_e <- (1 / Rsq - 1) * stats::var(nu) # (1-Rsq)*var(nu[ind,])
 
-  response <- nu + rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])
+  response <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])
 
   list(
     y = response,

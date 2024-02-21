@@ -317,7 +317,6 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
 #' @param grid .
 #'
 #' @return Dataframe with grid
-#' @export
 #'
 #' @noRd
 addgrid <- function(df, grid) {
@@ -375,7 +374,7 @@ Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
   for (i in 1:x_b) {
     for (j in 1:y_b) {
       DATA_T[i, j] <- a1 * cos(2 * pi * x[i]) + a2 * cos(2 * pi * y[j]) + 1
-      DATA_N[i, j] <- DATA_T[i, j] + rnorm(1, 0, epsilon_data)
+      DATA_N[i, j] <- DATA_T[i, j] + stats::rnorm(1, 0, epsilon_data)
     }
   }
 
@@ -390,12 +389,12 @@ Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
 
 #' Title
 #'
-#' @param x_observations
-#' @param y_observations
+#' @param x_observations .
+#' @param y_observations .
 #'
-#' @return
+#' @return .
 #'
-#' @examples
+#' @noRd
 Beta_fun <- function(x_observations, y_observations) {
   x_b <- length(x_observations)
   y_b <- length(y_observations)
@@ -407,7 +406,6 @@ Beta_fun <- function(x_observations, y_observations) {
   res <- kronecker(t(Beta_y), Beta_x)
   res
 }
-Beta_fun(x, y)
 
 Beta_H_saddle <- function(x_observations, y_observations) {
   aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
@@ -420,9 +418,6 @@ Beta_H_saddle <- function(x_observations, y_observations) {
   aux_beta / 10
 }
 
-# plot_ly(z = Beta_H_saddle(x, y), type = "surface")
-
-
 Beta_H_exp <- function(x_observations, y_observations) {
   aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
 
@@ -433,8 +428,6 @@ Beta_H_exp <- function(x_observations, y_observations) {
   }
   aux_beta / 10
 }
-
-# plot_ly(z = Beta_H_exp(x, y), type = "surface")
 
 response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_observations, sub_response = 50, N = FALSE) {
   n_y <- m_y <- 2 * sub_response
@@ -463,8 +456,6 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
   W_x_odd_y <- 4 * W_x_y
 
   for (aux in 1:(m_y + 1)) {
-    # print(c("aux = ", aux))
-
     if (aux == 1 || aux == (m_y + 1)) {
       W_delta_y[((n_y + 1) * (aux - 1) + 1):((n_y + 1) * aux)] <- W_x_y
     } else {
@@ -494,5 +485,3 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
     X_eval = X_eval
   )
 }
-
-# response_int_H(Data_H, Beta_H_saddle, x, y, N = FALSE)

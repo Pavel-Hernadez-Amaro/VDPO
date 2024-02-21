@@ -347,7 +347,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
 #' @param pord .
 #' @param c .
 #'
-#' @return
+#' @return .
 B2XZG_2d <- function(B, pord = c(2, 2), c = c(10, 10)) {
   c1 <- c[1]
   c2 <- c[2]

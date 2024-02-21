@@ -7,7 +7,14 @@
 B2XZG_2d(B, pord = c(2, 2), c = c(10, 10))
 }
 \arguments{
-\item{c}{}
+\item{B}{.}
+
+\item{pord}{.}
+
+\item{c}{.}
+}
+\value{
+.
 }
 \description{
 This is used as part of the ffpo_2d function
