@@ -2,23 +2,34 @@
 % Please edit documentation in R/ffvd.R
 \name{ffvd}
 \alias{ffvd}
-\title{Fully functional variable domain function.}
+\title{Defining variable domain functional data terms in VDPO formulae}
 \usage{
 ffvd(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3))
 }
 \arguments{
-\item{X}{Data matrix.}
+\item{X}{variable domain functional covariate \code{matrix}.}
 
-\item{nbasis}{.}
+\item{nbasis}{number of basis to be used.}
 
-\item{bdeg}{.}
+\item{bdeg}{degree of the basis to be used.}
 }
 \value{
-.
+the function is interpreted in the formula of a \code{VDPO} model.
+\code{list} containing the following elements:
+\itemize{
+\item \code{B_ffvd} design matrix.
+\item \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
+\item \code{M} \code{matrix} object indicating the observed domain of the data.
+\item \code{nbasis} number of basis used.
+}
 }
 \description{
-ffvd function works for both variable domain and fixed domain
-functional data
+Auxiliary function used to define \code{ffvd} terms within \code{VDPO} model
+formulae.
+}
+\details{
+\code{B_T} is the marginal basis corresponding to the domain and \code{L_Phi}
+is the marginal basis corresponding to the observation points.
 }
 \seealso{
 \code{\link{VDPO}}

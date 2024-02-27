@@ -1,30 +1,50 @@
-#' ffpo_2d
+#' Defining partially observed bidimensional functional data terms in VDPO formulae
 #'
-#' fully functional partially observed for the two dimensional case
+#' Auxiliary function used to define \code{ffpo_2d} terms within \code{VDPO} model
+#' formulae.
 #'
 #' The difference between
 #' miss_points and missing_points is the format in which the data is
 #' presented.
 #'
-#' @param X_miss .
-#' @param miss_points .
-#' @param missing_points .
-#' @param nbasis .
-#' @param bdeg .
+#' @param X partially observed bidimensional functional covariate \code{matrix}.
+#' @param miss_points,missing_points \code{list} of missing observation points.
+#' See 'Details' for more information about the difference in structure between both.
+#' @param nbasis number of basis to be used.
+#' @param bdeg degree of the basis to be used.
 #'
-#' @return .
-ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
-  for (i in 2:length(X_miss)) {
-    if (all(dim(X_miss[[1]]) != dim(X_miss[[i]]))) {
+#' @return The function is interpreted in the formula of a \code{VDPO} model.
+#' \code{list} containing the following elements:
+#' - \code{B_ffpo2d} design matrix.
+#' - \code{Phi_ffpo2d} bidimensional B-spline basis used for the functional coefficient.
+#' - \code{M_ffpo2d} the \code{missing_points} used as input in the function.
+#' - \code{nbasis} number of the basis used.
+#'
+#' @details
+#' \code{miss_points} is a \code{list} of \code{list}s where each inner list corresponds
+#' to the observation points in the y-axis and contains the observation points
+#' of the missing values for the x-axis. \code{miss_points} acts as a guide for
+#' identifying and addressing missing observations in functional data and is used
+#' for properly calculating the inner product matrix.
+#'
+#' \code{missing_points} is a \code{list} where each element is a \code{matrix}
+#' containing the missing observations points.
+#'
+#' @seealso \code{\link{VDPO}}
+#'
+#' @export
+ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
+  for (i in 2:length(X)) {
+    if (all(dim(X[[1]]) != dim(X[[i]]))) {
       stop("all matrices inside 'X_miss' should have the same dimensions",
         call. = FALSE
       )
     }
   }
 
-  x_b <- nrow(X_miss[[1]])
-  y_b <- ncol(X_miss[[1]])
-  N <- length(X_miss)
+  x_b <- nrow(X[[1]])
+  y_b <- ncol(X[[1]])
+  N <- length(X)
   x_observations <- seq(from = 0, to = 1, length.out = x_b)
   y_observations <- seq(from = 0, to = 1, length.out = y_b)
 
@@ -145,11 +165,11 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
     print(paste0("j = ", j))
 
     NA_ind <- NULL
-    for (ind_i in 1:dim(X_miss[[j]])[1]) {
-      for (ind_j in 1:dim(X_miss[[j]])[2]) {
-        if (is.na(X_miss[[j]][ind_i, ind_j])) {
+    for (ind_i in 1:dim(X[[j]])[1]) {
+      for (ind_j in 1:dim(X[[j]])[2]) {
+        if (is.na(X[[j]][ind_i, ind_j])) {
           NA_ind <-
-            sort(c(NA_ind, (dim(X_miss[[j]])[1] * (ind_j - 1)) + ind_i))
+            sort(c(NA_ind, (dim(X[[j]])[1] * (ind_j - 1)) + ind_i))
         }
       }
     }
@@ -170,7 +190,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
         Z = aux_22$Z,
         G = aux_22$G,
         TMatrix = aux_22$TMatrix,
-        y = c(X_miss[[j]])
+        y = c(X[[j]])
       ) # , weights = w)
 
     A[j, ((c2 * c1 * (j - 1)) + 1):(j * c1 * c2)] <- aux_33$theta
@@ -205,7 +225,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
 
       na_22 <- unique(append(miss_points[[j]][[prev_obs]], miss_points[[j]][[next_obs]]))
 
-      observed_points <- which(!(seq(1:nrow(X_miss[[j]])) %in% na_22))
+      observed_points <- which(!(seq(1:nrow(X[[j]])) %in% na_22))
 
       for (aux_o in observed_points) {
         aux_prev <- aux_o - 1
@@ -275,7 +295,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
         na_22_last <-
           c(na_22[length(na_22)] - 1, na_22[length(na_22)])
 
-        if (na_22[length(na_22)] != nrow(X_miss[[j]])) {
+        if (na_22[length(na_22)] != nrow(X[[j]])) {
           na_22_last[length(na_22_last)] <- na_22_last[length(na_22_last)] + 1
         }
 
@@ -284,7 +304,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
         if (!(length(na_22) == 0)) {
           na_22_group <- range(na_22)
 
-          if (na_22_group[2] != nrow(X_miss[[j]])) {
+          if (na_22_group[2] != nrow(X[[j]])) {
             na_22_group[2] <- na_22_group[2] + 1
           }
 
@@ -328,10 +348,10 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
     Inner_matrix[(c1 * c2 * (j - 1) + 1):(c1 * c2 * j), ] <- aux_GLAM_apperm
   }
 
+  B_ffpo2d <- A %*% Inner_matrix
+
   list(
-    A = A,
-    Inner_matrix = Inner_matrix,
-    B_ffpo2d = A %*% Inner_matrix,
+    B_ffpo2d = B_ffpo2d,
     Phi_ffpo2d = B_kron_beta,
     M_ffpo2d = missing_points,
     nbasis = nbasis
@@ -339,15 +359,7 @@ ffpo_2d <- function(X_miss, miss_points, missing_points, nbasis = rep(15, 4), bd
 }
 
 
-#' B2XZG  2-dimensional
-#'
-#' This is used as part of the ffpo_2d function
-#'
-#' @param B .
-#' @param pord .
-#' @param c .
-#'
-#' @return .
+#' @noRd
 B2XZG_2d <- function(B, pord = c(2, 2), c = c(10, 10)) {
   c1 <- c[1]
   c2 <- c[2]

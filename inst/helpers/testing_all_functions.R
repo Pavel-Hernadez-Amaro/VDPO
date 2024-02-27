@@ -11,7 +11,7 @@ data <- data_generator_po()
 formula <- y ~ ffpo(X = data$x, grid = data$grid)
 res <- VDPO(formula = formula, data = data, family = stats::binomial())
 
-data <- data_generator_po2d(N = 20)
+data <- data_generator_po2d(N = 5, px = 20, py = 21)
 # res11 <- ffpo_2d(X_miss = data$X_miss, miss_points = data$miss_points, missing_points = data$missing_points)
 
 # sapply(data, length)

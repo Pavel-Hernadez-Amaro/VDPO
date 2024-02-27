@@ -1,0 +1,36 @@
+---
+title: "VDPO-01-Introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{VDPO-01-Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This is the introductory vignette
+
+```{r setup}
+library(VDPO)
+```
+
+In a r-markdown document, we can create code chunks
+
+```{r}
+x <- 1:10
+mean(x)
+```
+
+The result is shown below the code block. We can also show plots:
+```{r}
+plot(1:10, 11:20)
+```
+
+Rendering the document is as easy as clicking the knit buttom.
+

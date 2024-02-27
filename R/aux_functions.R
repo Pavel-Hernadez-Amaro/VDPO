@@ -26,6 +26,25 @@ ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
   }
 }
 
+#' B-spline generator
+#'
+#' @param X. Points where you are going to evaluate the function.
+#' @param XL. Min x (- epsilon).
+#' @param XR. Max x (+ epsilon).
+#' @param NDX. Number of basis - BDEG.
+#' @param BDEG. Degree of the polynomial.
+#'
+#' @return A \code{list} where the first element is the design matrix of the
+#' B-spline and the second element is a list with the different knots.
+#'
+#' @noRd
+bspline <- function(x, xl, xr, nseg, bdeg) {
+  dx <- (xr - xl) / nseg
+  knots <- seq(xl - bdeg * dx, xr + bdeg * dx, by = dx)
+  B <- splines::spline.des(knots, x, bdeg + 1, 0 * x)$design
+  list(B = B, knots = knots)
+}
+
 #' @references This is a modified version of sop.fit to improve numerical stability.
 #' All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
 construct.matrices <- function(X, Z, z, w) {
@@ -308,28 +327,16 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
   invisible(fit)
 }
 
-#' add grid for ffpo
+#' Bidimensional functional data generator with random errors.
 #'
-#' This function should be only used when the \code{bidimensional_grid}
-#' parameter of \code{ffpo} is \code{FALSE}.
+#' @param x_observations Observations of the x axis.
+#' @param y_observations Observations of the y axis.
+#' @param epsilon_1,epsilon_2 Standard deviation of the stochastic components.
+#' @param epsilon_data Standard deviation of the noise.
 #'
-#' @param df .
-#' @param grid .
-#'
-#' @return Dataframe with grid
+#' @return Bidimensional functional data.
 #'
 #' @noRd
-addgrid <- function(df, grid) {
-  N <- nrow(df)
-  l <- length(grid)
-
-  newgrid <- suppressWarnings(matrix(grid, nrow = N))
-  newgrid[(l + 1):length(newgrid)] <- NA
-
-  df["grid"] <- newgrid
-  df
-}
-
 Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 0.2, epsilon_data = 0.015) {
   x_b <- length(x_observations)
   y_b <- length(y_observations)
@@ -363,6 +370,16 @@ Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 
   )
 }
 
+#' Bidimensional functional data generator with fixed errors.
+#'
+#' @param x Observations of the x axis.
+#' @param y Observations of the x axis.
+#' @param a1,a2 Fixed parameters of the stochastic components.
+#' @param epsilon_data Standard deviation of the noise.
+#'
+#' @return Bidimensional functional data.
+#'
+#' @noRd
 Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
   # 'e' stands for epsilon
 
@@ -387,12 +404,12 @@ Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
   DATA
 }
 
-#' Title
+#' Bidimensional functional coefficient using 2-dimensional b-splines.
 #'
-#' @param x_observations .
-#' @param y_observations .
+#' @param x_observations Observations of the x axis.
+#' @param y_observations Observations of the y axis.
 #'
-#' @return .
+#' @return Bidimensional functional coefficient.
 #'
 #' @noRd
 Beta_fun <- function(x_observations, y_observations) {
@@ -407,6 +424,14 @@ Beta_fun <- function(x_observations, y_observations) {
   res
 }
 
+#' Bidimensional functional coefficient with saddle shape.
+#'
+#' @param x_observations Observations of the x axis.
+#' @param y_observations Observations of the y axis.
+#'
+#' @return Bidimensional functional coefficient.
+#'
+#' @noRd
 Beta_H_saddle <- function(x_observations, y_observations) {
   aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
 
@@ -418,6 +443,14 @@ Beta_H_saddle <- function(x_observations, y_observations) {
   aux_beta / 10
 }
 
+#' Bidimensional functional coefficient with exponential shape.
+#'
+#' @param x_observations Observations of the x axis.
+#' @param y_observations Observations of the y axis.
+#'
+#' @return Bidimensional functional coefficient.
+#'
+#' @noRd
 Beta_H_exp <- function(x_observations, y_observations) {
   aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
 
@@ -429,7 +462,20 @@ Beta_H_exp <- function(x_observations, y_observations) {
   aux_beta / 10
 }
 
-response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_observations, sub_response = 50, N = FALSE) {
+#' Response generator for functional regression models.
+#'
+#' @param f_X,f_Beta Functions to be integrated.
+#' @param a1,a2 Fixed parameters of the stochastic components.
+#' @param epsilon_data Standard deviation of the noise for the covariates.
+#' @param x_observations Observations of the x axis.
+#' @param y_observations Observations of the y axis.
+#' @param sub_response Number of intervals for the Simpson integration method.
+#' @param noise Boolean indicating the presence of noise. Defaults to \code{FALSE}.
+#'
+#' @return Response variable for the functional regression model.
+#'
+#' @noRd
+response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_observations, sub_response = 50, noise = FALSE) {
   n_y <- m_y <- 2 * sub_response
 
   W_delta_y <- array(dim = (n_y + 1) * (m_y + 1))
@@ -469,7 +515,7 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
 
   X_eval <- f_X(x, y, a1, a2, epsilon_data)
 
-  if (N) {
+  if (noise) {
     X_eval <- X_eval$DATA_N
   } else {
     X_eval <- X_eval$DATA_T

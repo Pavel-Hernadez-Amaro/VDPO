@@ -16,7 +16,7 @@
 #'
 #' @noRd
 data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivariate = FALSE, beta_index = 1, use_x = FALSE, use_f = FALSE) {
-  if (!(beta_index %in% c(1,2))) {
+  if (!(beta_index %in% c(1, 2))) {
     stop("'beta_index' could only be 1 or 2",call. = FALSE)
   }
 

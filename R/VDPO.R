@@ -1,14 +1,22 @@
-#' Variable Domain Partially observed function.
+#' Estimation of the generalized additive functional regression models for
+#' variable domain and/or partially observed functional regression data.
 #'
-#' This function does ......
+#' The \code{VDPO} function fits generalized additive functional regression models
+#' for variable domain and partially observed functional data in both 1 and 2 dimensions.
 #'
-#' @param formula A formula object.
-#' @param data A data-frame object.
-#' @param family A family object specifying the distribution from which the
-#' data originates. The default distribution is \code{stats::gaussian}.
+#' @param formula a formula object with at least one \code{ffvd}, \code{ffpo} or
+#' \code{ffpo_2d} term.
+#' @param data a \code{data.frame} object containing the response variable
+#' and the covariates. When fitting partially observed functional data,
+#' a grid of observation points is also needed.
+#' @param family a \code{family} object specifying the distribution from which the
+#' data originates. The default distribution is \code{\link{gaussian}}.
 #' @param offset An offset vector. The default value is \code{NULL}.
 #'
 #' @return Object of class \code{VDPO} with the results of the computation.
+#'
+#' @seealso \code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{addgrid}}
+#'
 #' @export
 VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (inherits(formula, "character")) {
@@ -91,9 +99,9 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   )
   names(evals) <- terms
 
-  nf <- sum(grepl("\\bf\\(\\b", names(evals)))
-  nffvd <- sum(grepl("\\bffvd\\(\\b", names(evals)))
-  nffpo <- sum(grepl("\\bffpo\\(\\b", names(evals)))
+  nf       <- sum(grepl("\\bf\\(\\b", names(evals)))
+  nffvd    <- sum(grepl("\\bffvd\\(\\b", names(evals)))
+  nffpo    <- sum(grepl("\\bffpo\\(\\b", names(evals)))
   nffpo_2d <- sum(grepl("\\bffpo_2d\\(\\b", names(evals)))
 
   ## TODO add the f function to the package namespace
@@ -296,8 +304,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
         )
       }
     )
-  }
-  if (nffvd > 0) {
+
     it <- 1
     for (j in 1:nffvd) {
       for (i in 1:length(data[[response]])) {

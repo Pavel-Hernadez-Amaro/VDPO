@@ -1,8 +1,10 @@
 # VDPO
 
-This package brings together the functions used for the development of the following papers:
+The **VDPO** package fit functional regression models with both variable domain and partially observed functional data.
 
-- First paper
+## Related Papers 
+
+- Pavel Hernandez-Amaro, Maria Durban, M. Carmen Aguilera-Morillo, Cristobal Esteban Gonzalez, Inmaculada Arostegui. "Modelling physical activity profiles in COPD patients: a fully functional approach to variable domain functional regression models." doi: [https://doi.org/10.48550/arXiv.2401.05839](https://doi.org/10.48550/arXiv.2401.05839)
 - Second paper
 
 ## Installation

@@ -1,13 +1,22 @@
-#' Fully functional variable domain function.
+#' Defining variable domain functional data terms in VDPO formulae
 #'
-#' ffvd function works for both variable domain and fixed domain
-#' functional data
+#' Auxiliary function used to define \code{ffvd} terms within \code{VDPO} model
+#' formulae.
 #'
-#' @param X Data matrix.
-#' @param nbasis .
-#' @param bdeg .
+#' @param X variable domain functional covariate \code{matrix}.
+#' @param nbasis number of basis to be used.
+#' @param bdeg degree of the basis to be used.
 #'
-#' @return .
+#' @return the function is interpreted in the formula of a \code{VDPO} model.
+#' \code{list} containing the following elements:
+#' - \code{B_ffvd} design matrix.
+#' - \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
+#' - \code{M} \code{matrix} object indicating the observed domain of the data.
+#' - \code{nbasis} number of basis used.
+#'
+#' @details
+#' \code{B_T} is the marginal basis corresponding to the domain and \code{L_Phi}
+#' is the marginal basis corresponding to the observation points.
 #'
 #' @seealso \code{\link{VDPO}}
 #'
@@ -104,21 +113,17 @@ ffvd <- function(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3)) {
 
   list(
     B_ffvd = B,
-    A_ffvd = A,
-    K_ffvd = K,
-    nbasis = nbasis,
     L_Phi  = L_Phi,
     B_T    = B_T,
-    M      = M
+    M      = M,
+    nbasis = nbasis
   )
 }
 
 
+
+#' @noRd
 B2XZG <- function(B_all, deglist) {
-  #### HAY QUE CREAR UNA NUEVA FUNCIÓN A PARTIR DE AQUÍ PARA UN MODELO ADDITIVE
-
-  ##### EMPEZAMOS A TRANSFORMAR EL MODELO MULTIVARIANTE AL MODELO MIXTO (B2XGZ)
-
   nffvd <- length(deglist)
 
   pord <- c(2, 2)

@@ -2,29 +2,49 @@
 % Please edit documentation in R/ffpo.R
 \name{ffpo}
 \alias{ffpo}
-\title{The fully functional partially observed function}
+\title{Defining partially observed functional data terms in VDPO formulae}
 \usage{
 ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
 }
 \arguments{
-\item{X}{Data matrix.}
+\item{X}{partially observed functional covariate \code{matrix}.}
 
-\item{grid}{.}
+\item{grid}{observation grid of the covariate.}
 
-\item{bidimensional_grid}{Boolean value that specifies if the grid should
+\item{bidimensional_grid}{boolean value that specifies if the grid should
 be treated as 1-dimensional or 2-dimensional. The default value is
-\code{FALSE} (1-dimensional).}
+\code{FALSE} (1-dimensional). See also 'Details'.}
 
-\item{nbasis}{Number of basis to use.}
+\item{nbasis}{number of basis to be used.}
 
-\item{bdeg}{.}
+\item{bdeg}{degree of the basis to be used.}
 }
 \value{
-.
+the function is interpreted in the formula of a \code{VDPO} model.
+\code{list} containing the following elements:
+\itemize{
+\item \code{B_ffpo} design matrix.
+\item \code{Phi} B-spline basis used for the functional coefficient.
+\item \code{M} \code{vector} or \code{matrix} object indicating the observed domain
+of the data.
+\item \code{nbasis} number of the basis used.
+}
 }
 \description{
-This should be used as part of the
+Auxiliary function used to define \code{ffpo} terms within \code{VDPO} model
+formulae.
+}
+\details{
+When the same observation points are used for every functional covariate, we
+end up with a vector observation grid. Imagine plotting multiple curves, each
+representing a functional covariate, all measured at the same time instances.
+
+Conversely, if the observation points differ for each functional covariate,
+we have a matrix observation grid. Picture a matrix where each row represents
+a functional covariate, and the columns denote distinct observation points.
+Varying observation points introduce complexity, as each covariate might be
+sampled at different time instances.
 }
 \seealso{
-\code{\link{VDPO}}
+\code{\link{VDPO}}, \code{\link{addgrid}}
 }

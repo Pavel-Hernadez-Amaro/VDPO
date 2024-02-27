@@ -1,15 +1,16 @@
 #' Partial inner product
 #'
-#' @param n_intervals Number of intervals where we are going to integrate.
+#' @param n_intervals number of intervals where we are going to integrate.
 #' This should be an even number.
-#' @param knots1 First set of nodes.
-#' @param knots2 Seconds set of nodes.
-#' @param bdeg Degree of the basis. This should be a two dimensional vector.
-#' @param spline_domain Domain where the spline is defined.
-#' @param rng Integration limits. This should be a two dimensional vector.
+#' @param knots1 first set of nodes.
+#' @param knots2 seconds set of nodes.
+#' @param bdeg degree of the basis. This should be a two dimensional vector.
+#' @param spline_domain domain where the spline is defined.
+#' @param rng integration limits. This should be a two dimensional vector.
 #'
-#' @return Matrix with the value of the integral.
-#' @export
+#' @return matrix with the value of the integral.
+#'
+#' @noRd
 partial_inprod <- function(n_intervals, knots1, knots2, bdeg, spline_domain, rng) {
   if (n_intervals %% 2 != 0) {
     stop("the 'n_intervals' parameter should be an even number", call. = FALSE)

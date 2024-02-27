@@ -1,18 +1,36 @@
-#' The fully functional partially observed function
+#' Defining partially observed functional data terms in VDPO formulae
 #'
-#' This should be used as part of the
+#' Auxiliary function used to define \code{ffpo} terms within \code{VDPO} model
+#' formulae.
 #'
-#' @param X Data matrix.
-#' @param grid .
-#' @param bidimensional_grid Boolean value that specifies if the grid should
+#' @param X partially observed functional covariate \code{matrix}.
+#' @param grid observation grid of the covariate.
+#' @param bidimensional_grid boolean value that specifies if the grid should
 #' be treated as 1-dimensional or 2-dimensional. The default value is
-#' \code{FALSE} (1-dimensional).
-#' @param nbasis Number of basis to use.
-#' @param bdeg .
+#' \code{FALSE} (1-dimensional). See also 'Details'.
+#' @param nbasis number of basis to be used.
+#' @param bdeg degree of the basis to be used.
 #'
-#' @return .
+#' @return the function is interpreted in the formula of a \code{VDPO} model.
+#' \code{list} containing the following elements:
+#' - \code{B_ffpo} design matrix.
+#' - \code{Phi} B-spline basis used for the functional coefficient.
+#' - \code{M} \code{vector} or \code{matrix} object indicating the observed domain
+#' of the data.
+#' - \code{nbasis} number of the basis used.
 #'
-#' @seealso \code{\link{VDPO}}
+#' @details
+#' When the same observation points are used for every functional covariate, we
+#' end up with a vector observation grid. Imagine plotting multiple curves, each
+#' representing a functional covariate, all measured at the same time instances.
+#'
+#' Conversely, if the observation points differ for each functional covariate,
+#' we have a matrix observation grid. Picture a matrix where each row represents
+#' a functional covariate, and the columns denote distinct observation points.
+#' Varying observation points introduce complexity, as each covariate might be
+#' sampled at different time instances.
+#'
+#' @seealso \code{\link{VDPO}}, \code{\link{addgrid}}
 #'
 #' @export
 ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
@@ -161,10 +179,33 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
 
   list(
     B_ffpo = res,
-    A_ffpo = A,
-    K_ffpo = K,
-    nbasis = nbasis,
     Phi    = Phi,
-    M      = M
+    M      = M,
+    nbasis = nbasis
   )
+}
+
+#' Grid adder for dataframes
+#'
+#' It prepared the partially observed data to be inputed in the \code{ffpo} function.
+#' This function should only be used when the \code{bidimensional_grid}
+#' parameter of the \code{ffpo} function is \code{FALSE}.
+#'
+#' @param df \code{data.frame} object to which the grid will be added.
+#' @param grid Grid vector.
+#'
+#' @return \code{data.frame} with the grid added.
+#'
+#' @seealso \code{\link{ffpo}}
+#'
+#' @export
+addgrid <- function(df, grid) {
+  N <- nrow(df)
+  l <- length(grid)
+
+  newgrid <- suppressWarnings(matrix(grid, nrow = N))
+  newgrid[(l + 1):length(newgrid)] <- NA
+
+  df["grid"] <- newgrid
+  df
 }

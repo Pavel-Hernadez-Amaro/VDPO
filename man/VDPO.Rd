@@ -2,17 +2,21 @@
 % Please edit documentation in R/VDPO.R
 \name{VDPO}
 \alias{VDPO}
-\title{Variable Domain Partially observed function.}
+\title{Estimation of the generalized additive functional regression models for
+variable domain and/or partially observed functional regression data.}
 \usage{
 VDPO(formula, data, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
-\item{formula}{A formula object.}
+\item{formula}{a formula object with at least one \code{ffvd}, \code{ffpo} or
+\code{ffpo_2d} term.}
 
-\item{data}{A data-frame object.}
+\item{data}{a \code{data.frame} object containing the response variable
+and the covariates. When fitting partially observed functional data,
+a grid of observation points is also needed.}
 
-\item{family}{A family object specifying the distribution from which the
-data originates. The default distribution is \code{stats::gaussian}.}
+\item{family}{a \code{family} object specifying the distribution from which the
+data originates. The default distribution is \code{\link{gaussian}}.}
 
 \item{offset}{An offset vector. The default value is \code{NULL}.}
 }
@@ -20,5 +24,9 @@ data originates. The default distribution is \code{stats::gaussian}.}
 Object of class \code{VDPO} with the results of the computation.
 }
 \description{
-This function does ......
+The \code{VDPO} function fits generalized additive functional regression models
+for variable domain and partially observed functional data in both 1 and 2 dimensions.
+}
+\seealso{
+\code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{addgrid}}
 }
