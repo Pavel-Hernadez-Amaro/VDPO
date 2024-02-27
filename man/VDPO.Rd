@@ -27,6 +27,43 @@ Object of class \code{VDPO} with the results of the computation.
 The \code{VDPO} function fits generalized additive functional regression models
 for variable domain and partially observed functional data in both 1 and 2 dimensions.
 }
+\examples{
+\dontrun{
+# VARIABLE DOMAIN FUNCTIONAL DATA EXAMPLE
+
+# load the example data
+data <- VDPO::VDPO_example_vd
+
+# define a formula object that determines the model behavior
+# note that this formula only uses one 'ffvd' term and that
+# the 'nbasis' parameter is not the default one
+formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10))
+
+# fit the model with the data and the formula
+res <- VDPO(formula = formula, data = data)
+
+# important parameters of the model can be accessed as follows
+res$Beta_ffvd         # variable domain functional coefficient
+res$fit$fitted.values # estimated response variable
+
+# ------------------------------------------------------------------
+# PARTIALLY OBSERVED FUNCTIONAL DATA EXAMPLE
+
+# load the example data
+data <- VDPO::VDPO_example_po
+
+# define a formula object that determines the model behavior
+# note that this formula only uses one 'ffpo' term
+formula <- y ~ ffvd(X_se)
+
+# fit the model with the data and the formula
+res <- VDPO(formula = formula, data = data)
+
+# important parameters of the model can be accessed as follows
+res$theta_ffpo        # functional coefficient
+res$fit$fitted.values # estimated response variable
+}
+}
 \seealso{
 \code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{addgrid}}
 }

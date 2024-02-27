@@ -14,23 +14,30 @@ knitr::opts_chunk$set(
 )
 ```
 
-This is the introductory vignette
+This is the introductory vignette for the VDPO package. First, we are going to
+load the package
 
 ```{r setup}
 library(VDPO)
 ```
 
-In a r-markdown document, we can create code chunks
+Now, we are going to fit a model
 
 ```{r}
-x <- 1:10
-mean(x)
+data <- VDPO::VDPO_example_vd
+formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10))
+res <- VDPO(formula = formula, data = data)
 ```
 
-The result is shown below the code block. We can also show plots:
+We can use the `summary` function to see a summary of the model
+
 ```{r}
-plot(1:10, 11:20)
+summary(res)
 ```
 
-Rendering the document is as easy as clicking the knit buttom.
 
+With the model already fited, we can plot it using the `plot` function:
+
+```{r}
+plot(res)
+```

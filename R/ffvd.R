@@ -18,10 +18,9 @@
 #' \code{B_T} is the marginal basis corresponding to the domain and \code{L_Phi}
 #' is the marginal basis corresponding to the observation points.
 #'
-#' @seealso \code{\link{VDPO}}
 #'
 #' @export
-ffvd <- function(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3)) {
+ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   sub <- 500
   pord <- c(2, 2)
 

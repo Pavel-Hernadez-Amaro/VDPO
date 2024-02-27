@@ -4,7 +4,7 @@
 \alias{ffvd}
 \title{Defining variable domain functional data terms in VDPO formulae}
 \usage{
-ffvd(X, nbasis = c(20, 21, 22), bdeg = c(3, 3, 3))
+ffvd(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3))
 }
 \arguments{
 \item{X}{variable domain functional covariate \code{matrix}.}
@@ -30,7 +30,4 @@ formulae.
 \details{
 \code{B_T} is the marginal basis corresponding to the domain and \code{L_Phi}
 is the marginal basis corresponding to the observation points.
-}
-\seealso{
-\code{\link{VDPO}}
 }
