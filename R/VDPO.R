@@ -161,19 +161,19 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       form <- stats::as.formula(paste("~", terms[[f_index]], sep = ""))
       aa <- switch(as.character(l.f[[f_index]]$dim),
         `3` = {
-          l.f[[f_index]]$Xmat <- SOP:::construct.3D.pspline(
+          l.f[[f_index]]$Xmat <- construct.3D.pspline(
             form,
             data
           )
         },
         `2` = {
-          l.f[[f_index]]$Xmat <- SOP:::construct.2D.pspline(
+          l.f[[f_index]]$Xmat <- construct.2D.pspline(
             form,
             data
           )
         },
         `1` = {
-          l.f[[f_index]]$Xmat <- SOP:::construct.1D.pspline(
+          l.f[[f_index]]$Xmat <- construct.1D.pspline(
             form,
             data
           )
@@ -190,7 +190,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       G <- unname(G[[1]])
       # names(G) <- names(G[[1]])
     } else {
-      G <- SOP:::construct.capital.lambda(G)
+      G <- construct.capital.lambda(G)
     }
 
     aux_sum <- 0

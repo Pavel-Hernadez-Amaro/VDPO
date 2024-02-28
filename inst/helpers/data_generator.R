@@ -445,7 +445,7 @@ data_generator_po2d <- function(N = 100, px = 20, py = 20, Rsq = 0.95, n_missing
 
     Beta_eval <- f_Beta(x, y)
 
-    y_int <- as.double(t(ks::vec(X_eval)) %*% diag(W_delta_y) %*% ks::vec(Beta_eval))
+    y_int <- as.double(t(vec(X_eval)) %*% diag(W_delta_y) %*% vec(Beta_eval))
 
     list(
       nu = y_int,

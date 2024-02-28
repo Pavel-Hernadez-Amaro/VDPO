@@ -45,8 +45,11 @@ bspline <- function(x, xl, xr, nseg, bdeg) {
   list(B = B, knots = knots)
 }
 
-#' @references This is a modified version of sop.fit to improve numerical stability.
-#' All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+#' This is a modified version of sop.fit to improve numerical stability.
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+#'
+#' @noRd
 construct.matrices <- function(X, Z, z, w) {
   XtW. <- t(X * w)
   XtX. <- XtW. %*% X
@@ -67,26 +70,19 @@ construct.matrices <- function(X, Z, z, w) {
 }
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
-construct.block <- function(A1, A2, A3, A4) {
-  block <- rbind(cbind(A1, A2), cbind(A3, A4))
-  return(block)
-}
+construct.block <- utils::getFromNamespace("construct.block", "SOP")
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
-sop.control <- function(maxit = 200, epsilon = 1e-06, trace = FALSE) {
-  if (!is.numeric(epsilon) || epsilon <= 0) {
-    stop("value of 'epsilon' must be > 0")
-  }
-  if (!is.numeric(maxit) || maxit <= 0) {
-    stop("maximum number of iterations must be > 0")
-  }
-  list(maxit = maxit, epsilon = epsilon, trace = trace)
-}
+sop.control <- utils::getFromNamespace("sop.control", "SOP")
 
+#' Slightly modified version of \code{sop.fit}. We have asked the authors of the package for permission to make this change.
+#'
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+#'
+#' @noRd
 sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
                     etastart = NULL, mustart = NULL, offset = NULL, family = stats::gaussian(),
-                    control = SOP::sop.control()) {
+                    control = sop.control()) {
   deviance <- function(C, G, w, sigma2, ssr, edf) {
     log_det_C <- determinant(C)$modulus
     log_det_G <- determinant(G)$modulus
@@ -327,6 +323,21 @@ sop.fit <- function(y, X, Z, weights = NULL, G = NULL, vcstart = NULL,
   invisible(fit)
 }
 
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+RH <- utils::getFromNamespace("RH", "SOP")
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.1D.pspline <- utils::getFromNamespace("construct.1D.pspline", "SOP")
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.2D.pspline <- utils::getFromNamespace("construct.2D.pspline", "SOP")
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.3D.pspline <- utils::getFromNamespace("construct.3D.pspline", "SOP")
+
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+construct.capital.lambda <- utils::getFromNamespace("construct.capital.lambda", "SOP")
+
 #' Bidimensional functional data generator with random errors.
 #'
 #' @param x_observations Observations of the x axis.
@@ -483,10 +494,8 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
   h <- (x_observations[length(x_observations)] - x_observations[1]) / n_y # if y_b and y_a are functions of x_observations
   HX <- (y_observations[length(y_observations)] - y_observations[1]) / m_y # this line should go inside the next for loop (the int_i lopp or outer loop)
 
-
   x <- seq(x_observations[1], x_observations[length(x_observations)], h)
   y <- seq(y_observations[1], y_observations[length(y_observations)], HX)
-
 
   simp_w_y <- rep(1, n_y + 1)
   even_y <- seq(2, n_y + 1 - 1, 2)
@@ -524,10 +533,56 @@ response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_
 
   Beta_eval <- f_Beta(x, y)
 
-  y_int <- as.double(t(ks::vec(X_eval)) %*% diag(W_delta_y) %*% ks::vec(Beta_eval))
+  y_int <- as.double(t(vec(X_eval)) %*% diag(W_delta_y) %*% vec(Beta_eval))
 
   list(
     nu = y_int,
     X_eval = X_eval
   )
+}
+
+#' From matrix to vector
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
+#'
+#' @noRd
+vec <- function(x, byrow = FALSE) {
+  if (is.vector(x))
+    return(x)
+  if (byrow)
+    x <- t(x)
+  d <- ncol(x)
+  vecx <- vector()
+  for (j in 1:d) vecx <- c(vecx, x[, j])
+  return(vecx)
+}
+
+#' From vector to matrix
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
+#'
+#' @noRd
+invvec <- function (x, ncol, nrow, byrow = FALSE) {
+  if (length(x) == 1)
+    return(x)
+  d <- sqrt(length(x))
+  if (missing(ncol) | missing(nrow)) {
+    ncol <- d
+    nrow <- d
+    if (round(d) != d)
+      stop("Need to specify nrow and ncol for non-square matrices")
+  }
+  invvecx <- matrix(0, nrow = nrow, ncol = ncol)
+  if (byrow)
+    for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j -
+                                                       1) * ncol]
+  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j -
+                                                          1) * nrow]
+  return(invvecx)
+}
+
+#' @noRd
+dummy <- function() {
+  SOP::f
+  utils::getFromNamespace
 }

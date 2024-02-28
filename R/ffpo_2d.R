@@ -329,12 +329,12 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
       }
     } # for in int_i
 
-    W <- ks::invvec(W_delta, ncol = m + 1, nrow = n + 1)
+    W <- invvec(W_delta, ncol = m + 1, nrow = n + 1)
 
     # check=10
     # all.equal(as.matrix(W_delta[((n+1)*(check-1)+1):(check*(n+1))]),as.matrix(W[,check]))
 
-    aux_GLAM <- SOP:::RH(t(Rten2((fy_beta), fy)), SOP:::RH(t(Rten2((
+    aux_GLAM <- RH(t(Rten2((fy_beta), fy)), RH(t(Rten2((
       fx_beta
     ), fx)), W))
     dim(aux_GLAM) <- c(c1, c1_beta, c2, c2_beta)
