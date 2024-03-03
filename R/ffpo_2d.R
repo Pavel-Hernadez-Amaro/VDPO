@@ -352,6 +352,8 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
 
   list(
     B_ffpo2d = B_ffpo2d,
+    A = A,
+    Inner_matrix = Inner_matrix,
     Phi_ffpo2d = B_kron_beta,
     M_ffpo2d = missing_points,
     nbasis = nbasis
