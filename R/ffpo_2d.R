@@ -162,7 +162,7 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
   fy_beta <- splines::spline.des(knots_y_beta, y, bdeg[4] + 1, 0 * y)$design
 
   for (j in 1:N) {
-    print(paste0("j = ", j))
+    # print(paste0("j = ", j))
 
     NA_ind <- NULL
     for (ind_i in 1:dim(X[[j]])[1]) {
