@@ -493,6 +493,98 @@ data_generator_po2d <- function(N = 100, px = 20, py = 20, Rsq = 0.95, n_missing
   )
 }
 
+data_generator_po2d_no_int <- function(N = 100, px = 20, py = 20, Rsq = 0.95, n_missing = 1, min_distance_x = 9, min_distance_y = 9, Beta_index=TRUE) {
+  Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 0.2, epsilon_data = 0.015) {
+    x_b <- length(x_observations)
+    y_b <- length(y_observations)
+
+    DATA_T <- DATA_N <- matrix(nrow = x_b, ncol = y_b)
+
+    a1 <- stats::rnorm(1, 0, epsilon_1)
+    a2 <- stats::rnorm(1, 0, epsilon_2)
+
+    for (i in 1:x_b) {
+      for (j in 1:y_b) {
+        DATA_T[i, j] <- a1 * cos(2 * pi * x_observations[i]) + a2 * cos(2 * pi * y_observations[j]) + 1
+        DATA_N[i, j] <- DATA_T[i, j] + stats::rnorm(1, 0, epsilon_data)
+      }
+    }
+
+    DATA <- data.frame(DATA_T[, 1])
+
+    DATA[["DATA_T"]] <- DATA_T
+    DATA[["DATA_N"]] <- DATA_N
+
+    DATA <- DATA[, -1]
+
+
+    # a is the stochastic part of the surface
+    # this is needed for the function `response_int_H` !!!!!!!!!!!
+    res <- list(
+      DATA = DATA,
+      a = c(a1, a2),
+      epsilon_data = epsilon_data
+    )
+  }
+  Beta_H_saddle <- function(x_observations, y_observations) {
+    aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
+
+    for (i in 1:length(x_observations)) {
+      for (h in 1:length(y_observations)) {
+        aux_beta[i, h] <- (4 * x_observations[i] - 2)^3 - 3 * (4 * x_observations[i] - 2) * (4 * y_observations[h] - 2)^2
+      }
+    }
+    aux_beta / 10
+  }
+  Beta_H_exp <- function(x_observations, y_observations) {
+    aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
+
+    for (i in 1:length(x_observations)) {
+      for (h in 1:length(y_observations)) {
+        aux_beta[i, h] <- 5 * exp(-8 * ((x_observations[i] - 0.75)^2 + (y_observations[h] - 0.75)^2)) + 5 * exp(-8 * ((x_observations[i] - 0.1)^2 + (y_observations[h] - 0.1)^2))
+      }
+    }
+    aux_beta / 10
+  }
+
+  x <- seq(from = 0, to = 1, length.out = px)
+  y <- seq(from = 0, to = 1, length.out = py)
+
+  X <- lapply(1:N, function(a) {
+    Data_H(x, y)
+  })
+
+
+  X_true <- lapply(seq_along(X), function(i) X[[i]]$DATA$DATA_T)
+  X_real <- lapply(seq_along(X), function(i) X[[i]]$DATA$DATA_N)
+
+  if (Beta_index) {
+
+    Beta_True=Beta_H_saddle(x, y)
+    nu = sapply(seq_along(X_real), function(i) mean(X_real[[i]] * Beta_True))
+  }else{
+
+    Beta_True=Beta_H_exp(x, y)
+    nu = X_real %*% Beta_True
+  }
+
+  X_miss = add_miss(X_real, n_missing = n_missing, min_distance_x = min_distance_x, min_distance_y = min_distance_y)
+
+  var_e <- (1 / Rsq - 1) * stats::var(nu) # (1-Rsq)*var(nu[ind,])
+
+  response <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL #rnorm(nu[ind,])
+
+  list(
+    y = response,
+    nu = nu,
+    X_true = X_true,
+    X_real = X_real,
+    X_miss = X_miss[["X_miss"]],
+    miss_points = X_miss[["miss_points"]],
+    missing_points = X_miss[["missing_points"]],
+    Beta_True=Beta_True
+  )
+}
 
 #' Set missing values to the surfaces
 #'
