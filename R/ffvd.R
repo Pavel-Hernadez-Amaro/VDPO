@@ -96,12 +96,12 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   # need to rewrite this for statement
   for (i in 1:N) {
     PROD <- partial_inprod(
-      n_intervals = sub,
-      knots1 = L_X[[i]]$knots,
-      knots2 = L_Phi[[i]]$knots,
-      bdeg = bdeg[1:2],
+      n_intervals   = sub,
+      knots1        = L_X[[i]]$knots,
+      knots2        = L_Phi[[i]]$knots,
+      bdeg          = bdeg[1:2],
       spline_domain = B_T$B[i, , drop = FALSE],
-      rng = c(M[i, 1], M[i, 2])
+      rng           = c(M[i, 1], M[i, 2])
     )
     PROD <- PROD / (M[i, 2] - M[i, 1] + 1)
 

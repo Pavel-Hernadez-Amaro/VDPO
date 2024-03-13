@@ -3,7 +3,7 @@
 S3method(plot,VDPO)
 S3method(summary,VDPO)
 export(VDPO)
-export(addgrid)
+export(add_grid)
 export(ffpo)
 export(ffpo_2d)
 export(ffvd)

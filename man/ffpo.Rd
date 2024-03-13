@@ -46,5 +46,5 @@ Varying observation points introduce complexity, as each covariate might be
 sampled at different time instances.
 }
 \seealso{
-\code{\link{VDPO}}, \code{\link{addgrid}}
+\code{\link{VDPO}}, \code{\link{add_grid}}
 }

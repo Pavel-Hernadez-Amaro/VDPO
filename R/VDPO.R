@@ -51,7 +51,7 @@
 #' res$theta_ffpo        # functional coefficient
 #' res$fit$fitted.values # estimated response variable
 #'}
-#' @seealso \code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{addgrid}}
+#' @seealso \code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{add_grid}}
 #'
 #' @export
 VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {

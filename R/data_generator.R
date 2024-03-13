@@ -300,7 +300,7 @@ data_generator_po <- function() {
 
   data <- data.frame(y = y)
   data["x"] <- x$x.miss
-  data <- addgrid(data, grid)
+  data <- add_grid(data, grid)
   data
 }
 
@@ -565,7 +565,7 @@ data_generator_po2d_no_int <- function(N = 100, px = 20, py = 20, Rsq = 0.95, n_
   }else{
 
     Beta_True=Beta_H_exp(x, y)
-    nu = sapply(seq_along(X_real), function(i) mean(X_real[[i]] * Beta_True))
+    nu = X_real %*% Beta_True
   }
 
   X_miss = add_miss(X_real, n_missing = n_missing, min_distance_x = min_distance_x, min_distance_y = min_distance_y)
