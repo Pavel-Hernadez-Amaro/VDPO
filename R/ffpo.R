@@ -30,7 +30,7 @@
 #' Varying observation points introduce complexity, as each covariate might be
 #' sampled at different time instances.
 #'
-#' @seealso \code{\link{VDPO}}, \code{\link{addgrid}}
+#' @seealso \code{\link{VDPO}}, \code{\link{add_grid}}
 #'
 #' @export
 ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
@@ -43,6 +43,7 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
     grid <- grid[!is.na(grid)]
   }
 
+  ### maybe not needed ###
   if (!is.null(dim(grid)) && length(dim(grid)) > 2) {
     stop("the 'grid' parameter should be at most 2-dimensional", call. = FALSE)
   }
@@ -199,7 +200,9 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
 #' @seealso \code{\link{ffpo}}
 #'
 #' @export
-addgrid <- function(df, grid) {
+add_grid <- function(df, grid) {
+  grid <- grid[!is.na(grid)]
+
   N <- nrow(df)
   l <- length(grid)
 

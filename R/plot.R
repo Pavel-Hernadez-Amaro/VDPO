@@ -1,5 +1,7 @@
 #' @export
 plot.VDPO <- function(x, beta_index = 1, ...) {
+  Beta <- NULL
+
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
@@ -37,7 +39,7 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
   lims <- range(Heat_map_data$Beta)
 
   ggplot2::ggplot(Heat_map_data, ggplot2::aes(x = t, y = IND)) +
-    ggplot2::geom_tile(ggplot2::aes(colour = Heat_map_data$Beta, fill = Heat_map_data$Beta)) +
+    ggplot2::geom_tile(ggplot2::aes(colour = Beta, fill = Beta)) +
     ggplot2::scale_fill_gradientn(
       name     = "",
       limits   = lims,
@@ -53,7 +55,5 @@ plot.VDPO <- function(x, beta_index = 1, ...) {
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::theme_bw() +
     ggplot2::labs(y = "T") +
-    ggplot2::ggtitle(paste0("FFVD HeatMap (Beta ", beta_index, ")")) -> plot
-
-  plot
+    ggplot2::ggtitle(paste0("FFVD HeatMap (Beta ", beta_index, ")"))
 }

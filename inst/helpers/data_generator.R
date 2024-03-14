@@ -125,12 +125,12 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
 
   data <- data.frame(y = y)
 
-  data[["X_s"]] <- X_s
-  data[["X_se"]] <- X_se
-  data[["Y_s"]] <- Y_s
-  data[["Y_se"]] <- Y_se
-  data[["x1"]] <- x1
-  data[["Beta"]] <- Beta
+  data[["X_s"]] <- I(X_s)
+  data[["X_se"]] <- I(X_se)
+  data[["Y_s"]] <- I(Y_s)
+  data[["Y_se"]] <- I(Y_se)
+  data[["x1"]] <- I(x1)
+  data[["Beta"]] <- I(Beta)
 
   data
 }
@@ -300,7 +300,7 @@ data_generator_po <- function() {
 
   data <- data.frame(y = y)
   data["x"] <- x$x.miss
-  data <- addgrid(data, grid)
+  data <- add_grid(data, grid)
   data
 }
 

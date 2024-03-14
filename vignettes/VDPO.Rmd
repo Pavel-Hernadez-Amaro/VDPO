@@ -21,7 +21,7 @@ delve into the sophisticated realm of functional regression analysis. When doing
 functional regression, the treatment of data characterized by variable domains or
 partial observability demands specialized methodologies beyond conventional techniques.
 It is within this context that VDPO emerges as a toolset within the R programming
-environment, thanks to the work of the doctoral thesis of Pavel Hernandez Amaro, author
+environment, thanks to the work of the doctoral thesis of Pavel Hernández Amaro, author
 of the package.
 
 This vignette serves as a structured exploration of practical applications of functional
@@ -33,7 +33,7 @@ anyone is interested in exploring them. The way to simulate this data can be fou
 
 ## First steps
 
-First, we need to load the package
+First, we need to load the package:
 
 ```{r setup}
 library(VDPO)
@@ -53,17 +53,17 @@ names(VDPO_example_vd)
 
 ```{r}
 formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10))
-res <- VDPO(formula = formula, data = data)
+res <- VDPO(formula = formula, data = VDPO_example_vd)
 ```
 
-We can use the `summary` function to see a summary of the model
+We can use the `summary` function to see a summary of the model's fit:
 
 ```{r}
 summary(res)
 ```
 
 
-With the model already fited, we can plot it using the `plot` function:
+With the model already fitted, we can plot it using the `plot` function:
 
 ```{r}
 plot(res)
