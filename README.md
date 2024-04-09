@@ -1,6 +1,6 @@
 # VDPO
 
-The **VDPO** package fit functional regression models with both variable domain and partially observed functional data.
+The **VDPO** package fits functional regression models with both variable domain and partially observed functional data.
 
 ## Related Papers 
 
@@ -9,9 +9,9 @@ The **VDPO** package fit functional regression models with both variable domain 
 
 ## Installation
 
-To install the package from GitHub, the [remotes](https://cran.r-project.org/package=remotes) package is required.
+To install the package from GitHub, the [remotes](https://cran.r-project.org/package=remotes) package is required:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("Pavel-Hernadez-Amaro/1st-package")
+remotes::install_github("Pavel-Hernadez-Amaro/VDPO")
 ```
