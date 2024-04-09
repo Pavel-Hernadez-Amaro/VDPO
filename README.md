@@ -1,7 +1,8 @@
 # VDPO
 
 <!-- badges: start -->
-[![Build\_Status](https://github.com/Pavel-Hernadez-Amaro/VDPO/actions/workflows/build.yml)
+[![Build\_Status](https://github.com/Pavel-Hernadez-Amaro/VDPO/actions/workflows/build.yml/badge.svg)](https://github.com/Pavel-Hernadez-Amaro/VDPO/actions/workflows/build.yml)
+
 <!-- badges: end -->
 
 The **VDPO** package fits functional regression models with both variable domain and partially observed functional data.
