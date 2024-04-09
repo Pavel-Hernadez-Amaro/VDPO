@@ -1,3 +1,5 @@
 ^VDPO\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+.github
+^\.github$
