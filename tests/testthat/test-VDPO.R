@@ -52,6 +52,40 @@ test_that("the 'summary' method for 'VDPO' objects is identical to the 'summary'
   expect_identical(summary(res), summary(res$fit))
 })
 
+test_that("'VDPO' function with NA values", {
+  data <- VDPO::VDPO_example_vd
+  data$y[1] <- NA  # introduce NA value
+  formula <- y ~ ffvd(X_se)
 
+  result <- VDPO(formula = formula, data = data)
 
+  expect_s3_class(result, "VDPO")
+  expect_true("theta_ffvd" %in% names(result))
+  expect_true("fit" %in% names(result))
+  expect_true("fitted.values" %in% names(result$fit))
+  expect_lt(length(result$fit$fitted.values), nrow(data))  # less due to NA removal
+})
 
+test_that("'VDPO' function with non-data.frame data", {
+  data <- list(X_se = matrix(1:4, nrow = 2), y = c(1, 2))
+  formula <- y ~ ffvd(X_se)
+
+  expect_error(VDPO(formula = formula, data = data), "The data specified in the 'data' argument should be a data frame")
+})
+
+test_that("'VDPO' function with offset", {
+  # Setup
+  data <- VDPO::VDPO_example_vd
+  formula <- y ~ ffvd(X_se)
+  offset <- rep(1, nrow(data))
+
+  # Call the function
+  result <- VDPO(formula = formula, data = data, offset = offset)
+
+  # Assertions
+  expect_type(result, "list")
+  expect_true("theta_ffvd" %in% names(result))
+  expect_true("fit" %in% names(result))
+  expect_true("fitted.values" %in% names(result$fit))
+  expect_equal(length(result$fit$fitted.values), nrow(data))
+})
