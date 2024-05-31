@@ -108,7 +108,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
       spline_domain = B_T$B[i, , drop = FALSE],
       rng           = c(t[M[i, 1]], t[M[i, 2]])
     )
-    PROD <- PROD / (M[i, 2] - M[i, 1] + 1)
+    PROD <- PROD / t[(M[i, 2] - M[i, 1] + 1)]
 
     K <- rbind(K, PROD)
   }
