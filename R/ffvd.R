@@ -20,12 +20,13 @@
 #'
 #'
 #' @export
-ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
+ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   sub <- 500
   pord <- c(2, 2)
 
   # X is the matrix of Data # dim(X) == N x max(M)
-  # M is the vector of numbers of observations dim(M) == N x 1
+  # t is the vector of observation points
+  # M is the vector of numbers of observations dim(M) == N x 2
 
   M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
 
@@ -35,12 +36,14 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
   N <- nrow(X)
 
+  X_hat=matrix(,nrow = N, ncol = ncol(X))
+
   c1 <- nbasis[1]
   c2 <- nbasis[2]
   c3 <- nbasis[3]
 
   K <- NULL
-  rng <- M
+  rng <- cbind(t[M[,1]],t[M[,2]])
 
   L_Phi <- vector(mode = "list", length = N)
   L_X <- vector(mode = "list", length = N)
@@ -54,7 +57,7 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
     c <- c1 - bdeg[1] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-    L_X[[i]] <- bspline(M[i, 1]:M[i, 2], XL, XR, c, bdeg[1])
+    L_X[[i]] <- bspline(t[M[i, 1]:M[i, 2]], XL, XR, c, bdeg[1])
 
     ######### Estimating the coefficients of the data (matrix A)
 
@@ -68,14 +71,14 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
     c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-    L_Phi[[i]] <- bspline(M[i, 1]:M[i, 2], XL, XR, c_t, bdeg[2])
+    L_Phi[[i]] <- bspline(t[M[i, 1]:M[i, 2]], XL, XR, c_t, bdeg[2])
   }
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
 
   M_diff <- (M[, 2] - M[, 1] + 1)
 
-  xlim_T <- c(min(M_diff), max(M_diff)) ##
+  xlim_T <- c(t[min(M_diff)], t[max(M_diff)]) ##
 
   XL_T <- xlim_T[1] - 1e-06
   XR_T <- xlim_T[2] + 1e-06
@@ -83,9 +86,9 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   c_T <- c3 - bdeg[3] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
   if (all(M[, 1] == 1)) {
-    B_T <- bspline(M[, 2], XL_T, XR_T, c_T, bdeg[3])
+    B_T <- bspline(t[M[, 2]], XL_T, XR_T, c_T, bdeg[3])
   } else {
-    B_T <- bspline((M[, 2] - M[, 1] + 1), XL_T, XR_T, c_T, bdeg[3])
+    B_T <- bspline(t[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
   }
   ################# HERE WE ARE GOING TO TRASNFORM THE B-SPLINES BASIS INTO THE RAMSAY TYPE B-SPLINES BASIS TO PERFORM THE INNER PRODUCT
   # IS NOT MECESSARY TO DO THIS FOR THE T MARGINAL BASIS
@@ -101,7 +104,7 @@ ffvd <- function(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
       knots2        = L_Phi[[i]]$knots,
       bdeg          = bdeg[1:2],
       spline_domain = B_T$B[i, , drop = FALSE],
-      rng           = c(M[i, 1], M[i, 2])
+      rng           = c(t[M[i, 1]], t[M[i, 2]])
     )
     PROD <- PROD / (M[i, 2] - M[i, 1] + 1)
 
