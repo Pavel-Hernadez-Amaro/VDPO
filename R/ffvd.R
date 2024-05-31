@@ -36,7 +36,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
   N <- nrow(X)
 
-  X_hat=matrix(,nrow = N, ncol = ncol(X))
+  X_hat=matrix(nrow = N, ncol = ncol(X))
 
   c1 <- nbasis[1]
   c2 <- nbasis[2]
@@ -64,6 +64,8 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
     aux <- L_X[[i]]$B
     aux_2 <- B2XZG_1d(aux, pord[1], c1)
     aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = X[i, M[i, 1]:M[i, 2]])
+
+    X_hat[i, M[i,1]:M[i,2]]=aux_3$fit$fitted.values
 
     A[i, ((c1 * (i - 1)) + 1):(i * c1)] <- aux_3$theta
 
@@ -115,6 +117,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
   list(
     B_ffvd = B,
+    X_hat  = X_hat,
     L_Phi  = L_Phi,
     B_T    = B_T,
     M      = M,
