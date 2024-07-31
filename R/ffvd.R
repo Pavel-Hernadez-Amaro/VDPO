@@ -92,8 +92,8 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   } else {
     B_T <- bspline(t[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
   }
-  ################# HERE WE ARE GOING TO TRASNFORM THE B-SPLINES BASIS INTO THE RAMSAY TYPE B-SPLINES BASIS TO PERFORM THE INNER PRODUCT
-  # IS NOT MECESSARY TO DO THIS FOR THE T MARGINAL BASIS
+
+  L_X_all <- bspline(t, min(t) - 1e-6, max(t) + 1e-6, c, bdeg[1])
 
   # PERFORMING THE INNER PRODUCT
 
@@ -102,7 +102,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   for (i in 1:N) {
     PROD <- partial_inprod(
       n_intervals   = sub,
-      knots1        = L_X[[i]]$knots,
+      knots1        = L_X_all$knots,
       knots2        = L_Phi[[i]]$knots,
       bdeg          = bdeg[1:2],
       spline_domain = B_T$B[i, , drop = FALSE],
