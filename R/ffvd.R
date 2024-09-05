@@ -93,7 +93,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
     B_T <- bspline(t[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
   }
 
-  L_X_all <- bspline(t, min(t) - 1e-6, max(t) + 1e-6, c, bdeg[1])
+  L_X_all <- bspline(t, min(t) - 1e-6, max(t) + 1e-6, c_t, bdeg[1])
 
   # PERFORMING THE INNER PRODUCT
 
@@ -102,7 +102,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   for (i in 1:N) {
     PROD <- partial_inprod(
       n_intervals   = sub,
-      knots1        = L_Phi[[i]]$knots,
+      knots1        = L_X[[i]]$knots,
       knots2        = L_X_all$knots,
       bdeg          = bdeg[1:2],
       spline_domain = B_T$B[i, , drop = FALSE],
@@ -118,7 +118,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   list(
     B_ffvd = B,
     X_hat  = X_hat,
-    L_Phi  = L_Phi,
+    L_Phi  = L_X_all,
     B_T    = B_T,
     M      = M,
     nbasis = nbasis
