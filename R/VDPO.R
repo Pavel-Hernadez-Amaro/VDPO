@@ -345,7 +345,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     for (j in 1:nffvd) {
       for (i in 1:length(data[[response]])) {
         Beta_ffvd[[j]][i, M[[j]][i, 1]:M[[j]][i, 2]] <-
-          as.matrix(kronecker(L_Phi[[j]][[i]]$B, t(B_T[[j]]$B[i, ]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
+          as.matrix(kronecker(L_Phi[[j]]$B, t(B_T[[j]]$B[i, ]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
       }
       it <- it + prod(deglist[[j]])
     }
