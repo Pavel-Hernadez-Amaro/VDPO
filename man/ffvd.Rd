@@ -4,7 +4,7 @@
 \alias{ffvd}
 \title{Defining variable domain functional data terms in VDPO formulae}
 \usage{
-ffvd(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3))
+ffvd(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3))
 }
 \arguments{
 \item{X}{variable domain functional covariate \code{matrix}.}

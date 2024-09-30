@@ -26,3 +26,37 @@ data2[["missing_points"]] <-  data$missing_points
 
 formula <- y ~ ffpo_2d(X_miss = data2$X_miss, miss_points = data2$miss_points, missing_points = data2$missing_points)
 res <- VDPO(formula = formula, data = data2, family = stats::gaussian())
+
+
+# 30092024
+data <- data_generator_vd(beta_index = 2)
+formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30))
+res <- vd_fit(formula = formula, data = data)
+
+formula2 <- y ~ ffvd_old(X_se, nbasis = c(30, 50, 30))
+t0 <- proc.time()
+res2 <- VDPO(formula = formula2, data = data)
+t1 <- proc.time()
+
+time2 <- t1 - t0
+
+
+data <- data_generator_vd(beta_index = 1)
+formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30))
+t0 <- proc.time()
+res3 <- vd_fit(formula = formula, data = data)
+t1 <- proc.time()
+
+time3 <- t1 - t0
+
+data <- data_generator_vd(beta_index = 1)
+formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + ffvd(Y_se, nbasis = c(30, 50, 30))
+res <- vd_fit(formula = formula, data = data)
+
+data_not_aligned <- data_generator_vd(aligned = FALSE, beta_index = 2)
+formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30))
+t0 <- proc.time()
+res_not_aligned <- vd_fit(formula = formula, data = data_not_aligned)
+t1 <- proc.time()
+
+time_not_aligned <- t1 - t0

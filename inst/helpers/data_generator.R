@@ -65,10 +65,10 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
 
         if (aligned) {
           temp[k, 1:M[i]] <-
-            v_i1 * sin(2 * pi * k * (1:M[i]) / 100) + v_i2 * cos(2 * pi * k * (1:M[i]) / 100)
+            v_i1 * sin(2 * pi * k * (1:M[i]) / J) + v_i2 * cos(2 * pi * k * (1:M[i]) / J)
         } else {
           temp[k, (M[i, 1]:M[i, 2])] <-
-            v_i1 * sin(2 * pi * k * (M[i, 1]:M[i, 2]) / 100) + v_i2 * cos(2 * pi * k * (M[i, 1]:M[i, 2]) / 100)
+            v_i1 * sin(2 * pi * k * (M[i, 1]:M[i, 2]) / J) + v_i2 * cos(2 * pi * k * (M[i, 1]:M[i, 2]) / J)
         }
       }
 
@@ -78,10 +78,12 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
       B <- B + u1
       B2 <- B + stats::rnorm(1, sd = 0.02) + (t / 10)
 
+      aux <- var(B, na.rm = TRUE)
+
       X_s[i, ] <- B
-      X_se[i, ] <- B + stats::rnorm(maxM, 0, 1) # WE ADD NOISE
+      X_se[i, ] <- B + stats::rnorm(maxM, 0, aux / 4) # WE ADD NOISE
       Y_s[i, ] <- B2
-      Y_se[i, ] <- B2 + stats::rnorm(maxM, 0, 1) # WE ADD NOISE
+      Y_se[i, ] <- B2 + stats::rnorm(maxM, 0, aux / 4) # WE ADD NOISE
     }
 
     Beta <- array(dim = c(N, maxM, 4))
@@ -116,10 +118,10 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
 
     }
 
-    nu <- if (use_f) nu + f0(x1) else nu
+    # nu <- if (use_f) nu + f0(x1) else nu
     var_e <- (1 / Rsq - 1) * stats::var(nu)
     y <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
-    y <- if (use_x) y + x1 else y
+    # y <- if (use_x) y + x1 else y
   }
 
 

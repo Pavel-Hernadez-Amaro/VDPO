@@ -21,7 +21,7 @@
 #'
 #'
 #' @export
-ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
+ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
 
   if (missing(grid)) {
     grid <- seq_len(ncol(X))
@@ -42,7 +42,7 @@ ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
   N <- nrow(X)
 
-  X_hat=matrix(nrow = N, ncol = ncol(X))
+  X_hat <- matrix(nrow = N, ncol = ncol(X))
 
   c1 <- nbasis[1]
   c2 <- nbasis[2]
@@ -51,7 +51,6 @@ ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   K <- NULL
   rng <- cbind(grid[M[,1]],grid[M[,2]])
 
-  L_Phi <- vector(mode = "list", length = N)
   L_X <- vector(mode = "list", length = N)
 
   A <- matrix(0, nrow = N, ncol = N * c1)
@@ -71,15 +70,10 @@ ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
     aux_2 <- B2XZG_1d(aux, pord[1], c1)
     aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = X[i, M[i, 1]:M[i, 2]])
 
-    X_hat[i, M[i,1]:M[i,2]]=aux_3$fit$fitted.values
+    X_hat[i, M[i,1]:M[i,2]] <- aux_3$fit$fitted.values
 
     A[i, ((c1 * (i - 1)) + 1):(i * c1)] <- aux_3$theta
 
-    ############### HERE WE CREATE THE MARGINAL BASIS FOR THE t VARIABLE In B(t,T)
-
-    c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
-
-    L_Phi[[i]] <- bspline(grid[M[i, 1]:M[i, 2]], XL, XR, c_t, bdeg[2])
   }
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
@@ -99,12 +93,13 @@ ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
     B_T <- bspline(grid[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
   }
 
-  L_X_all <- bspline(grid, min(grid) - 1e-6, max(grid) + 1e-6, c_t, bdeg[1])
+  ############### HERE WE CREATE THE MARGINAL BASIS FOR THE t VARIABLE in B(t,T)
+
+  c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
+
+  L_X_all <- bspline(grid, min(grid) - 1e-6, max(grid) + 1e-6, c_t, bdeg[2])
 
   # PERFORMING THE INNER PRODUCT
-
-
-  # need to rewrite this for statement
   for (i in 1:N) {
     PROD <- partial_inprod(
       n_intervals   = sub,
