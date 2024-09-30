@@ -4,10 +4,12 @@
 \alias{ffvd}
 \title{Defining variable domain functional data terms in VDPO formulae}
 \usage{
-ffvd(X, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3))
+ffvd(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3))
 }
 \arguments{
 \item{X}{variable domain functional covariate \code{matrix}.}
+
+\item{grid}{Observation points of the variable domain functional covariate.}
 
 \item{nbasis}{number of basis to be used.}
 

@@ -4,6 +4,7 @@
 #' formulae.
 #'
 #' @param X variable domain functional covariate \code{matrix}.
+#' @param grid Observation points of the variable domain functional covariate.
 #' @param nbasis number of basis to be used.
 #' @param bdeg degree of the basis to be used.
 #'
@@ -20,12 +21,17 @@
 #'
 #'
 #' @export
-ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
+ffvd <- function(X, grid, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
+
+  if (missing(grid)) {
+    grid <- seq_len(ncol(X))
+  }
+
   sub <- 500
   pord <- c(2, 2)
 
   # X is the matrix of Data # dim(X) == N x max(M)
-  # t is the vector of observation points
+  # grid is the vector of observation points
   # M is the vector of numbers of observations dim(M) == N x 2
 
   M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
@@ -43,7 +49,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   c3 <- nbasis[3]
 
   K <- NULL
-  rng <- cbind(t[M[,1]],t[M[,2]])
+  rng <- cbind(grid[M[,1]],grid[M[,2]])
 
   L_Phi <- vector(mode = "list", length = N)
   L_X <- vector(mode = "list", length = N)
@@ -57,7 +63,7 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
     c <- c1 - bdeg[1] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-    L_X[[i]] <- bspline(t[M[i, 1]:M[i, 2]], XL, XR, c, bdeg[1])
+    L_X[[i]] <- bspline(grid[M[i, 1]:M[i, 2]], XL, XR, c, bdeg[1])
 
     ######### Estimating the coefficients of the data (matrix A)
 
@@ -73,14 +79,14 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
 
     c_t <- c2 - bdeg[2] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
-    L_Phi[[i]] <- bspline(t[M[i, 1]:M[i, 2]], XL, XR, c_t, bdeg[2])
+    L_Phi[[i]] <- bspline(grid[M[i, 1]:M[i, 2]], XL, XR, c_t, bdeg[2])
   }
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)
 
   M_diff <- (M[, 2] - M[, 1] + 1)
 
-  xlim_T <- c(t[min(M_diff)], t[max(M_diff)]) ##
+  xlim_T <- c(grid[min(M_diff)], grid[max(M_diff)]) ##
 
   XL_T <- xlim_T[1] - 1e-06
   XR_T <- xlim_T[2] + 1e-06
@@ -88,12 +94,12 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
   c_T <- c3 - bdeg[3] # EQUAL TO THE NUMBER OF INNER KNOTS + 1
 
   if (all(M[, 1] == 1)) {
-    B_T <- bspline(t[M[, 2]], XL_T, XR_T, c_T, bdeg[3])
+    B_T <- bspline(grid[M[, 2]], XL_T, XR_T, c_T, bdeg[3])
   } else {
-    B_T <- bspline(t[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
+    B_T <- bspline(grid[(M[, 2] - M[, 1] + 1)], XL_T, XR_T, c_T, bdeg[3])
   }
 
-  L_X_all <- bspline(t, min(t) - 1e-6, max(t) + 1e-6, c_t, bdeg[1])
+  L_X_all <- bspline(grid, min(grid) - 1e-6, max(grid) + 1e-6, c_t, bdeg[1])
 
   # PERFORMING THE INNER PRODUCT
 
@@ -106,9 +112,9 @@ ffvd <- function(X, t, nbasis = c(20, 20, 20), bdeg = c(3, 3, 3)) {
       knots2        = L_X_all$knots,
       bdeg          = bdeg[1:2],
       spline_domain = B_T$B[i, , drop = FALSE],
-      rng           = c(t[M[i, 1]], t[M[i, 2]])
+      rng           = c(grid[M[i, 1]], grid[M[i, 2]])
     )
-    PROD <- PROD / t[(M[i, 2] - M[i, 1] + 1)]
+    PROD <- PROD / grid[(M[i, 2] - M[i, 1] + 1)]
 
     K <- rbind(K, PROD)
   }
