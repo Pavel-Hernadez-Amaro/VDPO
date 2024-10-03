@@ -30,7 +30,7 @@ res <- VDPO(formula = formula, data = data2, family = stats::gaussian())
 
 # 30092024
 data <- data_generator_vd(beta_index = 2)
-formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30))
+formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10)) + ffvd(Y_se, nbasis = c(11, 10, 10))
 res <- vd_fit(formula = formula, data = data)
 
 formula2 <- y ~ ffvd_old(X_se, nbasis = c(30, 50, 30))

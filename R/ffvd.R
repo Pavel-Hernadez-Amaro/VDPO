@@ -10,7 +10,7 @@
 #'
 #' @return the function is interpreted in the formula of a \code{VDPO} model.
 #' \code{list} containing the following elements:
-#' - \code{B_ffvd} design matrix.
+#' - \code{B} design matrix.
 #' - \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
 #' - \code{M} \code{matrix} object indicating the observed domain of the data.
 #' - \code{nbasis} number of basis used.
@@ -116,14 +116,18 @@ ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
 
   B <- A %*% K
 
-  list(
-    B_ffvd = B,
+  res <- list(
+    B      = B,
     X_hat  = X_hat,
     L_Phi  = L_X_all,
     B_T    = B_T,
     M      = M,
     nbasis = nbasis
   )
+
+  class(res) <- "ffvd"
+
+  res
 }
 
 

@@ -1,20 +1,26 @@
 #' Estimation of the generalized additive functional regression models for
-#' variable domain and/or partially observed functional regression data.
+#' variable domain functional data
 #'
-#' The \code{VDPO} function fits generalized additive functional regression models
-#' for variable domain and partially observed functional data in both 1 and 2 dimensions.
+#' The \code{vd_fit} function fits generalized additive functional regression models
+#' for variable domain functional data.
 #'
-#' @param formula a formula object with at least one \code{ffvd}, \code{ffpo} or
-#' \code{ffpo_2d} term.
+#' @param formula a formula object with at least one \code{ffvd} term.
 #' @param data a \code{data.frame} object containing the response variable
-#' and the covariates. When fitting partially observed functional data,
-#' a grid of observation points is also needed.
+#' and the covariates.
 #' @param family a \code{family} object specifying the distribution from which the
 #' data originates. The default distribution is \code{\link{gaussian}}.
 #' @param offset An offset vector. The default value is \code{NULL}.
 #'
-#' @return Object of class \code{VDPO} with the results of the computation.
+#' @return An object of class \code{vd_fit}. It is a \code{list} containing the following items:
 #'
+#' - An item named `fit` of class \code{sop}. See \link[SOP]{sop.fit}.
+#' - An item named `Beta` which is the estimated functional coefficient.
+#' - An item named `theta` which is the basis coefficient of `Beta`.
+#' - An item named `covar_theta` which is the covariance matrix of `theta`.
+#' - An item named `M` which is the number of observations points for each curve.
+#' - An item named `ffvd_evals` which is the result of the evaluations of the `ffvd`
+#' terms in the formula.
+#
 #' @examples
 #' \dontrun{
 #' # VARIABLE DOMAIN FUNCTIONAL DATA EXAMPLE
@@ -214,7 +220,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
       ffvd_counter <- ffvd_counter + 1
 
-      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
+      B_all <- cbind(B_all, ffvd_evaluation[["B"]])
       deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
       L_Phi[[ffvd_counter]] <- ffvd_evaluation[["L_Phi"]]
@@ -223,11 +229,11 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       # TMatrix[[ffvd_counter]] <- ffvd_evaluation[["TMatrix"]]
     }
 
-    foo <- B2XZG(B_all, deglist)
+    B_res <- B2XZG(B_all, deglist)
 
-    X <- cbind(X, foo$X_ffvd)
-    Z <- cbind(Z, foo$Z_ffvd)
-    G <- c(G, foo$G_ffvd)
+    X <- cbind(X, B_res$X_ffvd)
+    Z <- cbind(Z, B_res$Z_ffvd)
+    G <- c(G, B_res$G_ffvd)
   }
 
   for (column_index in rev(non_special_indices)) {
@@ -271,12 +277,11 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     # only ffvd
 
     theta_aux <- c(b_fixed_tmp, fit$b.random)
-    covar_theta <- foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)
-    std_error_theta <- sqrt(diag(foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)))
+    covar_theta <- B_res$TMatrix %*% Vp_tmp %*% t(B_res$TMatrix)
   }
 
 
-  theta <- foo$TMatrix %*% theta_aux
+  theta <- B_res$TMatrix %*% theta_aux
   if (nffvd > 0) {
     Beta_ffvd <- lapply(
       M,
@@ -300,14 +305,17 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   if (length(non_special_indices) == 0 && nf == 0 && nffvd > 0) {
     # only ffvd
+    ffvd_evals <- evals[grepl("ffvd", names(evals))]
+    names <- paste0("ffvd_", gsub(".*?\\((.+?),.+", "\\1", names(ffvd_evals)))
+    names(ffvd_evals) <- names
 
     res <- list(
-      fit              = fit,
-      theta_ffvd       = theta,
-      covar_theta      = covar_theta,
-      std_error_theta  = std_error_theta,
-      Beta_ffvd        = Beta_ffvd,
-      M_ffvd           = M
+      fit         = fit,
+      Beta        = Beta_ffvd,
+      theta       = theta,
+      covar_theta = covar_theta,
+      M           = M,
+      ffvd_evals  = ffvd_evals
     )
 
   }

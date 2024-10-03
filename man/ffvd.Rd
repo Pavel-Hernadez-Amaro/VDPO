@@ -19,7 +19,7 @@ ffvd(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3))
 the function is interpreted in the formula of a \code{VDPO} model.
 \code{list} containing the following elements:
 \itemize{
-\item \code{B_ffvd} design matrix.
+\item \code{B} design matrix.
 \item \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
 \item \code{M} \code{matrix} object indicating the observed domain of the data.
 \item \code{nbasis} number of basis used.

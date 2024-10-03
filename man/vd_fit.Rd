@@ -3,17 +3,15 @@
 \name{vd_fit}
 \alias{vd_fit}
 \title{Estimation of the generalized additive functional regression models for
-variable domain and/or partially observed functional regression data.}
+variable domain functional data}
 \usage{
 vd_fit(formula, data, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
-\item{formula}{a formula object with at least one \code{ffvd}, \code{ffpo} or
-\code{ffpo_2d} term.}
+\item{formula}{a formula object with at least one \code{ffvd} term.}
 
 \item{data}{a \code{data.frame} object containing the response variable
-and the covariates. When fitting partially observed functional data,
-a grid of observation points is also needed.}
+and the covariates.}
 
 \item{family}{a \code{family} object specifying the distribution from which the
 data originates. The default distribution is \code{\link{gaussian}}.}
@@ -21,11 +19,20 @@ data originates. The default distribution is \code{\link{gaussian}}.}
 \item{offset}{An offset vector. The default value is \code{NULL}.}
 }
 \value{
-Object of class \code{VDPO} with the results of the computation.
+An object of class \code{vd_fit}. It is a \code{list} containing the following items:
+\itemize{
+\item An item named \code{fit} of class \code{sop}. See \link[SOP]{sop.fit}.
+\item An item named \code{Beta} which is the estimated functional coefficient.
+\item An item named \code{theta} which is the basis coefficient of \code{Beta}.
+\item An item named \code{covar_theta} which is the covariance matrix of \code{theta}.
+\item An item named \code{M} which is the number of observations points for each curve.
+\item An item named \code{ffvd_evals} which is the result of the evaluations of the \code{ffvd}
+terms in the formula.
+}
 }
 \description{
-The \code{VDPO} function fits generalized additive functional regression models
-for variable domain and partially observed functional data in both 1 and 2 dimensions.
+The \code{vd_fit} function fits generalized additive functional regression models
+for variable domain functional data.
 }
 \examples{
 \dontrun{

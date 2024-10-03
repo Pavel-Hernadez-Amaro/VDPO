@@ -215,7 +215,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
       ffvd_counter <- ffvd_counter + 1
 
-      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
+      B_all <- cbind(B_all, ffvd_evaluation[["B"]])
       deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
       L_Phi[[ffvd_counter]] <- ffvd_evaluation[["L_Phi"]]

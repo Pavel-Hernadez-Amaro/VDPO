@@ -108,7 +108,7 @@ ffvd_old <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
   B <- A %*% K
 
   list(
-    B_ffvd = B,
+    B = B,
     X_hat  = X_hat,
     L_Phi  = L_Phi,
     B_T    = B_T,
@@ -279,7 +279,7 @@ VDPO <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     for (ffvd_evaluation in evals[grepl("ffvd_old", names(evals))]) {
       ffvd_counter <- ffvd_counter + 1
 
-      B_all <- cbind(B_all, ffvd_evaluation[["B_ffvd"]])
+      B_all <- cbind(B_all, ffvd_evaluation[["B"]])
       deglist[[ffvd_counter]] <- ffvd_evaluation[["nbasis"]][2:3]
 
       L_Phi[[ffvd_counter]] <- ffvd_evaluation[["L_Phi"]]
