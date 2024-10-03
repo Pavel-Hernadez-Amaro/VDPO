@@ -2,14 +2,15 @@
 % Please edit documentation in R/ffvd.R
 \name{ffvd}
 \alias{ffvd}
-\title{Defining variable domain functional data terms in VDPO formulae}
+\title{Defining variable domain functional data terms in vd_fit formulae}
 \usage{
 ffvd(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3))
 }
 \arguments{
 \item{X}{variable domain functional covariate \code{matrix}.}
 
-\item{grid}{Observation points of the variable domain functional covariate.}
+\item{grid}{observation points of the variable domain functional covariate.
+If not provided, it will be \code{1:ncol(X)}.}
 
 \item{nbasis}{number of basis to be used.}
 
@@ -19,17 +20,14 @@ ffvd(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3))
 the function is interpreted in the formula of a \code{VDPO} model.
 \code{list} containing the following elements:
 \itemize{
-\item \code{B} design matrix.
-\item \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
-\item \code{M} \code{matrix} object indicating the observed domain of the data.
-\item \code{nbasis} number of basis used.
+\item An item named \code{B} design matrix.
+\item An item named \code{X_hat} smoothed functional covariate.
+\item An item named \code{L_Phi} and \code{B_T} 1-dimensional marginal B-spline basis used for the functional coefficient.
+\item An item named \code{M} matrix object indicating the observed domain of the data.
+\item An item named \code{nbasis} number of basis used.
 }
 }
 \description{
-Auxiliary function used to define \code{ffvd} terms within \code{VDPO} model
+Auxiliary function used to define \code{ffvd} terms within \code{vd_fit} model
 formulae.
-}
-\details{
-\code{B_T} is the marginal basis corresponding to the domain and \code{L_Phi}
-is the marginal basis corresponding to the observation points.
 }
