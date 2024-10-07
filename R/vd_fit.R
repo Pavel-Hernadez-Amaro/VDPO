@@ -85,6 +85,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   vdpoenv <- environment(formula)
+  vdpoenv$f <- SOP::f
   vdpons <- loadNamespace("VDPO")
 
   for (var in names(data)) {
@@ -124,6 +125,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       function(x) if (is.null(x)) NA else x
     )
   }
+
   all_indices <- seq_along(variables)
   non_special_indices <- setdiff(all_indices, unlist(specials_indices))
 
@@ -144,8 +146,6 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   nf       <- sum(grepl("\\bf\\(\\b", names(evals)))
   nffvd    <- sum(grepl("\\bffvd\\(\\b", names(evals)))
-
-  ## TODO add the f function to the package namespace
 
   if (nffvd == 0) {
     stop("this function should be used with at least one 'ffvd' term",
@@ -195,16 +195,16 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       G <- unname(G[[1]])
       # names(G) <- names(G[[1]])
     } else {
-      G <- construct.capital.lambda(G)
+      G <- unname(construct.capital.lambda(G))
     }
 
-    aux_sum <- 0
+    n_coefs_f <- 0
     for (i in seq_along(l.f)) {
       aux_prod <- 1
       for (j in seq_along(l.f[[i]]$nseg)) {
-        aux_prod <- aux_prod * (l.f[[i]]$nseg[j] + l.f[[i]]$degree[j])
+        aux_prod <- aux_prod * (l.f[[i]]$nseg[j] + l.f[[i]]$degree[j] - 1)
       }
-      aux_sum <- aux_sum + aux_prod
+      n_coefs_f <- n_coefs_f + aux_prod
     }
   }
 
@@ -250,8 +250,12 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   # We need to add zeros to the right of the f Gs and to the left of the ffvd
 
   if (nf > 0) {
-    for (i in seq_len(nf)) {
-      G[[i]] <- c(G[[i]], rep(0, ncol(Z) - length(G[[i]])))
+    for (i in seq_along(G)) {
+      G[[i]] <- if (i <= nf) {
+        add_zeros_to_side(G[[i]], ncol(Z), side = "right")
+      } else {
+        add_zeros_to_side(G[[i]], ncol(Z), side = "left")
+      }
     }
   }
   # Adding zeros to the left for the ffvd
@@ -270,39 +274,72 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   )
 
   intercept <- fit$b.fixed[1]
-  b_fixed_tmp <- fit$b.fixed[-1]
-  Vp_tmp <- fit$Vp[-1, -1]
 
-  if (length(non_special_indices) == 0 && nf == 0 && nffvd > 0) {
-    # only ffvd
+  Vp_tmp <- if (length(non_special_indices) > 0 && nf == 0) {
+    # Only non special indices
+    fit$Vp[-c(1:(length(non_special_indices) + 1)), -c(1:(length(non_special_indices) + 1))]
 
-    theta_aux <- c(b_fixed_tmp, fit$b.random)
-    covar_theta <- B_res$TMatrix %*% Vp_tmp %*% t(B_res$TMatrix)
+  } else if (length(non_special_indices) == 0 && nf > 0) {
+    # Only f
+    fit$Vp[-c(1:(n_coefs_f + 1)), -c(1:(n_coefs_f + 1))]
+
+  } else if (length(non_special_indices) > 0 && nf > 0) {
+    # f and non special indices
+    fit$Vp[-c(1:(length(non_special_indices) + n_coefs_f + 1)), -c(1:(length(non_special_indices) + n_coefs_f + 1))]
+
+  } else {
+    fit$Vp[-1, -1]
+
   }
 
+  theta_aux <- calculate_theta_aux(fit, non_special_indices, nf, l.f)
 
-  theta <- B_res$TMatrix %*% theta_aux
-  Beta_ffvd <- if (nffvd > 0) {
-    calculate_beta_ffvd(data, response, M, L_Phi, B_T, theta, deglist)
+  covar_theta <- B_res$TMatrix %*% Vp_tmp %*% t(B_res$TMatrix)
+
+  theta_ffvd <- B_res$TMatrix %*% theta_aux
+
+  theta_no_functional <- if (length(non_special_indices)) {
+    fit$b.fixed[2:(length(non_special_indices)+1)]
   } else {
     NULL
   }
 
-  if (length(non_special_indices) == 0 && nf == 0 && nffvd > 0) {
-    # only ffvd
-    ffvd_evals <- process_ffvd_evals(evals)
+  theta_f <- if (nf) {
+    last_index <- sum(sapply(l.f, function(x) ncol(x$Xmat$Z)))
 
-    res <- list(
-      fit         = fit,
-      Beta        = Beta_ffvd,
-      theta       = theta,
-      covar_theta = covar_theta,
-      M           = M,
-      ffvd_evals  = ffvd_evals
-    )
+    indices_b_fixed <- if (non_special_indices) {
+        seq(
+          length(non_special_indices) + 2,
+          by = 1,
+          length.out = sum(sapply(l.f, function(x) ncol(x$Xmat$X)))
+        )
+    } else {
+        1:sum(sapply(l.f, function(x) ncol(x$Xmat$X)))
+    }
 
+    c(fit$b.fixed[indices_b_fixed], fit$b.random[1:last_index])
+  } else {
+    NULL
   }
 
+  Beta_ffvd <- if (nffvd > 0) {
+    calculate_beta_ffvd(data, response, M, L_Phi, B_T, theta_ffvd, deglist)
+  } else {
+    NULL
+  }
+
+  ffvd_evals <- process_ffvd_evals(evals)
+
+  res <- list(
+    fit         = fit,
+    Beta        = Beta_ffvd,
+    theta       = theta_ffvd,
+    covar_theta = covar_theta,
+    M           = M,
+    ffvd_evals  = ffvd_evals,
+    theta_no_functional = theta_no_functional,
+    theta_f = theta_f
+  )
 
   class(res) <- "vd_fit"
   attr(res, "N") <- length(data[[response]])
@@ -360,4 +397,64 @@ calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
   Beta_ffvd
 }
 
+# Helper function to sum columns
+sum_cols <- function(list, type) {
+  sum(sapply(list, function(x) ncol(x$Xmat[[type]])))
+}
 
+#' Helper function to compute theta_aux
+calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
+  # Determine case and calculate accordingly
+  case_type <- list(
+    has_non_special = length(non_special_indices) > 0,
+    has_f = nf > 0
+  )
+
+  if (case_type$has_non_special && !case_type$has_f) {
+    # Only non-special indices
+    excluded_range <- 1:(length(non_special_indices) + 1)
+    b_fixed_subset <- fit$b.fixed[-excluded_range]
+    return(c(b_fixed_subset, fit$b.random))
+
+  } else if (!case_type$has_non_special && case_type$has_f) {
+    # Only f
+    x_cols <- sum_cols(l.f, "X")
+    z_cols <- sum_cols(l.f, "Z")
+
+    b_fixed_subset <- fit$b.fixed[-c(1:x_cols)]
+    b_random_subset <- fit$b.random[-c(1:z_cols)]
+    return(c(b_fixed_subset, b_random_subset))
+
+  } else if (case_type$has_non_special && case_type$has_f) {
+    # Both f and non-special indices
+    last_index_z <- sum_cols(l.f, "Z")
+    x_cols <- sum_cols(l.f, "X")
+
+    last_index_x <- seq(
+      length(non_special_indices) + 2,
+      by = 1,
+      length.out = x_cols
+    )
+
+    b_fixed_subset <- fit$b.fixed[(max(last_index_x) + 1):length(fit$b.fixed)]
+    b_random_subset <- fit$b.random[(last_index_z + 1):length(fit$b.random)]
+    return(c(b_fixed_subset, b_random_subset))
+
+  } else {
+    # Neither f nor non-special indices
+    return(c(fit$b.fixed[-1], fit$b.random))
+  }
+}
+
+#' Helper function to add zeros to the side of a vector
+add_zeros_to_side <- function(vector, final_length, side = c("right", "left")) {
+  side <- match.arg(side)
+
+  zeros <- rep(0, final_length - length(vector))
+
+  if (side == "right") {
+    return(c(vector, zeros))
+  } else if (side == "left"){
+    return(c(zeros, vector))
+  }
+}
