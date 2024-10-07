@@ -282,32 +282,15 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
 
   theta <- B_res$TMatrix %*% theta_aux
-  if (nffvd > 0) {
-    Beta_ffvd <- lapply(
-      M,
-      function(x) {
-        matrix(NA,
-               nrow = length(data[[response]]),
-               ncol = max(x)
-        )
-      }
-    )
-
-    it <- 1
-    for (j in 1:nffvd) {
-      for (i in 1:length(data[[response]])) {
-        Beta_ffvd[[j]][i, M[[j]][i, 1]:M[[j]][i, 2]] <-
-          as.matrix(kronecker(L_Phi[[j]]$B[M[[j]][i, 1]:M[[j]][i, 2],], t(B_T[[j]]$B[i, ]))) %*% theta[it:(it + prod(deglist[[j]]) - 1)]
-      }
-      it <- it + prod(deglist[[j]])
-    }
+  Beta_ffvd <- if (nffvd > 0) {
+    calculate_beta_ffvd(data, response, M, L_Phi, B_T, theta, deglist)
+  } else {
+    NULL
   }
 
   if (length(non_special_indices) == 0 && nf == 0 && nffvd > 0) {
     # only ffvd
-    ffvd_evals <- evals[grepl("ffvd", names(evals))]
-    names <- paste0("ffvd_", gsub(".*?\\((.+?),.+", "\\1", names(ffvd_evals)))
-    names(ffvd_evals) <- names
+    ffvd_evals <- process_ffvd_evals(evals)
 
     res <- list(
       fit         = fit,
@@ -332,3 +315,49 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 summary.vd_fit <- function(object, ...) {
   base::summary(object$fit, ...)
 }
+
+#' Helper function to process ffvd evaluations
+process_ffvd_evals <- function(evals) {
+  ffvd_evals <- evals[grepl("ffvd", names(evals))]
+  names <- paste0("ffvd_", gsub(".*?\\((.+?),.+", "\\1", names(ffvd_evals)))
+  names(ffvd_evals) <- names
+  ffvd_evals
+}
+
+#' Helper function to compute beta_ffvd
+calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
+  nffvd <- length(M)
+  Beta_ffvd <- vector("list", nffvd)
+
+  # Initialize Beta_ffvd matrices
+  for (j in seq_len(nffvd)) {
+    Beta_ffvd[[j]] <- matrix(
+      NA,
+      nrow = length(data[[response]]),
+      ncol = max(M[[j]])
+    )
+  }
+
+  # Calculate Beta_ffvd values
+  theta_index <- 1
+  for (j in seq_len(nffvd)) {
+    for (i in seq_along(data[[response]])) {
+      range_start <- M[[j]][i, 1]
+      range_end <- M[[j]][i, 2]
+      range <- range_start:range_end
+
+      kron_product <- kronecker(
+        L_Phi[[j]]$B[range, ],
+        t(B_T[[j]]$B[i, ])
+      )
+
+      end_index <- theta_index + prod(deglist[[j]]) - 1
+      Beta_ffvd[[j]][i, range] <- as.matrix(kron_product) %*% theta[theta_index:end_index]
+    }
+    theta_index <- theta_index + prod(deglist[[j]])
+  }
+
+  Beta_ffvd
+}
+
+
