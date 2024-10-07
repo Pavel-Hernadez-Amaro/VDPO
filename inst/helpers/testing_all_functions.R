@@ -17,10 +17,10 @@ data <- data_generator_po2d(N = 5, px = 20, py = 21)
 # sapply(data, length)
 
 data2 <- data.frame(y = data$y)
-data2[["nu"]] <-  data$nu
-data2[["X_true"]] <-  data$X_true
-data2[["X_real"]] <-  data$X_real
-data2[["X_miss"]] <-  data$X_miss
+data2[["nu"]] <- data$nu
+data2[["X_true"]] <- data$X_true
+data2[["X_real"]] <- data$X_real
+data2[["X_miss"]] <- data$X_miss
 data2[["miss_points"]] <-  data$miss_points
 data2[["missing_points"]] <-  data$missing_points
 
@@ -41,7 +41,7 @@ t1 <- proc.time()
 time2 <- t1 - t0
 
 
-data <- data_generator_vd(beta_index = 1)
+# data <- data_generator_vd(beta_index = 1)
 formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30))
 t0 <- proc.time()
 res3 <- vd_fit(formula = formula, data = data)
@@ -60,3 +60,17 @@ res_not_aligned <- vd_fit(formula = formula, data = data_not_aligned)
 t1 <- proc.time()
 
 time_not_aligned <- t1 - t0
+
+
+# 20241007
+data = data_generator_vd(beta_index = 2, use_x = TRUE)
+data = data_generator_vd(beta_index = 2, use_x = TRUE, use_f = TRUE)
+formula = y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + f(x1, nseg = 30, pord = 2, degree = 3) + x2 # + f(x2, nseg = 30, pord = 2, degree = 3)
+family = stats::gaussian()
+offset = NULL
+
+res <- vd_fit(formula, data)
+
+
+
+

@@ -90,7 +90,9 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
     nu <- rep(0, N)
     y <- rep(0, N)
     x1 <- stats::runif(N)
-    f0 <- function(x) 2 * sin(pi * x)
+    x2 <- stats::rnorm(N)
+    f1 <- function(x) 2 * sin(pi * x)
+    f2 <- function(x) 3.5 * cos(pi * x)
 
     for (i in 1:N) {
       # Computing the true functional coefficients
@@ -118,10 +120,10 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
 
     }
 
-    # nu <- if (use_f) nu + f0(x1) else nu
+    nu <- if (use_f) nu + f1(x1) else nu
     var_e <- (1 / Rsq - 1) * stats::var(nu)
     y <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
-    # y <- if (use_x) y + x1 else y
+    y <- if (use_x) y + x2 else y
   }
 
 
@@ -132,6 +134,7 @@ data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned =
   data[["Y_s"]] <- Y_s
   data[["Y_se"]] <- Y_se
   data[["x1"]] <- x1
+  data[["x2"]] <- x2
   data[["Beta"]] <- Beta
 
   data
