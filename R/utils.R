@@ -618,4 +618,9 @@ list_to_df <- function(data, response) {
 }
 
 
-
+#' f function from SOP
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
+#'
+#' @noRd
+f <- utils::getFromNamespace("f", "SOP")

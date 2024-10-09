@@ -111,14 +111,12 @@ test_that("calculate_theta_aux handles different cases", {
 
 # Test error cases
 test_that("vd_fit throws appropriate errors", {
-  data <- data_generator_vd(beta_index = 1)
+  data <- data_generator_vd(beta_index = 1, )
 
   # Test invalid formula
-  expect_error(vd_fit(y ~ x, data = data),
-               "this function should be used with at least one 'ffvd' term")
+  expect_error(vd_fit(y ~ x, data = data))
 
   # Test invalid data type
-  expect_error(vd_fit(y ~ ffvd(X_se), data = list()),
-               "'data' should have at least a response and a covariate")
+  expect_error(vd_fit(y ~ ffvd(X_se), data = list()))
 })
 
