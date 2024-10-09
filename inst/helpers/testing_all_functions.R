@@ -65,7 +65,7 @@ time_not_aligned <- t1 - t0
 # 20241007
 data = data_generator_vd(beta_index = 2, use_x = TRUE)
 data = data_generator_vd(beta_index = 2, use_x = TRUE, use_f = TRUE)
-formula = y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + f(x1, nseg = 30, pord = 2, degree = 3) + x2 # + f(x2, nseg = 30, pord = 2, degree = 3)
+formula = y ~ ffvd(X_se, nbasis = c(10, 10, 10)) + f(x1, nseg = 30, pord = 2, degree = 3) + x2 # + f(x2, nseg = 30, pord = 2, degree = 3)
 family = stats::gaussian()
 offset = NULL
 

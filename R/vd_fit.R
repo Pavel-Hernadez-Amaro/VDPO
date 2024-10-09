@@ -5,7 +5,7 @@
 #' for variable domain functional data.
 #'
 #' @param formula a formula object with at least one \code{ffvd} term.
-#' @param data a \code{data.frame} object containing the response variable
+#' @param data a \code{list} object containing the response variable
 #' and the covariates.
 #' @param family a \code{family} object specifying the distribution from which the
 #' data originates. The default distribution is \code{\link{gaussian}}.
@@ -65,10 +65,8 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     formula <- stats::as.formula(formula)
   }
 
-  if (inherits(data, what = "data.frame")) {
-    data <- as.data.frame(data)
-  } else {
-    stop("The data specified in the 'data' argument should be a data frame", call. = FALSE)
+  if (!inherits(data, what = "list")) {
+    stop("The data specified in the 'data' argument should be a list", call. = FALSE)
   }
 
   na_indices <- c()
@@ -90,11 +88,6 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   for (var in names(data)) {
     vdpoenv[[var]] <- data[[var]]
-  }
-  nobs <- nrow(data)
-
-  if (is.null(offset)) {
-    offset <- rep(0L, nobs)
   }
 
   tf <- stats::terms.formula(formula, specials = c("ffvd", "f"))
@@ -168,19 +161,19 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
                    `3` = {
                      l.f[[f_index]]$Xmat <- construct.3D.pspline(
                        form,
-                       data
+                       list_to_df(data, response)
                      )
                    },
                    `2` = {
                      l.f[[f_index]]$Xmat <- construct.2D.pspline(
                        form,
-                       data
+                       list_to_df(data, response)
                      )
                    },
                    `1` = {
                      l.f[[f_index]]$Xmat <- construct.1D.pspline(
                        form,
-                       data
+                       list_to_df(data, response)
                      )
                    }
       )
@@ -263,6 +256,11 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   #   G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
   # }
 
+  if (is.null(offset)) {
+    nobs <- length(data[[response]])
+    offset <- rep(0L, nobs)
+  }
+
   fit <- sop.fit(
     X = X,
     Z = Z,
@@ -289,7 +287,6 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   } else {
     fit$Vp[-1, -1]
-
   }
 
   theta_aux <- calculate_theta_aux(fit, non_special_indices, nf, l.f)
@@ -354,6 +351,8 @@ summary.vd_fit <- function(object, ...) {
 }
 
 #' Helper function to process ffvd evaluations
+#'
+#' @noRd
 process_ffvd_evals <- function(evals) {
   ffvd_evals <- evals[grepl("ffvd", names(evals))]
   names <- paste0("ffvd_", gsub(".*?\\((.+?),.+", "\\1", names(ffvd_evals)))
@@ -362,6 +361,8 @@ process_ffvd_evals <- function(evals) {
 }
 
 #' Helper function to compute beta_ffvd
+#'
+#' @noRd
 calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
   nffvd <- length(M)
   Beta_ffvd <- vector("list", nffvd)
@@ -397,12 +398,16 @@ calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
   Beta_ffvd
 }
 
-# Helper function to sum columns
+#' Helper function to sum columns
+#'
+#' @noRd
 sum_cols <- function(list, type) {
   sum(sapply(list, function(x) ncol(x$Xmat[[type]])))
 }
 
 #' Helper function to compute theta_aux
+#'
+#' @noRd
 calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
   # Determine case and calculate accordingly
   case_type <- list(
@@ -443,18 +448,5 @@ calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
   } else {
     # Neither f nor non-special indices
     return(c(fit$b.fixed[-1], fit$b.random))
-  }
-}
-
-#' Helper function to add zeros to the side of a vector
-add_zeros_to_side <- function(vector, final_length, side = c("right", "left")) {
-  side <- match.arg(side)
-
-  zeros <- rep(0, final_length - length(vector))
-
-  if (side == "right") {
-    return(c(vector, zeros))
-  } else if (side == "left"){
-    return(c(zeros, vector))
   }
 }

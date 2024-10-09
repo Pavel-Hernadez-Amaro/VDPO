@@ -586,3 +586,36 @@ dummy <- function() {
   SOP::f
   utils::getFromNamespace
 }
+
+#' Helper function to add zeros to the side of a vector
+#'
+#' @noRd
+add_zeros_to_side <- function(vector, final_length, side = c("right", "left")) {
+  side <- match.arg(side)
+
+  zeros <- rep(0, final_length - length(vector))
+
+  if (side == "right") {
+    return(c(vector, zeros))
+  } else if (side == "left"){
+    return(c(zeros, vector))
+  }
+}
+
+#' Helper function to convert a list with vectors and matrices to a data.frame
+#' where the matrices are represented as a single columns
+#'
+#' @noRd
+list_to_df <- function(data, response) {
+  res <- data.frame(data[[response]])
+  names(res) <- toString(response)
+
+  for (variable in setdiff(names(data), response)) {
+    res[[variable]] <- data[[variable]]
+  }
+
+  res
+}
+
+
+

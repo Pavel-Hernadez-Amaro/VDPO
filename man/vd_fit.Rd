@@ -10,7 +10,7 @@ vd_fit(formula, data, family = stats::gaussian(), offset = NULL)
 \arguments{
 \item{formula}{a formula object with at least one \code{ffvd} term.}
 
-\item{data}{a \code{data.frame} object containing the response variable
+\item{data}{a \code{list} object containing the response variable
 and the covariates.}
 
 \item{family}{a \code{family} object specifying the distribution from which the
