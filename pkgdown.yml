@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   VDPO-01-introduction: VDPO-01-introduction.html
-last_built: 2024-10-09T13:39Z
+last_built: 2024-10-09T14:25Z
 urls:
   reference: https://pavel-hernadez-amaro.github.io/VDPO/reference
   article: https://pavel-hernadez-amaro.github.io/VDPO/articles
