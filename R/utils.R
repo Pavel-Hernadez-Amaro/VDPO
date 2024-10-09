@@ -1,8 +1,20 @@
-#' @references All credits to the \href{https://cran.r-project.org/web/packages/sommer/index.html}{sommer} package authors.
-Rten2 <- function(X1, X2) {
-  one.1 <- matrix(1, 1, ncol(X1))
-  one.2 <- matrix(1, 1, ncol(X2))
-  kronecker(X1, one.2) * kronecker(one.1, X2)
+#' B-spline generator
+#'
+#' @param X. Points where you are going to evaluate the function.
+#' @param XL. Min x (- epsilon).
+#' @param XR. Max x (+ epsilon).
+#' @param NDX. Number of basis - BDEG.
+#' @param BDEG. Degree of the polynomial.
+#'
+#' @return A \code{list} where the first element is the design matrix of the
+#' B-spline and the second element is a list with the different knots.
+#'
+#' @noRd
+bspline <- function(x, xl, xr, nseg, bdeg) {
+  dx <- (xr - xl) / nseg
+  knots <- seq(xl - bdeg * dx, xr + bdeg * dx, by = dx)
+  B <- splines::spline.des(knots, x, bdeg + 1, 0 * x)$design
+  list(B = B, knots = knots)
 }
 
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/MASS/}{MASS} package authors.
@@ -26,24 +38,6 @@ ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
   }
 }
 
-#' B-spline generator
-#'
-#' @param X. Points where you are going to evaluate the function.
-#' @param XL. Min x (- epsilon).
-#' @param XR. Max x (+ epsilon).
-#' @param NDX. Number of basis - BDEG.
-#' @param BDEG. Degree of the polynomial.
-#'
-#' @return A \code{list} where the first element is the design matrix of the
-#' B-spline and the second element is a list with the different knots.
-#'
-#' @noRd
-bspline <- function(x, xl, xr, nseg, bdeg) {
-  dx <- (xr - xl) / nseg
-  knots <- seq(xl - bdeg * dx, xr + bdeg * dx, by = dx)
-  B <- splines::spline.des(knots, x, bdeg + 1, 0 * x)$design
-  list(B = B, knots = knots)
-}
 
 #' This is a modified version of sop.fit to improve numerical stability.
 #'
@@ -338,249 +332,6 @@ construct.3D.pspline <- utils::getFromNamespace("construct.3D.pspline", "SOP")
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/SOP/index.html}{SOP} package authors.
 construct.capital.lambda <- utils::getFromNamespace("construct.capital.lambda", "SOP")
 
-#' Bidimensional functional data generator with random errors.
-#'
-#' @param x_observations Observations of the x axis.
-#' @param y_observations Observations of the y axis.
-#' @param epsilon_1,epsilon_2 Standard deviation of the stochastic components.
-#' @param epsilon_data Standard deviation of the noise.
-#'
-#' @return Bidimensional functional data.
-#'
-#' @noRd
-Data_H <- function(x_observations, y_observations, epsilon_1 = 0.2, epsilon_2 = 0.2, epsilon_data = 0.015) {
-  x_b <- length(x_observations)
-  y_b <- length(y_observations)
-
-  DATA_T <- DATA_N <- matrix(nrow = x_b, ncol = y_b)
-
-  a1 <- stats::rnorm(1, 0, epsilon_1)
-  a2 <- stats::rnorm(1, 0, epsilon_2)
-
-  for (i in 1:x_b) {
-    for (j in 1:y_b) {
-      DATA_T[i, j] <- a1 * cos(2 * pi * x_observations[i]) + a2 * cos(2 * pi * y_observations[j]) + 1
-      DATA_N[i, j] <- DATA_T[i, j] + stats::rnorm(1, 0, epsilon_data)
-    }
-  }
-
-  DATA <- data.frame(DATA_T[, 1])
-
-  DATA[["DATA_T"]] <- DATA_T
-  DATA[["DATA_N"]] <- DATA_N
-
-  DATA <- DATA[, -1]
-
-
-  # a is the stochastic part of the surface
-  # this is needed for the function `response_int_H` !!!!!!!!!!!
-  res <- list(
-    DATA = DATA,
-    a = c(a1, a2),
-    epsilon_data = epsilon_data
-  )
-}
-
-#' Bidimensional functional data generator with fixed errors.
-#'
-#' @param x Observations of the x axis.
-#' @param y Observations of the x axis.
-#' @param a1,a2 Fixed parameters of the stochastic components.
-#' @param epsilon_data Standard deviation of the noise.
-#'
-#' @return Bidimensional functional data.
-#'
-#' @noRd
-Stochastic_Data_H <- function(x, y, a1, a2, epsilon_data = 0.015) {
-  # 'e' stands for epsilon
-
-  x_b <- length(x)
-  y_b <- length(y)
-
-  DATA_T <- DATA_N <- matrix(nrow = x_b, ncol = y_b)
-
-  for (i in 1:x_b) {
-    for (j in 1:y_b) {
-      DATA_T[i, j] <- a1 * cos(2 * pi * x[i]) + a2 * cos(2 * pi * y[j]) + 1
-      DATA_N[i, j] <- DATA_T[i, j] + stats::rnorm(1, 0, epsilon_data)
-    }
-  }
-
-  DATA <- data.frame(DATA_T[, 1])
-
-  DATA[["DATA_T"]] <- DATA_T
-  DATA[["DATA_N"]] <- DATA_N
-
-  DATA <- DATA[, -1]
-  DATA
-}
-
-#' Bidimensional functional coefficient using 2-dimensional b-splines.
-#'
-#' @param x_observations Observations of the x axis.
-#' @param y_observations Observations of the y axis.
-#'
-#' @return Bidimensional functional coefficient.
-#'
-#' @noRd
-Beta_fun <- function(x_observations, y_observations) {
-  x_b <- length(x_observations)
-  y_b <- length(y_observations)
-
-  Beta_x <- -1 * (5 - 40 * ((x_observations / x_b) - 0.5)^2) / 50
-  Beta_y <- -1 * (5 - 40 * ((y_observations / y_b) - 0.5)^2) / 50
-
-  res <- matrix(0, nrow = length(x_observations), ncol = length(y_observations))
-  res <- kronecker(t(Beta_y), Beta_x)
-  res
-}
-
-#' Bidimensional functional coefficient with saddle shape.
-#'
-#' @param x_observations Observations of the x axis.
-#' @param y_observations Observations of the y axis.
-#'
-#' @return Bidimensional functional coefficient.
-#'
-#' @noRd
-Beta_H_saddle <- function(x_observations, y_observations) {
-  aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
-
-  for (i in 1:length(x_observations)) {
-    for (h in 1:length(y_observations)) {
-      aux_beta[i, h] <- (4 * x_observations[i] - 2)^3 - 3 * (4 * x_observations[i] - 2) * (4 * y_observations[h] - 2)^2
-    }
-  }
-  aux_beta / 10
-}
-
-#' Bidimensional functional coefficient with exponential shape.
-#'
-#' @param x_observations Observations of the x axis.
-#' @param y_observations Observations of the y axis.
-#'
-#' @return Bidimensional functional coefficient.
-#'
-#' @noRd
-Beta_H_exp <- function(x_observations, y_observations) {
-  aux_beta <- matrix(nrow = length(x_observations), ncol = length(y_observations))
-
-  for (i in 1:length(x_observations)) {
-    for (h in 1:length(y_observations)) {
-      aux_beta[i, h] <- 5 * exp(-8 * ((x_observations[i] - 0.75)^2 + (y_observations[h] - 0.75)^2)) + 5 * exp(-8 * ((x_observations[i] - 0.1)^2 + (y_observations[h] - 0.1)^2))
-    }
-  }
-  aux_beta / 10
-}
-
-#' Response generator for functional regression models.
-#'
-#' @param f_X,f_Beta Functions to be integrated.
-#' @param a1,a2 Fixed parameters of the stochastic components.
-#' @param epsilon_data Standard deviation of the noise for the covariates.
-#' @param x_observations Observations of the x axis.
-#' @param y_observations Observations of the y axis.
-#' @param sub_response Number of intervals for the Simpson integration method.
-#' @param noise Boolean indicating the presence of noise. Defaults to \code{FALSE}.
-#'
-#' @return Response variable for the functional regression model.
-#'
-#' @noRd
-response_int_H <- function(f_X, a1, a2, epsilon_data, f_Beta, x_observations, y_observations, sub_response = 50, noise = FALSE) {
-  n_y <- m_y <- 2 * sub_response
-
-  W_delta_y <- array(dim = (n_y + 1) * (m_y + 1))
-
-  h <- (x_observations[length(x_observations)] - x_observations[1]) / n_y # if y_b and y_a are functions of x_observations
-  HX <- (y_observations[length(y_observations)] - y_observations[1]) / m_y # this line should go inside the next for loop (the int_i lopp or outer loop)
-
-  x <- seq(x_observations[1], x_observations[length(x_observations)], h)
-  y <- seq(y_observations[1], y_observations[length(y_observations)], HX)
-
-  simp_w_y <- rep(1, n_y + 1)
-  even_y <- seq(2, n_y + 1 - 1, 2)
-  odd_y <- seq(3, n_y + 1 - 1, 2)
-
-  simp_w_y[even_y] <- 2
-  simp_w_y[odd_y] <- 4
-
-  Sim_w_x_y <- (h / 3) * simp_w_y
-
-  W_x_y <- (HX / 3) * Sim_w_x_y
-  W_x_even_y <- 2 * W_x_y
-  W_x_odd_y <- 4 * W_x_y
-
-  for (aux in 1:(m_y + 1)) {
-    if (aux == 1 || aux == (m_y + 1)) {
-      W_delta_y[((n_y + 1) * (aux - 1) + 1):((n_y + 1) * aux)] <- W_x_y
-    } else {
-      if (aux %% 2 == 0) {
-        W_delta_y[((n_y + 1) * (aux - 1) + 1):((n_y + 1) * aux)] <- W_x_even_y
-      } else {
-        W_delta_y[((n_y + 1) * (aux - 1) + 1):((n_y + 1) * aux)] <- W_x_odd_y
-      }
-    }
-  }
-
-  X_eval <- f_X(x, y, a1, a2, epsilon_data)
-
-  if (noise) {
-    X_eval <- X_eval$DATA_N
-  } else {
-    X_eval <- X_eval$DATA_T
-  }
-
-
-  Beta_eval <- f_Beta(x, y)
-
-  y_int <- as.double(t(vec(X_eval)) %*% diag(W_delta_y) %*% vec(Beta_eval))
-
-  list(
-    nu = y_int,
-    X_eval = X_eval
-  )
-}
-
-#' From matrix to vector
-#'
-#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
-#'
-#' @noRd
-vec <- function(x, byrow = FALSE) {
-  if (is.vector(x))
-    return(x)
-  if (byrow)
-    x <- t(x)
-  d <- ncol(x)
-  vecx <- vector()
-  for (j in 1:d) vecx <- c(vecx, x[, j])
-  return(vecx)
-}
-
-#' From vector to matrix
-#'
-#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
-#'
-#' @noRd
-invvec <- function (x, ncol, nrow, byrow = FALSE) {
-  if (length(x) == 1)
-    return(x)
-  d <- sqrt(length(x))
-  if (missing(ncol) | missing(nrow)) {
-    ncol <- d
-    nrow <- d
-    if (round(d) != d)
-      stop("Need to specify nrow and ncol for non-square matrices")
-  }
-  invvecx <- matrix(0, nrow = nrow, ncol = ncol)
-  if (byrow)
-    for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j -
-                                                       1) * ncol]
-  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j -
-                                                          1) * nrow]
-  return(invvecx)
-}
-
 #' @noRd
 dummy <- function() {
   SOP::f
@@ -616,7 +367,6 @@ list_to_df <- function(data, response) {
 
   res
 }
-
 
 #' f function from SOP
 #'

@@ -2,6 +2,8 @@ partial_inprod_arguments_generator <- function() {
   sub <- 500
   pord <- c(2, 2)
 
+  VDPO_example_vd <- data_generator_vd()
+
   X <- VDPO_example_vd$X_se
   M <- rng <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
   N <- nrow(X)

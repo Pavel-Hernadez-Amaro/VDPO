@@ -72,5 +72,5 @@ res$fit$fitted.values # estimated response variable
 }
 }
 \seealso{
-\code{\link{ffvd}}, \code{\link{ffpo}}, \code{\link{ffpo_2d}}, \code{\link{add_grid}}
+\code{\link{ffvd}}
 }
