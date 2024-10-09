@@ -1,11 +1,11 @@
 ---
-title: "Introduction-to-VDPO"
+title: "Introduction to VDPO"
 output:
   rmarkdown::html_vignette:
     toc: yes
     fig_width: 6
 vignette: >
-  %\VignetteIndexEntry{Introduction-to-VDPO}
+  %\VignetteIndexEntry{Introduction to VDPO}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -221,3 +221,89 @@ ggplot(plot_data_single, aes(x = time, y = value, color = type)) +
 This visualization shows how the added noise affects a single functional curve. The blue line represents the original functional data (`X_s`), while the orange line shows the same curve with added noise (`X_se`). The noise level is proportional to the variance of the original curve, ensuring consistent relative noise levels across different curves.
 
 These visualizations help us understand the structure and characteristics of the simulated data, including the variable domain lengths and the impact of added noise.
+
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# Generate sample data
+set.seed(42)
+sim_data <- data_generator_vd(N = 100, J = 100)
+
+# Select specific rows for plotting
+selected_rows <- c(20, 40, 60, 80)
+
+# Prepare data for plotting - Multiple curves
+plot_data_multiple <- data.frame(
+  time = rep(1:ncol(sim_data$X_s), length(selected_rows)),
+  value = as.vector(t(sim_data$X_s[selected_rows, ])),
+  curve = factor(rep(paste("Subject", selected_rows), each = ncol(sim_data$X_s)))
+)
+
+# Remove NA values while maintaining curve integrity
+plot_data_multiple <- plot_data_multiple %>%
+  group_by(curve) %>%
+  mutate(is_na = is.na(value)) %>%
+  filter(cumsum(is_na) == 0) %>%
+  select(-is_na)
+
+# Create a more professional color palette
+professional_colors <- c("#0072B2", "#D55E00", "#CC79A7", "#009E73", "#E69F00")
+
+p1 <- ggplot(plot_data_multiple, aes(x = time, y = value, color = curve)) +
+  geom_line(linewidth = 1) +
+  theme_minimal(base_size = 12, base_family = "sans") +
+  scale_color_manual(values = professional_colors) +
+  labs(
+    title = "Variable Domain Functional Data",
+    subtitle = "Selected subjects showing different domain lengths",
+    x = "Time",
+    y = "Value",
+    color = "Subject ID"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, color = "gray40"),
+    legend.position = "right",
+    legend.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.border = element_rect(color = "gray90", fill = NA),
+    axis.title = element_text(face = "bold")
+  )
+
+print(p1)
+
+# Plot 2: Single curve with noise (remains the same)
+selected_curve <- 50
+plot_data_single <- data.frame(
+  time = rep(1:ncol(sim_data$X_s), 2),
+  value = c(sim_data$X_s[selected_curve, ], sim_data$X_se[selected_curve, ]),
+  type = factor(rep(c("Original", "Noisy"), each = ncol(sim_data$X_s)))
+) %>% 
+  filter(!is.na(value))
+
+p2 <- ggplot(plot_data_single, aes(x = time, y = value, color = type)) +
+  geom_line(linewidth = 1) +
+  theme_minimal() +
+  scale_color_manual(values = c("Original" = "#1f77b4", "Noisy" = "#ff7f0e")) +
+  labs(
+    title = "Original vs Noisy Functional Curve",
+    x = "Time",
+    y = "Value",
+    color = "Type"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    legend.position = "right"
+  )
+
+# Display plots
+
+p1
+p2
+```
+
