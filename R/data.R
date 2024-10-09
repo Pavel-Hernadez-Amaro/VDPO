@@ -94,7 +94,7 @@ data_generator_vd <- function(
       B <- B + u1
       B2 <- B + stats::rnorm(1, sd = 0.02) + (t / 10)
 
-      aux <- var(B, na.rm = TRUE)
+      aux <- stats::var(B, na.rm = TRUE)
 
       X_s[i, ] <- B
       X_se[i, ] <- B + stats::rnorm(maxM, 0, sqrt(aux / 8)) # WE ADD NOISE

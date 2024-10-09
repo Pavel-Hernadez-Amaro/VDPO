@@ -14,7 +14,7 @@ data_generator_vd(
   beta_index = 1,
   use_x = FALSE,
   use_f = FALSE,
-  seed = 42
+  seed = NULL
 )
 }
 \arguments{
