@@ -1,0 +1,42 @@
+---
+title: "Introduction-to-VDPO"
+output:
+  rmarkdown::html_vignette:
+    toc: yes
+    fig_width: 6
+vignette: >
+  %\VignetteIndexEntry{Introduction-to-VDPO}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  fig.cap = "",
+  fig.path = "includes/VDPO-01-"
+)
+```
+
+```{r setup}
+library(VDPO)
+```
+
+The VDPO R package is designed to extend statistical methods for analyzing variable domain functional data. In traditional functional data analysis, observations are usually defined over a common and fixed domain, such as time or spatial coordinates. However, in some applications, the domain over which the data are defined may vary between observations. This type of data is referred to as variable domain functional data.
+
+The methodologies implemented in the VDPO package can be applied to a wide range of fields like:
+
+-   Medical Research and Biostatistics: Analyzing time-dependent physiological measurements or growth trajectories where the observation periods may vary across individuals.
+-   Environmental Sciences: Studying climatic or environmental patterns, where data collected at different locations or time periods may have variable domains.
+-   Economics and Finance: Modeling financial indices or economic indicators that may be observed over varying time horizons or under different market conditions.
+
+The package is built upon the theoretical developments presented in recent research papers that rigorously explore the mathematical underpinnings and practical implications of the methodologies. More information can be found in:
+
+-   Pavel Hernandez-Amaro, Maria Durban, M. Carmen Aguilera-Morillo, Cristobal Esteban Gonzalez, Inmaculada Arostegui. "Modelling physical activity profiles in COPD patients: a fully functional approach to variable domain functional regression models." doi: [10.48550/arXiv.2401.05839](https://doi.org/10.48550/arXiv.2401.05839)
+
+
+
