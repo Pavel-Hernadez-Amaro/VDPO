@@ -11,17 +11,29 @@
 #' @param Rsq Variance of the model.
 #' @param use_x If the data is generated with x.
 #' @param use_f If the data is generated with f.
+#' @param seed Seed for reproducibility.
 #'
 #' @return Example data.
 #'
 #' @noRd
-data_generator_vd <- function(N = 100, J = 100, nsims = 1, Rsq = 0.95, aligned = TRUE, multivariate = FALSE, beta_index = 1, use_x = FALSE, use_f = FALSE) {
+data_generator_vd <- function(
+    N = 100,
+    J = 100,
+    nsims = 1,
+    Rsq = 0.95,
+    aligned = TRUE,
+    multivariate = FALSE,
+    beta_index = 1,
+    use_x = FALSE,
+    use_f = FALSE,
+    seed = 42
+) {
   if (!(beta_index %in% c(1, 2))) {
     stop("'beta_index' could only be 1 or 2",call. = FALSE)
   }
 
   for (iter in 1:nsims) {
-    set.seed(42 + iter)
+    set.seed(seed + iter)
 
     if (aligned) {
       # Generating the domain for all subject with a minimum of 10 observations (min = 10)

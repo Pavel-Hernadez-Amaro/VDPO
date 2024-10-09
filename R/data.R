@@ -1,3 +1,21 @@
+#' Data generator function for the variable domain case.
+#'
+#' This function is for internal use.
+#'
+#' @param N Number of subjects.
+#' @param J Number of maximum observations per subject.
+#' @param nsims Number of simulations per the simulation study.
+#' @param aligned If the data that will be generated is aligned or not.
+#' @param multivariate If TRUE, the data is generated with 2 variables.
+#' @param beta_index Index for the beta.
+#' @param Rsq Variance of the model.
+#' @param use_x If the data is generated with x.
+#' @param use_f If the data is generated with f.
+#' @param seed Seed for reproducibility.
+#'
+#' @return Example data.
+#'
+#' @export
 data_generator_vd <- function(
     N = 100,
     J = 100,
@@ -7,14 +25,19 @@ data_generator_vd <- function(
     multivariate = FALSE,
     beta_index = 1,
     use_x = FALSE,
-    use_f = FALSE
+    use_f = FALSE,
+    seed = NULL
 ) {
   if (!(beta_index %in% c(1, 2))) {
     stop("'beta_index' could only be 1 or 2",call. = FALSE)
   }
 
   for (iter in 1:nsims) {
-    set.seed(42 + iter)
+    if (!is.null(seed)) {
+      set.seed(seed + iter)
+    } else {
+      set.seed(iter)
+    }
 
     if (aligned) {
       # Generating the domain for all subject with a minimum of 10 observations (min = 10)
@@ -74,9 +97,9 @@ data_generator_vd <- function(
       aux <- var(B, na.rm = TRUE)
 
       X_s[i, ] <- B
-      X_se[i, ] <- B + stats::rnorm(maxM, 0, aux / 4) # WE ADD NOISE
+      X_se[i, ] <- B + stats::rnorm(maxM, 0, sqrt(aux / 8)) # WE ADD NOISE
       Y_s[i, ] <- B2
-      Y_se[i, ] <- B2 + stats::rnorm(maxM, 0, aux / 4) # WE ADD NOISE
+      Y_se[i, ] <- B2 + stats::rnorm(maxM, 0, sqrt(aux / 8)) # WE ADD NOISE
     }
 
     Beta <- array(dim = c(N, maxM, 4))
@@ -132,5 +155,3 @@ data_generator_vd <- function(
 
   data
 }
-
-f <- SOP::f
