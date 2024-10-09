@@ -66,7 +66,11 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   if (!inherits(data, what = "list")) {
-    stop("The data specified in the 'data' argument should be a list", call. = FALSE)
+    stop("the 'data' argument should be a list", call. = FALSE)
+  }
+
+  if (length(data) < 2) {
+    stop("'data' should have at least a response and a covariate", call. = FALSE)
   }
 
   na_indices <- c()
