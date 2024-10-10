@@ -128,13 +128,6 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   specials <- length(unlist(stats::na.omit(specials_indices))) > 0
 
-  # if (specials) {
-  #   non_funcional_variables <- variables[-specials_indices]
-  #   functional_variables    <- variables[specials_indices]
-  # } else {
-  #   # pass
-  # }
-
   evals <- lapply(
     terms,
     function(term) eval(parse(text = term), envir = vdpoenv, enclos = vdpons)
@@ -211,7 +204,6 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     L_Phi   <- vector(mode = "list", length = nffvd) # list of matrices
     B_T     <- vector(mode = "list", length = nffvd) # list of matrices
     M       <- vector(mode = "list", length = nffvd) # list of matrices
-    # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffvd_counter <- 0
     for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
@@ -243,22 +235,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
 
-
-  # We need to add zeros to the right of the f Gs and to the left of the ffvd
-
-  if (nf > 0) {
-    for (i in seq_along(G)) {
-      G[[i]] <- if (i <= nf) {
-        add_zeros_to_side(G[[i]], ncol(Z), side = "right")
-      } else {
-        add_zeros_to_side(G[[i]], ncol(Z), side = "left")
-      }
-    }
-  }
-  # Adding zeros to the left for the ffvd
-  # for (i in (nf+1):(2*(nf+nffvd)-1)) {
-  #   G[[i]] <- c(rep(0, ncol(Z) - length(G[[i]])), G[[i]])
-  # }
+  G <- add_zeros_to_G(G, nf, ncol(Z))
 
   if (is.null(offset)) {
     nobs <- length(data[[response]])
@@ -277,21 +254,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   intercept <- fit$b.fixed[1]
 
-  Vp_tmp <- if (length(non_special_indices) > 0 && nf == 0) {
-    # Only non special indices
-    fit$Vp[-c(1:(length(non_special_indices) + 1)), -c(1:(length(non_special_indices) + 1))]
-
-  } else if (length(non_special_indices) == 0 && nf > 0) {
-    # Only f
-    fit$Vp[-c(1:(n_coefs_f + 1)), -c(1:(n_coefs_f + 1))]
-
-  } else if (length(non_special_indices) > 0 && nf > 0) {
-    # f and non special indices
-    fit$Vp[-c(1:(length(non_special_indices) + n_coefs_f + 1)), -c(1:(length(non_special_indices) + n_coefs_f + 1))]
-
-  } else {
-    fit$Vp[-1, -1]
-  }
+  Vp_tmp <- calculate_Vp_tmp(fit, non_special_indices, nf, n_coefs_f)
 
   theta_aux <- calculate_theta_aux(fit, non_special_indices, nf, l.f)
 
@@ -299,35 +262,10 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   theta_ffvd <- B_res$TMatrix %*% theta_aux
 
-  theta_no_functional <- if (length(non_special_indices)) {
-    fit$b.fixed[2:(length(non_special_indices)+1)]
-  } else {
-    NULL
-  }
+  theta_no_functional <- calculate_theta_no_functional(fit, non_special_indices)
 
-  theta_f <- if (nf) {
-    last_index <- sum(sapply(l.f, function(x) ncol(x$Xmat$Z)))
-
-    indices_b_fixed <- if (non_special_indices) {
-        seq(
-          length(non_special_indices) + 2,
-          by = 1,
-          length.out = sum(sapply(l.f, function(x) ncol(x$Xmat$X)))
-        )
-    } else {
-        1:sum(sapply(l.f, function(x) ncol(x$Xmat$X)))
-    }
-
-    c(fit$b.fixed[indices_b_fixed], fit$b.random[1:last_index])
-  } else {
-    NULL
-  }
-
-  Beta_ffvd <- if (nffvd > 0) {
-    calculate_beta_ffvd(data, response, M, L_Phi, B_T, theta_ffvd, deglist)
-  } else {
-    NULL
-  }
+  theta_f <- calculate_theta_f(nf, l.f, fit, non_special_indices)
+  Beta_ffvd <- calculate_beta_ffvd(nffvd, data, response, M, L_Phi, B_T, theta_ffvd, deglist)
 
   ffvd_evals <- process_ffvd_evals(evals)
 
@@ -344,6 +282,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   class(res) <- "vd_fit"
   attr(res, "N") <- length(data[[response]])
+
   res
 }
 
@@ -367,7 +306,11 @@ process_ffvd_evals <- function(evals) {
 #' Helper function to compute beta_ffvd
 #'
 #' @noRd
-calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
+calculate_beta_ffvd <- function(nffvd, data, response, M, L_Phi, B_T, theta, deglist) {
+  if (nffvd == 0) {
+    return(NULL)
+  }
+
   nffvd <- length(M)
   Beta_ffvd <- vector("list", nffvd)
 
@@ -402,7 +345,7 @@ calculate_beta_ffvd <- function(data, response, M, L_Phi, B_T, theta, deglist) {
   Beta_ffvd
 }
 
-#' Helper function to sum columns
+#' Helper function to sum the number of column for all the matrices inside a list
 #'
 #' @noRd
 sum_cols <- function(list, type) {
@@ -453,4 +396,82 @@ calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
     # Neither f nor non-special indices
     return(c(fit$b.fixed[-1], fit$b.random))
   }
+}
+
+#' Helper function to compute theta_f
+#'
+#' @noRd
+calculate_theta_f <- function(nf, l.f, fit, non_special_indices) {
+  if (nf == 0) {
+    return(NULL)
+  }
+
+  # Calculate total columns for X matrices and last index for random effects
+  total_x_cols <- sum(sapply(l.f, function(x) ncol(x$Xmat$X)))
+  last_random_index <- sum(sapply(l.f, function(x) ncol(x$Xmat$Z)))
+
+  # Generate indices for fixed effects
+  indices_b_fixed <- if (non_special_indices) {
+    seq(
+      length(non_special_indices) + 2,
+      by = 1,
+      length.out = total_x_cols
+    )
+  } else {
+    1:total_x_cols
+  }
+
+  # Combine fixed and random effects
+  c(
+    fit$b.fixed[indices_b_fixed],
+    fit$b.random[1:last_random_index]
+  )
+}
+
+#' Helper function to add zeros to the different Gs
+#'
+#' @noRd
+add_zeros_to_G <- function(G, nf, ncol_Z) {
+  if (nf == 0) {
+    return(G)
+  }
+
+  for (i in seq_along(G)) {
+    side <- if (i <= nf) "right" else "left"
+    G[[i]] <- add_zeros_to_side(G[[i]], ncol_Z, side = side)
+  }
+
+  G
+}
+
+#' Helper function to calculate theta_no_functional
+#'
+#' @noRd
+calculate_theta_no_functional <- function(fit, non_special_indices) {
+  if (length(non_special_indices) == 0) {
+    return(NULL)
+  }
+
+  fit$b.fixed[2:(length(non_special_indices)+1)]
+}
+
+#' Helper function to calculate Vp_tmp
+#'
+#' @noRd
+calculate_Vp_tmp <- function(fit, non_special_indices, nf, n_coefs_f) {
+  # Calculate total offset
+  base_offset <- 1  # We always exclude at least the first row/column
+  special_offset <- length(non_special_indices)
+  f_offset <- if (nf > 0) n_coefs_f else 0
+
+  total_offset <- base_offset + special_offset + f_offset
+
+  # If the total offset is the base offset we only exclude the first row/column
+  if (total_offset == 1) {
+    return(fit$Vp[-1, -1])
+  }
+
+  exclude_indices <- 1:total_offset
+
+  fit$Vp[-exclude_indices, -exclude_indices]
 }
