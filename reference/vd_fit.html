@@ -93,12 +93,13 @@ terms in the formula.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># generate example data</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="data_generator_vd.html">data_generator_vd</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    N <span class="op">=</span> <span class="fl">100</span>,</span></span>
-<span class="r-in"><span>    J <span class="op">=</span> <span class="fl">100</span>,</span></span>
-<span class="r-in"><span>    beta_index <span class="op">=</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>    use_x <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    use_f <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    seed <span class="op">=</span> <span class="fl">42</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  N <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  J <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>  beta_index <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  use_x <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  use_f <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  seed <span class="op">=</span> <span class="fl">42</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Define a formula object that specifies the model behavior.</span></span></span>
 <span class="r-in"><span><span class="co"># The formula includes a functional form of the variable 'X_se' using 'ffvd'</span></span></span>
@@ -112,7 +113,7 @@ terms in the formula.</p></li>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">vd_fit</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">formula</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Some important parameters of the model can be accesed as follows</span></span></span>
-<span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">Beta</span>              <span class="co"># variable domain functional coefficient</span></span></span>
+<span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">Beta</span> <span class="co"># variable domain functional coefficient</span></span></span>
 <span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">fitted.values</span> <span class="co"># estimated response variable</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Also, a summary of the fit can be accesed using the summary function</span></span></span>
@@ -120,7 +121,6 @@ terms in the formula.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># And a heatmap for an specific beta can be obtained using the plot function</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span>, beta_index <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
