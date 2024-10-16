@@ -20,3 +20,7 @@ To install the package from GitHub, the [remotes](https://cran.r-project.org/pac
 # install.packages("remotes")
 remotes::install_github("Pavel-Hernadez-Amaro/VDPO")
 ```
+
+## Web
+
+The web page of the package can be accessed from [this link](https://pavel-hernadez-amaro.github.io/VDPO/).
