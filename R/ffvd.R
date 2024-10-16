@@ -19,6 +19,22 @@
 #' - An item named `M` matrix object indicating the observed domain of the data.
 #' - An item named `nbasis` number of basis used.
 #'
+#' @examples
+#' # Generate sample data
+#' set.seed(123)
+#' data <- data_generator_vd(beta_index = 1, use_x = FALSE, use_f = FALSE)
+#' X <- data$X_se
+#'
+#' # Specifying a custom grid
+#' custom_grid <- seq(0, 1, length.out = ncol(X))
+#' ffvd_term_custom_grid <- ffvd(X, grid = custom_grid)
+#'
+#' # Customizing the number of basis functions
+#' ffvd_term_custom_basis <- ffvd(X, nbasis = c(10, 10, 10))
+#'
+#' # Customizing both basis functions and degrees
+#' ffvd_term_custom <- ffvd(X, nbasis = c(10, 10, 10), bdeg = c(3, 3, 3))
+#'
 #' @export
 ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
 

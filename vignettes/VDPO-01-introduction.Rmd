@@ -92,8 +92,8 @@ $$X_i(t) = u_i + \sum_{k=1}^{10} \left(v_{ik1} \cdot \sin\left(\frac{2πk}{100}t
 The response variable `y` is generated based on:
 
 1.  A linear functional effect (using one of two possible $\beta$ functions)
-2.  Optional non-functional and non-linear covariate if `use_f = TRUE`
-3.  Optional non-functional and linear covariate if `use_x = TRUE`
+2.  Optional smooth term if `use_f = TRUE`
+3.  Optional non-functional linear covariate if `use_x = TRUE`
 4.  Random noise based on the specified R-squared value
 
 The mathematical expression for generating the response variable is the following:

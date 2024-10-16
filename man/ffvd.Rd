@@ -33,3 +33,20 @@ This term represents a functional predictor where each function is observed over
 The formulation is \eqn{\frac{1}{T_i} \int _1^{T_i} X_i(t)\beta(t,T_i)dt}, where \eqn{X_i(t)} is a functional covariate of length \eqn{T_i}, and \eqn{\beta(t,T_i)} is an unknown bivariate functional coefficient.
 The functional basis used to model this term is the B-spline basis.
 }
+\examples{
+# Generate sample data
+set.seed(123)
+data <- data_generator_vd(beta_index = 1, use_x = FALSE, use_f = FALSE)
+X <- data$X_se
+
+# Specifying a custom grid
+custom_grid <- seq(0, 1, length.out = ncol(X))
+ffvd_term_custom_grid <- ffvd(X, grid = custom_grid)
+
+# Customizing the number of basis functions
+ffvd_term_custom_basis <- ffvd(X, nbasis = c(10, 10, 10))
+
+# Customizing both basis functions and degrees
+ffvd_term_custom <- ffvd(X, nbasis = c(10, 10, 10), bdeg = c(3, 3, 3))
+
+}

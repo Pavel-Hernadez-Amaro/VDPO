@@ -1,8 +1,11 @@
 ^VDPO\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-.github
-^\.github$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+.github
+^\.github$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
+^NEWS\.md$

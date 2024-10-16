@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_generator.R
 \name{data_generator_vd}
 \alias{data_generator_vd}
-\title{Data generator function for the variable domain case.}
+\title{Data generator function for the variable domain case}
 \usage{
 data_generator_vd(
   N = 100,
@@ -51,8 +51,39 @@ A list containing the following components:
 \item smooth_term: \code{vector} of length N containing a smooth term (if use_f is TRUE).
 \item Beta: \code{array} containing the true functional coefficients.
 }
-Where N is the number of subjects and maxM is the maximum number of observations per subject.
 }
 \description{
-This function is for internal use.
+Generates a variable domain functional regression model
+}
+\examples{
+# Basic usage with default parameters
+sim_data <- data_generator_vd()
+
+# Generate data with non-aligned domains
+non_aligned_data <- data_generator_vd(N = 150, J = 120, aligned = FALSE)
+
+# Generate multivariate functional data
+multivariate_data <- data_generator_vd(N = 200, J = 100, multivariate = TRUE)
+
+# Generate data with non-functional covariates and smooth term
+complex_data <- data_generator_vd(
+  N = 100,
+  J = 150,
+  use_x = TRUE,
+  use_f = TRUE
+)
+
+# Generate data with a different beta function and R-squared value
+custom_beta_data <- data_generator_vd(
+  N = 80,
+  J = 80,
+  beta_index = 2,
+  Rsq = 0.8
+)
+
+# Access components of the generated data
+y <- sim_data$y  # Response variable
+X_s <- sim_data$X_s  # Noise-free functional covariate
+X_se <- sim_data$X_se  # Noisy functional covariate
+
 }
