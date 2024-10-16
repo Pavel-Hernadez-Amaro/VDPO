@@ -82,8 +82,8 @@ custom_beta_data <- data_generator_vd(
 )
 
 # Access components of the generated data
-y <- sim_data$y  # Response variable
-X_s <- sim_data$X_s  # Noise-free functional covariate
-X_se <- sim_data$X_se  # Noisy functional covariate
+y <- sim_data$y # Response variable
+X_s <- sim_data$X_s # Noise-free functional covariate
+X_se <- sim_data$X_se # Noisy functional covariate
 
 }

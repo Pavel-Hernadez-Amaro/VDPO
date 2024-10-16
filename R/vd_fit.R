@@ -27,12 +27,13 @@
 #'
 #' # generate example data
 #' data <- data_generator_vd(
-#'     N = 100,
-#'     J = 100,
-#'     beta_index = 1,
-#'     use_x = TRUE,
-#'     use_f = TRUE,
-#'     seed = 42)
+#'   N = 100,
+#'   J = 100,
+#'   beta_index = 1,
+#'   use_x = TRUE,
+#'   use_f = TRUE,
+#'   seed = 42
+#' )
 #'
 #' # Define a formula object that specifies the model behavior.
 #' # The formula includes a functional form of the variable 'X_se' using 'ffvd'
@@ -46,7 +47,7 @@
 #' res <- vd_fit(formula = formula, data = data)
 #'
 #' # Some important parameters of the model can be accesed as follows
-#' res$Beta              # variable domain functional coefficient
+#' res$Beta # variable domain functional coefficient
 #' res$fit$fitted.values # estimated response variable
 #'
 #' # Also, a summary of the fit can be accesed using the summary function
@@ -54,8 +55,7 @@
 #'
 #' # And a heatmap for an specific beta can be obtained using the plot function
 #' plot(res, beta_index = 1)
-#'
-#'}
+#' }
 #' @seealso \code{\link{ffvd}}
 #'
 #' @export
@@ -133,12 +133,12 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   )
   names(evals) <- terms
 
-  nf       <- sum(grepl("\\bf\\(\\b", names(evals)))
-  nffvd    <- sum(grepl("\\bffvd\\(\\b", names(evals)))
+  nf <- sum(grepl("\\bf\\(\\b", names(evals)))
+  nffvd <- sum(grepl("\\bffvd\\(\\b", names(evals)))
 
   if (nffvd == 0) {
     stop("this function should be used with at least one 'ffvd' term",
-         call. = FALSE
+      call. = FALSE
     )
   }
 
@@ -154,24 +154,24 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       names.fun <- c(names.fun, terms[[f_index]])
       form <- stats::as.formula(paste("~", terms[[f_index]], sep = ""))
       aa <- switch(as.character(l.f[[f_index]]$dim),
-                   `3` = {
-                     l.f[[f_index]]$Xmat <- construct.3D.pspline(
-                       form,
-                       list_to_df(data, response)
-                     )
-                   },
-                   `2` = {
-                     l.f[[f_index]]$Xmat <- construct.2D.pspline(
-                       form,
-                       list_to_df(data, response)
-                     )
-                   },
-                   `1` = {
-                     l.f[[f_index]]$Xmat <- construct.1D.pspline(
-                       form,
-                       list_to_df(data, response)
-                     )
-                   }
+        `3` = {
+          l.f[[f_index]]$Xmat <- construct.3D.pspline(
+            form,
+            list_to_df(data, response)
+          )
+        },
+        `2` = {
+          l.f[[f_index]]$Xmat <- construct.2D.pspline(
+            form,
+            list_to_df(data, response)
+          )
+        },
+        `1` = {
+          l.f[[f_index]]$Xmat <- construct.1D.pspline(
+            form,
+            list_to_df(data, response)
+          )
+        }
       )
       X <- cbind(X, l.f[[f_index]]$Xmat$X)
       Z <- cbind(Z, l.f[[f_index]]$Xmat$Z)
@@ -198,11 +198,11 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   }
 
   if (nffvd > 0) {
-    B_all   <- c()
+    B_all <- c()
     deglist <- vector(mode = "list", length = nffvd)
-    L_Phi   <- vector(mode = "list", length = nffvd) # list of matrices
-    B_T     <- vector(mode = "list", length = nffvd) # list of matrices
-    M       <- vector(mode = "list", length = nffvd) # list of matrices
+    L_Phi <- vector(mode = "list", length = nffvd) # list of matrices
+    B_T <- vector(mode = "list", length = nffvd) # list of matrices
+    M <- vector(mode = "list", length = nffvd) # list of matrices
 
     ffvd_counter <- 0
     for (ffvd_evaluation in evals[grepl("ffvd", names(evals))]) {
@@ -269,12 +269,12 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   ffvd_evals <- process_ffvd_evals(evals)
 
   res <- list(
-    fit         = fit,
-    Beta        = Beta_ffvd,
-    theta       = theta_ffvd,
+    fit = fit,
+    Beta = Beta_ffvd,
+    theta = theta_ffvd,
     covar_theta = covar_theta,
-    M           = M,
-    ffvd_evals  = ffvd_evals,
+    M = M,
+    ffvd_evals = ffvd_evals,
     theta_no_functional = theta_no_functional,
     theta_f = theta_f
   )
@@ -366,7 +366,6 @@ calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
     excluded_range <- 1:(length(non_special_indices) + 1)
     b_fixed_subset <- fit$b.fixed[-excluded_range]
     return(c(b_fixed_subset, fit$b.random))
-
   } else if (!case_type$has_non_special && case_type$has_f) {
     # Only f
     x_cols <- sum_cols(l.f, "X")
@@ -375,7 +374,6 @@ calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
     b_fixed_subset <- fit$b.fixed[-c(1:x_cols)]
     b_random_subset <- fit$b.random[-c(1:z_cols)]
     return(c(b_fixed_subset, b_random_subset))
-
   } else if (case_type$has_non_special && case_type$has_f) {
     # Both f and non-special indices
     last_index_z <- sum_cols(l.f, "Z")
@@ -390,7 +388,6 @@ calculate_theta_aux <- function(fit, non_special_indices, nf, l.f = NULL) {
     b_fixed_subset <- fit$b.fixed[(max(last_index_x) + 1):length(fit$b.fixed)]
     b_random_subset <- fit$b.random[(last_index_z + 1):length(fit$b.random)]
     return(c(b_fixed_subset, b_random_subset))
-
   } else {
     # Neither f nor non-special indices
     return(c(fit$b.fixed[-1], fit$b.random))
@@ -451,7 +448,7 @@ calculate_theta_no_functional <- function(fit, non_special_indices) {
     return(NULL)
   }
 
-  fit$b.fixed[2:(length(non_special_indices)+1)]
+  fit$b.fixed[2:(length(non_special_indices) + 1)]
 }
 
 #' Helper function to calculate Vp_tmp
@@ -459,7 +456,7 @@ calculate_theta_no_functional <- function(fit, non_special_indices) {
 #' @noRd
 calculate_Vp_tmp <- function(fit, non_special_indices, nf, n_coefs_f) {
   # Calculate total offset
-  base_offset <- 1  # We always exclude at least the first row/column
+  base_offset <- 1 # We always exclude at least the first row/column
   special_offset <- length(non_special_indices)
   f_offset <- if (nf > 0) n_coefs_f else 0
 

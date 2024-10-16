@@ -14,8 +14,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  message = FALSE, 
-  warning = FALSE, 
+  message = FALSE,
+  warning = FALSE,
   error = FALSE,
   fig.cap = "",
   fig.path = "includes/VDPO-01-"
@@ -119,18 +119,18 @@ sim_data <- data_generator_vd()
 
 # Generate more complex data
 complex_sim <- data_generator_vd(
-    N = 200, 
-    J = 150,
-    aligned = FALSE,
-    multivariate = TRUE,
-    use_x = TRUE,
-    use_f = TRUE
+  N = 200,
+  J = 150,
+  aligned = FALSE,
+  multivariate = TRUE,
+  use_x = TRUE,
+  use_f = TRUE
 )
 
 # Access generated components
-head(sim_data$y)        # Response variable
-dim(sim_data$X_s)       # Dimensions of functional covariate
-head(sim_data$x1)       # Non-functional covariate (if use_x = TRUE)
+head(sim_data$y) # Response variable
+dim(sim_data$X_s) # Dimensions of functional covariate
+head(sim_data$x1) # Non-functional covariate (if use_x = TRUE)
 ```
 
 ### Output Structure
@@ -229,7 +229,7 @@ plot_data_single <- data.frame(
   time = rep(1:ncol(sim_data$X_s), 2),
   value = c(sim_data$X_s[selected_curve, ], sim_data$X_se[selected_curve, ]),
   type = factor(rep(c("Original", "Noisy"), each = ncol(sim_data$X_s)))
-) %>% 
+) %>%
   filter(!is.na(value))
 
 ggplot(plot_data_single, aes(x = time, y = value, color = type)) +

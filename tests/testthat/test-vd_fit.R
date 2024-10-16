@@ -6,8 +6,10 @@ test_that("vd_fit handles basic case correctly", {
 
   expect_s3_class(result, "vd_fit")
   expect_type(result, "list")
-  expect_named(result, c("fit", "Beta", "theta", "covar_theta", "M",
-                         "ffvd_evals", "theta_no_functional", "theta_f"))
+  expect_named(result, c(
+    "fit", "Beta", "theta", "covar_theta", "M",
+    "ffvd_evals", "theta_no_functional", "theta_f"
+  ))
 
   expect_true(length(result$Beta) == 1)
   expect_true(all(sapply(result$Beta, is.matrix)))
@@ -119,4 +121,3 @@ test_that("vd_fit throws appropriate errors", {
   # Test invalid data type
   expect_error(vd_fit(y ~ ffvd(X_se), data = list()))
 })
-

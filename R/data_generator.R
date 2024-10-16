@@ -53,9 +53,9 @@
 #' )
 #'
 #' # Access components of the generated data
-#' y <- sim_data$y  # Response variable
-#' X_s <- sim_data$X_s  # Noise-free functional covariate
-#' X_se <- sim_data$X_se  # Noisy functional covariate
+#' y <- sim_data$y # Response variable
+#' X_s <- sim_data$X_s # Noise-free functional covariate
+#' X_se <- sim_data$X_se # Noisy functional covariate
 #'
 #' @export
 data_generator_vd <- function(
@@ -68,10 +68,9 @@ data_generator_vd <- function(
     beta_index = 1,
     use_x = FALSE,
     use_f = FALSE,
-    seed = NULL
-) {
+    seed = NULL) {
   if (!(beta_index %in% c(1, 2))) {
-    stop("'beta_index' could only be 1 or 2",call. = FALSE)
+    stop("'beta_index' could only be 1 or 2", call. = FALSE)
   }
 
   for (iter in 1:nsims) {
@@ -155,19 +154,16 @@ data_generator_vd <- function(
         } else {
           nu[i] <- sum(X_s[i, ] * Beta[i, , beta_index], na.rm = TRUE) / (M[i]) # NOT NOISY
         }
-
       } else {
         Beta[i, (M[i, 1]:M[i, 2]), 1] <- ((10 * t[(M[i, 1]:M[i, 2])] / M_diff[i]) - 5) / 10
         Beta[i, (M[i, 1]:M[i, 2]), 2] <- ((1 - (2 * M_diff[i] / maxM)) * (5 - 40 * ((t[(M[i, 1]:M[i, 2])] / M_diff[i]) - 0.5)^2)) / 10
 
         if (multivariate) {
-          nu[i] <- sum(X_s[i, ] * Beta[i, ,beta_index], na.rm = TRUE) / (M_diff[i]) + sum(Y_s[i, ] * Beta[i, , 2], na.rm = TRUE) / (M_diff[i])
+          nu[i] <- sum(X_s[i, ] * Beta[i, , beta_index], na.rm = TRUE) / (M_diff[i]) + sum(Y_s[i, ] * Beta[i, , 2], na.rm = TRUE) / (M_diff[i])
         } else {
-          nu[i] <- sum(X_s[i, ] * Beta[i, ,beta_index], na.rm = TRUE) / (M_diff[i]) # NOT NOISY
+          nu[i] <- sum(X_s[i, ] * Beta[i, , beta_index], na.rm = TRUE) / (M_diff[i]) # NOT NOISY
         }
-
       }
-
     }
 
     smooth_term <- f1(x2)

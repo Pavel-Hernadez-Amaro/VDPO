@@ -14,8 +14,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  message = FALSE, 
-  warning = FALSE, 
+  message = FALSE,
+  warning = FALSE,
   error = FALSE,
   fig.cap = "",
   fig.path = "includes/VDPO-02-"

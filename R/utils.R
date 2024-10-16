@@ -348,7 +348,7 @@ add_zeros_to_side <- function(vector, final_length, side = c("right", "left")) {
 
   if (side == "right") {
     return(c(vector, zeros))
-  } else if (side == "left"){
+  } else if (side == "left") {
     return(c(zeros, vector))
   }
 }

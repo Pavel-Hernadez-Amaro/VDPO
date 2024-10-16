@@ -22,4 +22,3 @@ XZG2theta_1d <- function(X, Z, G, TMatrix, y, family = stats::gaussian()) {
 
   list(fit = fit, theta = theta)
 }
-

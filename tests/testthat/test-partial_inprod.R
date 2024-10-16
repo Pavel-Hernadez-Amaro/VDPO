@@ -28,7 +28,7 @@ test_that("'bdeg' should be a vector with two elements", {
   expect_error(do.call(partial_inprod, args), NA)
 
   # expect error
-  args$bdeg<- args$bdeg[1]
+  args$bdeg <- args$bdeg[1]
   expect_error(do.call(partial_inprod, args))
 })
 
@@ -42,6 +42,8 @@ test_that("'partial_inprod' with an odd number of inervals", {
   rng <- c(0, 1)
 
   # Call the function and expect an error
-  expect_error(partial_inprod(n_intervals, knots1, knots2, bdeg, spline_domain, rng),
-               "the 'n_intervals' parameter should be an even number")
+  expect_error(
+    partial_inprod(n_intervals, knots1, knots2, bdeg, spline_domain, rng),
+    "the 'n_intervals' parameter should be an even number"
+  )
 })

@@ -58,5 +58,3 @@ partial_inprod_arguments_generator <- function() {
     rng           = c(M[1, 1], M[1, 2])
   )
 }
-
-

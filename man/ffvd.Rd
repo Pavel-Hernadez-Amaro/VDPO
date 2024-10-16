@@ -41,7 +41,7 @@ X <- data$X_se
 
 # Specifying a custom grid
 custom_grid <- seq(0, 1, length.out = ncol(X))
-ffvd_term_custom_grid <- ffvd(X, grid = custom_grid)
+ffvd_term_custom_grid <- ffvd(X, grid = custom_grid, nbasis = c(10, 10, 10))
 
 # Customizing the number of basis functions
 ffvd_term_custom_basis <- ffvd(X, nbasis = c(10, 10, 10))

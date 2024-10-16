@@ -27,7 +27,7 @@
 #'
 #' # Specifying a custom grid
 #' custom_grid <- seq(0, 1, length.out = ncol(X))
-#' ffvd_term_custom_grid <- ffvd(X, grid = custom_grid)
+#' ffvd_term_custom_grid <- ffvd(X, grid = custom_grid, nbasis = c(10, 10, 10))
 #'
 #' # Customizing the number of basis functions
 #' ffvd_term_custom_basis <- ffvd(X, nbasis = c(10, 10, 10))
@@ -37,7 +37,6 @@
 #'
 #' @export
 ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
-
   if (length(dim(X)) != 2) {
     stop("'X' should be 2-dimensional", call. = FALSE)
   }
@@ -68,7 +67,7 @@ ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
   c3 <- nbasis[3]
 
   K <- NULL
-  rng <- cbind(grid[M[,1]],grid[M[,2]])
+  rng <- cbind(grid[M[, 1]], grid[M[, 2]])
 
   L_X <- vector(mode = "list", length = N)
 
@@ -89,10 +88,9 @@ ffvd <- function(X, grid, nbasis = c(30, 50, 30), bdeg = c(3, 3, 3)) {
     aux_2 <- B2XZG_1d(aux, pord[1], c1)
     aux_3 <- XZG2theta_1d(X = aux_2$X, Z = aux_2$Z, G = aux_2$G, TMatrix = aux_2$T, y = X[i, M[i, 1]:M[i, 2]])
 
-    X_hat[i, M[i,1]:M[i,2]] <- aux_3$fit$fitted.values
+    X_hat[i, M[i, 1]:M[i, 2]] <- aux_3$fit$fitted.values
 
     A[i, ((c1 * (i - 1)) + 1):(i * c1)] <- aux_3$theta
-
   }
 
   ####### HERE WE CREATE THE MARGINAL BASIS FOR THE T VARIABLE In B(t,T)

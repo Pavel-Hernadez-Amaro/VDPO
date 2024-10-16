@@ -40,12 +40,13 @@ for variable domain functional data.
 
 # generate example data
 data <- data_generator_vd(
-    N = 100,
-    J = 100,
-    beta_index = 1,
-    use_x = TRUE,
-    use_f = TRUE,
-    seed = 42)
+  N = 100,
+  J = 100,
+  beta_index = 1,
+  use_x = TRUE,
+  use_f = TRUE,
+  seed = 42
+)
 
 # Define a formula object that specifies the model behavior.
 # The formula includes a functional form of the variable 'X_se' using 'ffvd'
@@ -59,7 +60,7 @@ formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + f(x2, nseg = 30, pord = 2, d
 res <- vd_fit(formula = formula, data = data)
 
 # Some important parameters of the model can be accesed as follows
-res$Beta              # variable domain functional coefficient
+res$Beta # variable domain functional coefficient
 res$fit$fitted.values # estimated response variable
 
 # Also, a summary of the fit can be accesed using the summary function
@@ -67,7 +68,6 @@ summary(res)
 
 # And a heatmap for an specific beta can be obtained using the plot function
 plot(res, beta_index = 1)
-
 }
 }
 \seealso{
