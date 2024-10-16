@@ -10,17 +10,21 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
+
 ## Introduction
 
 The VDPO package provides, among other tools, methods for analyzing variable domain functional data. This vignette demonstrates how to fit variable domain functional regression models using the `vd_fit` function, which is designed to handle various types of functional and non-functional covariates in a flexible framework.
 
 ## Data Generation
 
+
 ``` r
 library(VDPO)
 ```
 
 We'll start by generating sample data using the `data_generator_vd` function. This function creates simulated data with variable domain functional covariates and additional non-functional covariates if specified.
+
 
 ``` r
 # Generate data with functional and non-functional covariates
@@ -35,6 +39,7 @@ The `vd_fit` function is the main tool for fitting variable domain functional re
 
 Let's start with a basic model using only the functional covariate:
 
+
 ``` r
 data <- data_generator_vd(beta_index = 1, use_x = FALSE, use_f = FALSE)
 formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10))
@@ -44,6 +49,7 @@ res <- vd_fit(formula = formula, data = data)
 ### Model with Multiple Functional Covariates
 
 If your data contains multiple functional covariates, you can include them in the model:
+
 
 ``` r
 data <- data_generator_vd(
@@ -60,6 +66,7 @@ res_multi <- vd_fit(formula = formula, data = data)
 
 The `vd_fit` function also supports including non-functional covariates, both linear and smooth terms:
 
+
 ``` r
 data <- data_generator_vd(beta_index = 1, use_x = TRUE, use_f = TRUE)
 formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10)) + f(x2, nseg = 30, pord = 2, degree = 3) + x1
@@ -75,6 +82,7 @@ In this model:
 ## Model Summary
 
 You can obtain a summary of the fitted model using the `summary` function:
+
 
 ``` r
 summary(res_complex)
@@ -97,10 +105,10 @@ summary(res_complex)
 #> 
 #> 
 #> Estimated degrees of freedom:
-#> Total edf     Total      <NA> 
-#>    5.1409    3.7799    0.0000 
-#>      <NA>      <NA> 
-#>    8.9208   15.9208 
+#> Total edf     Total      <NA>      <NA> 
+#>    5.1409    3.7799    0.0000    8.9208 
+#>      <NA> 
+#>   15.9208 
 #> 
 #> R-sq.(adj) =  0.959   Deviance explained = 97.5%  n = 100
 #> 
@@ -110,6 +118,7 @@ summary(res_complex)
 ## Working with Non-Aligned Data
 
 The `vd_fit` function can handle both aligned and non-aligned functional data. Here's an example with non-aligned data:
+
 
 ``` r
 data_not_aligned <- data_generator_vd(aligned = FALSE, beta_index = 1)
@@ -121,14 +130,16 @@ res_not_aligned <- vd_fit(formula = formula, data = data_not_aligned)
 
 If you need to include an offset in your model, you can use the `offset` argument:
 
+
 ``` r
 offset <- rnorm(nrow(data$X_se))
 res_with_offset <- vd_fit(formula = formula, data = data, offset = offset)
 ```
 
-### Ploting the betas
+### Plotting the betas
 
 A heatmap for a specific beta of the model can be obtained by using the plot function:
+
 
 ``` r
 plot(res)

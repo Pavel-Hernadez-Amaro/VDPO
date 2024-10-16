@@ -16,7 +16,7 @@ observed functional data.
 
 ## Test environments
 
-- macOS-latest, windows-latest, ubuntu-latest (on GA), R devel, release, oldrel
-- win-builder, R devel
+- macOS-latest (release and R devel), macOS-latest-arm64 (release and R devel), windows-latest (release and R devel), ubuntu-latest (R devel, release, oldrel)
+- win-builder (release, R devel)
 
 

@@ -1,5 +1,5 @@
 Package: VDPO
-Title: Tools for working with and analyzing functional data of varying lengths
+Title: Tools for Working with and Analyzing Functional Data of Varying Lengths
 Version: 0.0.0.9000
 Authors@R: c(
     person(given = "Pavel", family = "Hernandez", role = c("aut", "cre"),
@@ -13,7 +13,7 @@ Description: The VDPO package offers a comprehensive set of tools for analyzing
   Data, where the observation domain differs across samples, and Partially Observed
   Data, where observations are incomplete over the domain of interest. 
   VDPO enhances the flexibility and applicability of functional data analysis in R.
-  See Amaro et al. 2024 <10.48550/arXiv.2401.05839>.
+  See Amaro et al. 2024 <doi:10.48550/arXiv.2401.05839>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 3.5.0)

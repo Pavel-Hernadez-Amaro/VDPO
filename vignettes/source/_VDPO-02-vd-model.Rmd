@@ -111,7 +111,7 @@ offset <- rnorm(nrow(data$X_se))
 res_with_offset <- vd_fit(formula = formula, data = data, offset = offset)
 ```
 
-### Ploting the betas
+### Plotting the betas
 
 A heatmap for a specific beta of the model can be obtained by using the plot function:
 
