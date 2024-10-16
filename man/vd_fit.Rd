@@ -11,7 +11,7 @@ vd_fit(formula, data, family = stats::gaussian(), offset = NULL)
 \item{formula}{a formula object with at least one \code{ffvd} term.}
 
 \item{data}{a \code{list} object containing the response variable
-and the covariates.}
+and the covariates as the components of the list.}
 
 \item{family}{a \code{family} object specifying the distribution from which the
 data originates. The default distribution is \code{\link{gaussian}}.}
@@ -38,37 +38,36 @@ for variable domain functional data.
 \dontrun{
 # VARIABLE DOMAIN FUNCTIONAL DATA EXAMPLE
 
-# load the example data
-data <- VDPO::VDPO_example_vd
+# generate example data
+data <- data_generator_vd(
+    N = 100,
+    J = 100,
+    beta_index = 1,
+    use_x = TRUE,
+    use_f = TRUE,
+    seed = 42)
 
-# define a formula object that determines the model behavior
-# note that this formula only uses one 'ffvd' term and that
-# the 'nbasis' parameter is not the default one
-formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10))
+# Define a formula object that specifies the model behavior.
+# The formula includes a functional form of the variable 'X_se' using 'ffvd'
+# with a non-default number of basis functions ('nbasis' is set to c(30, 50, 30)).
+# Additionally, it includes a smooth function 'f' applied to 'x2' with 30 segments ('nseg = 30'),
+# a second-order penalty ('pord = 2'), and cubic splines ('degree = 3').
+# The model also contains the linear term 'x1'.
+formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + f(x2, nseg = 30, pord = 2, degree = 3) + x1
 
-# fit the model with the data and the formula
-res <- VDPO(formula = formula, data = data)
+# We can fit the model using the data and the formula
+res <- vd_fit(formula = formula, data = data)
 
-# important parameters of the model can be accessed as follows
-res$Beta_ffvd         # variable domain functional coefficient
+# Some important parameters of the model can be accesed as follows
+res$Beta              # variable domain functional coefficient
 res$fit$fitted.values # estimated response variable
 
-# ------------------------------------------------------------------
-# PARTIALLY OBSERVED FUNCTIONAL DATA EXAMPLE
+# Also, a summary of the fit can be accesed using the summary function
+summary(res)
 
-# load the example data
-data <- VDPO::VDPO_example_po
+# And a heatmap for an specific beta can be obtained using the plot function
+plot(res, beta_index = 1)
 
-# define a formula object that determines the model behavior
-# note that this formula only uses one 'ffpo' term
-formula <- y ~ ffvd(X_se)
-
-# fit the model with the data and the formula
-res <- VDPO(formula = formula, data = data)
-
-# important parameters of the model can be accessed as follows
-res$theta_ffpo        # functional coefficient
-res$fit$fitted.values # estimated response variable
 }
 }
 \seealso{

@@ -54,6 +54,5 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
     ggplot2::scale_y_continuous(expand = c(0, 0)) +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::theme_bw() +
-    ggplot2::labs(y = "T") +
-    ggplot2::ggtitle(paste0("FFVD HeatMap (Beta ", beta_index, ")"))
+    ggplot2::labs(y = "T")
 }

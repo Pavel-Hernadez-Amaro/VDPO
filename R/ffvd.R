@@ -1,13 +1,15 @@
 #' Defining variable domain functional data terms in vd_fit formulae
 #'
-#' Auxiliary function used to define \code{ffvd} terms within \code{vd_fit} model
-#' formulae.
+#' Auxiliary function used to define \code{ffvd} terms within \code{vd_fit} model formulae.
+#' This term represents a functional predictor where each function is observed over a domain of varying length.
+#' The formulation is \eqn{\frac{1}{T_i} \int _1^{T_i} X_i(t)\beta(t,T_i)dt}, where \eqn{X_i(t)} is a functional covariate of length \eqn{T_i}, and \eqn{\beta(t,T_i)} is an unknown bivariate functional coefficient.
+#' The functional basis used to model this term is the B-spline basis.
 #'
 #' @param X variable domain functional covariate \code{matrix}.
 #' @param grid observation points of the variable domain functional covariate.
 #' If not provided, it will be `1:ncol(X)`.
-#' @param nbasis number of basis to be used.
-#' @param bdeg degree of the basis to be used.
+#' @param nbasis number of bspline basis to be used.
+#' @param bdeg degree of the bspline basis used.
 #'
 #' @return the function is interpreted in the formula of a \code{VDPO} model.
 #' \code{list} containing the following elements:

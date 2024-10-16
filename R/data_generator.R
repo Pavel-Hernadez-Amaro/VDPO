@@ -20,9 +20,9 @@
 #'   \item X_se: \code{matrix} of noisy functional data for the first functional covariate
 #'   \item Y_s: \code{matrix} of non-noisy functional data for the second functional covariate (if multivariate).
 #'   \item Y_se: \code{matrix} of noisy functional data for the second covariate (if multivariate).
-#'   \item x1: \code{vector} of length N containing the first non-functional covariate (if use_x is TRUE).
+#'   \item x1: \code{vector} of length N containing the non-functional covariate (if use_x is TRUE).
 #'   \item x2: \code{vector} of length N containing the observed values of the smooth term (if use_f is TRUE).
-#'   \item smooth_term: \code{vector} of length N containing smooth non-functional covariate (if use_f is TRUE).
+#'   \item smooth_term: \code{vector} of length N containing a smooth term (if use_f is TRUE).
 #'   \item Beta: \code{array} containing the true functional coefficients.
 #' }
 #' Where N is the number of subjects and maxM is the maximum number of observations per subject.
