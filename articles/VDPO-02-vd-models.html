@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VDPO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -167,10 +167,10 @@ effect for <code>x2</code>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Estimated degrees of freedom:</span></span>
-<span><span class="co">#&gt; Total edf     Total      &lt;NA&gt; </span></span>
-<span><span class="co">#&gt;    5.1409    3.7799    0.0000 </span></span>
-<span><span class="co">#&gt;      &lt;NA&gt;      &lt;NA&gt; </span></span>
-<span><span class="co">#&gt;    8.9208   15.9208 </span></span>
+<span><span class="co">#&gt; Total edf     Total      &lt;NA&gt;      &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;    5.1409    3.7799    0.0000    8.9208 </span></span>
+<span><span class="co">#&gt;      &lt;NA&gt; </span></span>
+<span><span class="co">#&gt;   15.9208 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; R-sq.(adj) =  0.959   Deviance explained = 97.5%  n = 100</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -196,7 +196,7 @@ data:</p>
 <code class="sourceCode R"><span><span class="va">offset</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">X_se</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">res_with_offset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vd_fit.html">vd_fit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">formula</span>, data <span class="op">=</span> <span class="va">data</span>, offset <span class="op">=</span> <span class="va">offset</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="ploting-the-betas">Ploting the betas<a class="anchor" aria-label="anchor" href="#ploting-the-betas"></a>
+<h3 id="plotting-the-betas">Plotting the betas<a class="anchor" aria-label="anchor" href="#plotting-the-betas"></a>
 </h3>
 <p>A heatmap for a specific beta of the model can be obtained by using
 the plot function:</p>
