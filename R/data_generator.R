@@ -6,14 +6,26 @@
 #' @param J Number of maximum observations per subject.
 #' @param nsims Number of simulations per the simulation study.
 #' @param aligned If the data that will be generated is aligned or not.
-#' @param multivariate If TRUE, the data is generated with 2 variables.
+#' @param multivariate If TRUE, the data is generated with 2 functional variables.
 #' @param beta_index Index for the beta.
 #' @param Rsq Variance of the model.
 #' @param use_x If the data is generated with x.
 #' @param use_f If the data is generated with f.
 #' @param seed Seed for reproducibility.
 #'
-#' @return Example data.
+#' @return A list containing the following components:
+#' \itemize{
+#'   \item y: \code{vector} of length N containing the response variable.
+#'   \item X_s: \code{matrix} of non-noisy functional data for the first functional covariate.
+#'   \item X_se: \code{matrix} of noisy functional data for the first functional covariate
+#'   \item Y_s: \code{matrix} of non-noisy functional data for the second functional covariate (if multivariate).
+#'   \item Y_se: \code{matrix} of noisy functional data for the second covariate (if multivariate).
+#'   \item x1: \code{vector} of length N containing the first non-functional covariate (if use_x is TRUE).
+#'   \item x2: \code{vector} of length N containing the observed values of the smooth term (if use_f is TRUE).
+#'   \item smooth_term: \code{vector} of length N containing smooth non-functional covariate (if use_f is TRUE).
+#'   \item Beta: \code{array} containing the true functional coefficients.
+#' }
+#' Where N is the number of subjects and maxM is the maximum number of observations per subject.
 #'
 #' @export
 data_generator_vd <- function(
@@ -52,14 +64,6 @@ data_generator_vd <- function(
 
       M_diff <- M[, 2] - M[, 1] + 1
     }
-
-    # if (max(M) > J) {
-    #   M[which(M > J)] <- J
-    # }
-    #
-    # if (min(M) <= 10) {
-    #   M[which(M <= 10)] <- 10
-    # }
 
     maxM <- max(M)
     t <- 1:maxM
@@ -105,8 +109,8 @@ data_generator_vd <- function(
     Beta <- array(dim = c(N, maxM, 4))
     nu <- rep(0, N)
     y <- rep(0, N)
-    x1 <- stats::runif(N)
-    x2 <- stats::rnorm(N)
+    x1 <- stats::rnorm(N)
+    x2 <- stats::runif(N)
     f1 <- function(x) 2 * sin(pi * x)
     f2 <- function(x) 3.5 * cos(pi * x)
 
@@ -124,7 +128,7 @@ data_generator_vd <- function(
 
       } else {
         Beta[i, (M[i, 1]:M[i, 2]), 1] <- ((10 * t[(M[i, 1]:M[i, 2])] / M_diff[i]) - 5) / 10
-        Beta[i, (M[i, 1]:M[i, 2]), 2] <- ((1 - (2 * M_diff[i] / T)) * (5 - 40 * ((t[(M[i, 1]:M[i, 2])] / M_diff[i]) - 0.5)^2)) / 10
+        Beta[i, (M[i, 1]:M[i, 2]), 2] <- ((1 - (2 * M_diff[i] / maxM)) * (5 - 40 * ((t[(M[i, 1]:M[i, 2])] / M_diff[i]) - 0.5)^2)) / 10
 
         if (multivariate) {
           nu[i] <- sum(X_s[i, ] * Beta[i, ,beta_index], na.rm = TRUE) / (M_diff[i]) + sum(Y_s[i, ] * Beta[i, , 2], na.rm = TRUE) / (M_diff[i])
@@ -136,10 +140,11 @@ data_generator_vd <- function(
 
     }
 
-    nu <- if (use_f) nu + f1(x1) else nu
+    smooth_term <- f1(x2)
+    nu <- if (use_f) nu + smooth_term else nu
     var_e <- (1 / Rsq - 1) * stats::var(nu)
     y <- nu + stats::rnorm(N, sd = sqrt(var_e)) # ADDING NOISE TO THE GAUSSIAN MODEL
-    y <- if (use_x) y + x2 else y
+    y <- if (use_x) y + x1 else y
   }
 
 
@@ -151,6 +156,7 @@ data_generator_vd <- function(
   data[["Y_se"]] <- Y_se
   data[["x1"]] <- x1
   data[["x2"]] <- x2
+  data[["smooth_term"]] <- smooth_term
   data[["Beta"]] <- Beta
 
   data
