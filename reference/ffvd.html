@@ -27,6 +27,7 @@ The functional basis used to model this term is the B-spline basis."></head><bod
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/VDPO-01-introduction.html">Introduction to VDPO</a></li>
     <li><a class="dropdown-item" href="../articles/VDPO-02-vd-models.html">Model fitting for variable domain functional data</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -85,6 +86,25 @@ If not provided, it will be <code>1:ncol(X)</code>.</p></dd>
 <li><p>An item named <code>nbasis</code> number of basis used.</p></li>
 </ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Generate sample data</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="data_generator_vd.html">data_generator_vd</a></span><span class="op">(</span>beta_index <span class="op">=</span> <span class="fl">1</span>, use_x <span class="op">=</span> <span class="cn">FALSE</span>, use_f <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">X_se</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Specifying a custom grid</span></span></span>
+<span class="r-in"><span><span class="va">custom_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ffvd_term_custom_grid</span> <span class="op">&lt;-</span> <span class="fu">ffvd</span><span class="op">(</span><span class="va">X</span>, grid <span class="op">=</span> <span class="va">custom_grid</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Customizing the number of basis functions</span></span></span>
+<span class="r-in"><span><span class="va">ffvd_term_custom_basis</span> <span class="op">&lt;-</span> <span class="fu">ffvd</span><span class="op">(</span><span class="va">X</span>, nbasis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Customizing both basis functions and degrees</span></span></span>
+<span class="r-in"><span><span class="va">ffvd_term_custom</span> <span class="op">&lt;-</span> <span class="fu">ffvd</span><span class="op">(</span><span class="va">X</span>, nbasis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, bdeg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
