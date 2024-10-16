@@ -1,3 +1,3 @@
-# VDPO (development version)
+# VDPO 0.1.0
 
 * Initial CRAN submission.
