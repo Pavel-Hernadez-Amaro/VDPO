@@ -19,4 +19,9 @@ observed functional data.
 - macOS-latest (release and R devel), macOS-latest-arm64 (release and R devel), windows-latest (release and R devel), ubuntu-latest (R devel, release, oldrel)
 - win-builder (release, R devel)
 
+## CRAN re-submission
+
+- Remove seed from `data_generator.R`
+- Modify description (modify titles, add quotes, correct DOI, remove unnecesary spaces)
+- Remove \dontrun from `vd_fit` examples
 

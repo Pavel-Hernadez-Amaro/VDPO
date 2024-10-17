@@ -13,8 +13,7 @@ data_generator_vd(
   multivariate = FALSE,
   beta_index = 1,
   use_x = FALSE,
-  use_f = FALSE,
-  seed = NULL
+  use_f = FALSE
 )
 }
 \arguments{
@@ -35,8 +34,6 @@ data_generator_vd(
 \item{use_x}{If the data is generated with x.}
 
 \item{use_f}{If the data is generated with f.}
-
-\item{seed}{Seed for reproducibility.}
 }
 \value{
 A list containing the following components:

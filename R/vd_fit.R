@@ -22,8 +22,10 @@
 #' terms in the formula.
 #
 #' @examples
-#' \dontrun{
 #' # VARIABLE DOMAIN FUNCTIONAL DATA EXAMPLE
+#'
+#' # set seed for reproducibility
+#' set.seed(42)
 #'
 #' # generate example data
 #' data <- data_generator_vd(
@@ -32,16 +34,15 @@
 #'   beta_index = 1,
 #'   use_x = TRUE,
 #'   use_f = TRUE,
-#'   seed = 42
 #' )
 #'
 #' # Define a formula object that specifies the model behavior.
 #' # The formula includes a functional form of the variable 'X_se' using 'ffvd'
-#' # with a non-default number of basis functions ('nbasis' is set to c(30, 50, 30)).
-#' # Additionally, it includes a smooth function 'f' applied to 'x2' with 30 segments ('nseg = 30'),
+#' # with a non-default number of basis functions ('nbasis' is set to c(10, 10, 10)).
+#' # Additionally, it includes a smooth function 'f' applied to 'x2' with 10 segments ('nseg = 10'),
 #' # a second-order penalty ('pord = 2'), and cubic splines ('degree = 3').
 #' # The model also contains the linear term 'x1'.
-#' formula <- y ~ ffvd(X_se, nbasis = c(30, 50, 30)) + f(x2, nseg = 30, pord = 2, degree = 3) + x1
+#' formula <- y ~ ffvd(X_se, nbasis = c(10, 10, 10)) + f(x2, nseg = 10, pord = 2, degree = 3) + x1
 #'
 #' # We can fit the model using the data and the formula
 #' res <- vd_fit(formula = formula, data = data)
@@ -55,7 +56,7 @@
 #'
 #' # And a heatmap for an specific beta can be obtained using the plot function
 #' plot(res, beta_index = 1)
-#' }
+#'
 #' @seealso \code{\link{ffvd}}
 #'
 #' @export

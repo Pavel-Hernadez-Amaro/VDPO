@@ -54,8 +54,7 @@ data_generator_vd(
     multivariate = FALSE,  # If TRUE, generates data with 2 variables
     beta_index = 1,    # Index for the beta function (1 or 2)
     use_x = FALSE,     # If TRUE, adds a non-functional covariate
-    use_f = FALSE,     # If TRUE, adds a non-linear effect
-    seed = 42          # Seed for reproducibility
+    use_f = FALSE      # If TRUE, adds a non-linear effect
 )
 ```
 
@@ -148,7 +147,6 @@ The function returns a list containing:
 
 ### Notes
 
--   The function uses a fixed seed for reproducibility
 -   The noise level in functional covariates is proportional to their variance
 -   Two different functional coefficient shapes are available (controlled by `beta_index`)
 

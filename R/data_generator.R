@@ -11,7 +11,6 @@
 #' @param Rsq Variance of the model.
 #' @param use_x If the data is generated with x.
 #' @param use_f If the data is generated with f.
-#' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the following components:
 #' \itemize{
@@ -67,18 +66,13 @@ data_generator_vd <- function(
     multivariate = FALSE,
     beta_index = 1,
     use_x = FALSE,
-    use_f = FALSE,
-    seed = NULL) {
+    use_f = FALSE
+) {
   if (!(beta_index %in% c(1, 2))) {
     stop("'beta_index' could only be 1 or 2", call. = FALSE)
   }
 
   for (iter in 1:nsims) {
-    if (!is.null(seed)) {
-      set.seed(seed + iter)
-    } else {
-      set.seed(iter)
-    }
 
     if (aligned) {
       # Generating the domain for all subject with a minimum of 10 observations (min = 10)

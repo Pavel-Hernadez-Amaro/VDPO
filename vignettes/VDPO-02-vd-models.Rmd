@@ -96,21 +96,17 @@ summary(res_complex)
 #> 
 #> 
 #> Fixed terms: 
-#>                                  x2 
-#>   1.3411243   1.0123313   0.2694401 
-#>                                     
-#>  -3.8477320   5.2390987 -10.3013965 
+#>                                  x2                                     
+#>   1.4678062   0.9742174  -0.1430355  -3.5265899   5.2136636 -10.5801911 
 #>             
-#>   6.0801871 
+#>   6.0838833 
 #> 
 #> 
 #> Estimated degrees of freedom:
-#> Total edf     Total      <NA>      <NA> 
-#>    5.1409    3.7799    0.0000    8.9208 
-#>      <NA> 
-#>   15.9208 
+#> Total edf     Total      <NA>      <NA>      <NA> 
+#>    4.9380    4.5461    0.0001    9.4842   16.4842 
 #> 
-#> R-sq.(adj) =  0.959   Deviance explained = 97.5%  n = 100
+#> R-sq.(adj) =  0.958   Deviance explained = 97.5%  n = 100
 #> 
 #> Number of iterations: 1
 ```

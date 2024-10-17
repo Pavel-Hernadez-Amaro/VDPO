@@ -45,8 +45,7 @@ data_generator_vd(
     multivariate = FALSE,  # If TRUE, generates data with 2 variables
     beta_index = 1,    # Index for the beta function (1 or 2)
     use_x = FALSE,     # If TRUE, adds a non-functional covariate
-    use_f = FALSE,     # If TRUE, adds a non-linear effect
-    seed = 42          # Seed for reproducibility
+    use_f = FALSE      # If TRUE, adds a non-linear effect
 )
 ```
 
@@ -111,23 +110,21 @@ sim_data <- data_generator_vd()
 
 # Generate more complex data
 complex_sim <- data_generator_vd(
-    N = 200, 
-    J = 150,
-    aligned = FALSE,
-    multivariate = TRUE,
-    use_x = TRUE,
-    use_f = TRUE
+  N = 200,
+  J = 150,
+  aligned = FALSE,
+  multivariate = TRUE,
+  use_x = TRUE,
+  use_f = TRUE
 )
 
 # Access generated components
-head(sim_data$y)        # Response variable
-#> [1] -0.51884279  0.77455202  0.17400721
-#> [4]  0.35218196  0.35125460 -0.08737818
-dim(sim_data$X_s)       # Dimensions of functional covariate
+head(sim_data$y) # Response variable
+#> [1]  0.22328994 -0.58169677  0.05271251  0.43631241 -0.41264759  0.53602756
+dim(sim_data$X_s) # Dimensions of functional covariate
 #> [1] 100  99
-head(sim_data$x1)       # Non-functional covariate (if use_x = TRUE)
-#> [1] -1.51300593  0.23613533  0.46113917
-#> [4] -0.96449987  0.87276443 -0.03593889
+head(sim_data$x1) # Non-functional covariate (if use_x = TRUE)
+#> [1]  0.6001512  0.1239913 -0.5213500 -1.4971886  1.3049948 -1.1349646
 ```
 
 ### Output Structure
@@ -145,7 +142,6 @@ The function returns a list containing:
 
 ### Notes
 
--   The function uses a fixed seed for reproducibility
 -   The noise level in functional covariates is proportional to their variance
 -   Two different functional coefficient shapes are available (controlled by `beta_index`)
 
@@ -230,7 +226,7 @@ plot_data_single <- data.frame(
   time = rep(1:ncol(sim_data$X_s), 2),
   value = c(sim_data$X_s[selected_curve, ], sim_data$X_se[selected_curve, ]),
   type = factor(rep(c("Original", "Noisy"), each = ncol(sim_data$X_s)))
-) %>% 
+) %>%
   filter(!is.na(value))
 
 ggplot(plot_data_single, aes(x = time, y = value, color = type)) +
