@@ -1,0 +1,12 @@
+bibentry(
+  bibtype = "Article",
+  title   = "Modelling physical activity profiles in COPD patients: a fully functional approach to variable domain functional regression models",
+  author  = c(person("Pavel", "Hernández-Amaro"),
+              person("Maria", "Durban"),
+              person("M. Carmen", "Aguilera-Morillo"),
+              person("Cristóbal E", "González"),
+              person("Inmaculada", "Arostegui")),
+  journal = "arXiv",
+  year    = "2024",
+  doi     = "10.48550/arXiv.2401.05839"
+)

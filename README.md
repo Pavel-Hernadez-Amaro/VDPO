@@ -3,6 +3,8 @@
 <!-- badges: start -->
 
 [![Build_Status](https://github.com/Pavel-Hernadez-Amaro/VDPO/actions/workflows/build.yml/badge.svg)](https://github.com/Pavel-Hernadez-Amaro/VDPO/actions/workflows/build.yml)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/VDPO)](https://cran.r-project.org/package=VDPO)
+[![DOI](https://img.shields.io/badge/doi-10.48550%2FarXiv.2401.05839-%23B31B1B.svg)](https://arxiv.org/abs/2401.05839)
 
 <!-- badges: end -->
 
