@@ -185,16 +185,6 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
     Phi    = Phi,
     M      = M,
     nbasis = nbasis
-
-
-
-
-
-    Inner_matrix = Inner_matrix,
-
-
-
-
   )
 }
 
