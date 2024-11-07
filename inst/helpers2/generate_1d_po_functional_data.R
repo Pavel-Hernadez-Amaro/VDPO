@@ -147,7 +147,7 @@ generate_1d_po_functional_data <- function(
   list(
     curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
     noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
-    noisy_curves_miss = matrix(unlist(noisy_curves_miss), nrow = 100, byrow = TRUE),
+    noisy_curves_miss = noisy_curves_miss,
     response = response,
     grid = t,
     beta = beta,
