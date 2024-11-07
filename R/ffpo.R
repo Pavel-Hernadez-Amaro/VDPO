@@ -160,7 +160,7 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
       fx2 <- splines::spline.des(new_knots, x, bdeg[2] + 1, 0 * x)$design
       Fx <- t(fx1) %*% fx2
 
-      if (j %% 2 != 0) {
+      if (j %% 2 == 0) {
         XI2 <- XI2 + Fx
       } else {
         XI1 <- XI1 + Fx
@@ -180,9 +180,21 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
 
   list(
     B_ffpo = res,
+    A      = A,
+    X_hat  = L_y,
     Phi    = Phi,
     M      = M,
     nbasis = nbasis
+
+
+
+
+
+    Inner_matrix = Inner_matrix,
+
+
+
+
   )
 }
 

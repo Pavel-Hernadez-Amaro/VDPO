@@ -73,8 +73,8 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
   even <- seq(2, n + 1 - 1, 2)
   odd <- seq(3, n + 1 - 1, 2)
 
-  simp_w[even] <- 2
-  simp_w[odd] <- 4
+  simp_w[even] <- 4
+  simp_w[odd] <- 2
 
   h <- (x_observations[x_b] - x_observations[1]) / n # if y_b and y_a are functions of x
   HX <- (y_observations[y_b] - y_observations[1]) / m # this line should go inside the next for loop (the int_i lopp or outer loop)
@@ -85,8 +85,8 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
   y <- seq(y_observations[1], y_observations[y_b], HX)
 
   W_x <- (HX / 3) * Sim_w_x
-  W_x_even <- 2 * W_x
-  W_x_odd <- 4 * W_x
+  W_x_even <- 4 * W_x
+  W_x_odd <- 2 * W_x
 
   for (aux in 1:(m + 1)) {
     # print(c("aux = ", aux))
