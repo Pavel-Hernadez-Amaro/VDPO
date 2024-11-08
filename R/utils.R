@@ -1,3 +1,10 @@
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/sommer/index.html}{sommer} package authors.
+Rten2 <- function(X1, X2) {
+  one.1 <- matrix(1, 1, ncol(X1))
+  one.2 <- matrix(1, 1, ncol(X2))
+  kronecker(X1, one.2) * kronecker(one.1, X2)
+}
+
 #' B-spline generator
 #'
 #' @param X. Points where you are going to evaluate the function.
@@ -374,3 +381,44 @@ list_to_df <- function(data, response) {
 #'
 #' @noRd
 f <- utils::getFromNamespace("f", "SOP")
+
+#' From matrix to vector
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
+#'
+#' @noRd
+vec <- function(x, byrow = FALSE) {
+  if (is.vector(x))
+    return(x)
+  if (byrow)
+    x <- t(x)
+  d <- ncol(x)
+  vecx <- vector()
+  for (j in 1:d) vecx <- c(vecx, x[, j])
+  return(vecx)
+}
+
+#' From vector to matrix
+#'
+#' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
+#'
+#' @noRd
+invvec <- function (x, ncol, nrow, byrow = FALSE) {
+  if (length(x) == 1)
+    return(x)
+  d <- sqrt(length(x))
+  if (missing(ncol) | missing(nrow)) {
+    ncol <- d
+    nrow <- d
+    if (round(d) != d)
+      stop("Need to specify nrow and ncol for non-square matrices")
+  }
+  invvecx <- matrix(0, nrow = nrow, ncol = ncol)
+  if (byrow)
+    for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j -
+                                                       1) * ncol]
+  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j -
+                                                          1) * nrow]
+  return(invvecx)
+}
+
