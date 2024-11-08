@@ -328,11 +328,22 @@ generate_1d_po_functional_data <- function(
     min_distance = min_distance
   )
 
+  miss_points <- noisy_curves_miss[["miss_points"]]
+  missing_points <- noisy_curves_miss[["missing_points"]]
+  X_miss <- matrix(
+    unlist(noisy_curves_miss[["X_miss"]]),
+    nrow = length(noisy_curves_miss[["X_miss"]]),
+    ncol = length(noisy_curves_miss[["X_miss"]][[1]]),
+    byrow = TRUE
+  )
+
   # Return results
   list(
     curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
     noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
-    noisy_curves_miss = noisy_curves_miss,
+    noisy_curves_miss = X_miss,
+    miss_points = miss_points,
+    missing_points = missing_points,
     response = response,
     grid = t,
     beta = beta,
@@ -626,7 +637,9 @@ generate_2d_po_functional_data <- function(
   list(
     surfaces = surfaces,
     noisy_surfaces = noisy_surfaces,
-    noisy_surfaces_miss = noisy_surfaces_miss,
+    noisy_surfaces_miss = noisy_surfaces_miss[[1]],
+    miss_points = noisy_surfaces_miss[[2]],
+    missing_points = noisy_surfaces_miss[[3]],
     response = response,
     grid_x = x,
     grid_y = y,

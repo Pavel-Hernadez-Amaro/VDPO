@@ -1,4 +1,4 @@
-po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
+po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (inherits(formula, "character")) {
     formula <- stats::as.formula(formula)
   }
@@ -87,24 +87,24 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   Z <- c() # matrix
   G <- list() # list
 
-  if (nffpo > 0) {
+  if (nffpo_2d > 0) {
     B_all <- c()
-    deglist <- vector(mode = "list", length = nffpo)
-    Phi_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
-    M_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
+    deglist <- vector(mode = "list", length = nffpo_2d)
+    Phi_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
+    M_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
     # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
-    ffpo_counter <- 0
-    for (ffpo_evaluation in evals[grepl("ffpo", names(evals))]) {
-      ffpo_counter <- ffpo_counter + 1
+    ffpo2d_counter <- 0
+    for (ffpo2d_evaluation in evals[grepl("ffpo_2d", names(evals))]) {
+      ffpo2d_counter <- ffpo2d_counter + 1
 
-      B_all <- cbind(B_all, ffpo_evaluation[["B_ffpo"]])
-      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1]
+      B_all <- cbind(B_all, ffpo2d_evaluation[["B_ffpo2d"]])
+      deglist[[ffpo2d_counter]] <- ffpo2d_evaluation[["nbasis"]][3:4]
 
-      Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
-      M_ffpo[[ffpo_counter]] <- ffpo_evaluation[["M"]]
+      Phi_ffpo[[ffpo2d_counter]] <- ffpo2d_evaluation[["Phi_ffpo2d"]]
+      M_ffpo[[ffpo2d_counter]] <- ffpo2d_evaluation[["M_ffpo2d"]] # this is not M, this is M complement
     }
-    foo <- B2XZG_ffpo(B_all, deglist)
+    foo <- B2XZG_2d(B_all, pord = c(2, 2), c = deglist[[1]]) # we need to fix this to work like deglist in ffvd || multivariate case
 
     X <- cbind(X, foo$X)
     Z <- cbind(Z, foo$Z)
@@ -155,7 +155,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   # theta_f <- calculate_theta_f(0, l.f = NULL, fit, non_special_indices = list())
   # Beta_ffvd <- calculate_beta_ffvd(nffvd, data, response, M, L_Phi, B_T, theta_ffvd, deglist)
   #
-  ffpo_evals <- process_evals(evals, type = "ffpo")
+  ffpo_2d_evals <- process_evals(evals, type = "ffpo_2d")
 
   res <- list(
     fit = fit,
@@ -163,7 +163,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     theta = theta_ffpo,
     # covar_theta = covar_theta,
     # M = M,
-    ffpo_evals = ffpo_evals
+    ffpo_2d_evals = ffpo_2d_evals
     # theta_no_functional = theta_no_functional,
     # theta_f = theta_f
   )

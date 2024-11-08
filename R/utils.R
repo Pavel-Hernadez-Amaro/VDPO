@@ -415,10 +415,43 @@ invvec <- function (x, ncol, nrow, byrow = FALSE) {
   }
   invvecx <- matrix(0, nrow = nrow, ncol = ncol)
   if (byrow)
-    for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j -
-                                                       1) * ncol]
-  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j -
-                                                          1) * nrow]
+    for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j - 1) * ncol]
+  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j - 1) * nrow]
   return(invvecx)
 }
 
+#' Process different types of evaluations (ffvd, ffpo, ffpo_2d)
+#'
+#' This function processes evaluation results by filtering and renaming them based
+#' on the specified type. It handles ffvd, ffpo, and ffpo_2d evaluations.
+#'
+#' @param evals List of evaluations to process
+#' @param type Character string specifying the evaluation type ('ffvd', 'ffpo', or 'ffpo_2d')
+#' @return List of processed evaluations with renamed elements
+#'
+#' @noRd
+process_evals <- function(evals, type = c("ffvd", "ffpo", "ffpo_2d")) {
+  # Match argument and perform input validation
+  type <- match.arg(type)
+
+  # Handle ffpo_2d first to avoid partial matching with ffpo
+  if (type == "ffpo_2d") {
+    pattern <- "ffpo_2d"
+  } else {
+    pattern <- type
+  }
+
+  # Filter evaluations based on type
+  filtered_evals <- evals[grepl(pattern, names(evals))]
+
+  # Create new names
+  new_names <- paste0(
+    type, "_",
+    gsub(".*?\\((.+?),.+", "\\1", names(filtered_evals))
+  )
+
+  # Assign new names to the filtered evaluations
+  names(filtered_evals) <- new_names
+
+  filtered_evals
+}

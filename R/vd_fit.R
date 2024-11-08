@@ -267,7 +267,8 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   theta_f <- calculate_theta_f(nf, l.f, fit, non_special_indices)
   Beta_ffvd <- calculate_beta_ffvd(nffvd, data, response, M, L_Phi, B_T, theta_ffvd, deglist)
 
-  ffvd_evals <- process_ffvd_evals(evals)
+  # ffvd_evals <- process_ffvd_evals(evals)
+  ffvd_evals <- process_evals(evals, type = "ffvd")
 
   res <- list(
     fit = fit,

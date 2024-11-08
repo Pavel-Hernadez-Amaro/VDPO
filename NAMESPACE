@@ -2,6 +2,9 @@
 
 S3method(plot,vd_fit)
 S3method(summary,vd_fit)
+export(add_grid)
 export(data_generator_vd)
+export(ffpo)
+export(ffpo_2d)
 export(ffvd)
 export(vd_fit)
