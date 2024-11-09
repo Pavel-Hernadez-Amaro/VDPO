@@ -44,6 +44,3 @@ for properly calculating the inner product matrix.
 \code{missing_points} is a \code{list} where each element is a \code{matrix}
 containing the missing observations points.
 }
-\seealso{
-\code{\link{VDPO}}
-}

@@ -37,6 +37,12 @@ generate_2d_po_functional_data(
 \item{a2}{Optional fixed value for second stochastic component. If provided, a1 must also be provided}
 
 \item{sub_response}{Number of intervals for Simpson integration. Default is 50}
+
+\item{n_missing}{Number of holes in every curve}
+
+\item{min_distance_x}{Length of the holes in the x axis}
+
+\item{min_distance_y}{Length of the holes in the y axis}
 }
 \value{
 A list containing:

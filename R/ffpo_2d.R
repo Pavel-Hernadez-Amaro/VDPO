@@ -31,8 +31,6 @@
 #' \code{missing_points} is a \code{list} where each element is a \code{matrix}
 #' containing the missing observations points.
 #'
-#' @seealso \code{\link{VDPO}}
-#'
 #' @export
 ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = rep(3, 4)) {
   for (i in 2:length(X)) {

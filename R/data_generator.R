@@ -283,7 +283,7 @@ generate_1d_po_functional_data <- function(
 
     list(
       curve_true = true_curve,
-      curve_noisy = true_curve + rnorm(length(t), 0, noise_sd)
+      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd)
     )
   }
 
@@ -292,13 +292,13 @@ generate_1d_po_functional_data <- function(
   beta <- if (beta_type == "sin") {
     sin(2 * pi * t) * cos(pi * t)
   } else {
-    dnorm(t, mean = 0.5, sd = 0.15) / dnorm(0.5, mean = 0.5, sd = 0.15)
+    stats::dnorm(t, mean = 0.5, sd = 0.15) / stats::dnorm(0.5, mean = 0.5, sd = 0.15)
   }
 
   # Generate data and compute response
   for (i in 1:n) {
     # Use fixed value if provided, otherwise generate random component
-    stochastic_components[[i]] <- rnorm(3, 0, 0.2)
+    stochastic_components[[i]] <- stats::rnorm(3, 0, 0.2)
 
     # Generate curve
     curve_data <- generate_curve(
@@ -318,8 +318,8 @@ generate_1d_po_functional_data <- function(
   }
 
   # Generate response with desired R-squared
-  var_e <- (1/rsq - 1) * var(nu)
-  response <- nu + rnorm(n, 0, sqrt(var_e))
+  var_e <- (1/rsq - 1) * stats::var(nu)
+  response <- nu + stats::rnorm(n, 0, sqrt(var_e))
 
   # Add missing values
   noisy_curves_miss <- add_miss1d(
@@ -454,6 +454,9 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided
 #' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided
 #' @param sub_response Number of intervals for Simpson integration. Default is 50
+#' @param n_missing Number of holes in every curve
+#' @param min_distance_x Length of the holes in the x axis
+#' @param min_distance_y Length of the holes in the y axis
 #'
 #' @return A list containing:
 #' \itemize{
@@ -513,55 +516,12 @@ generate_2d_po_functional_data <- function(
   # Initialize storage
   surfaces <- vector("list", n)
   noisy_surfaces <- vector("list", n)
-  stochastic_components <- matrix(nrow = n, ncol = 2,
-                                  dimnames = list(NULL, c("a1", "a2")))
+  stochastic_components <- matrix(
+    nrow = n,
+    ncol = 2,
+    dimnames = list(NULL, c("a1", "a2"))
+  )
   nu <- numeric(n)
-
-  # Helper function to generate surface with given parameters
-  generate_surface <- function(x, y, a1, a2, noise_sd) {
-    true_surface <- matrix(nrow = length(x), ncol = length(y))
-    for (i in seq_along(x)) {
-      for (j in seq_along(y)) {
-        true_surface[i, j] <- a1 * cos(2 * pi * x[i]) +
-          a2 * cos(2 * pi * y[j]) + 1
-      }
-    }
-    list(
-      DATA_T = true_surface,
-      DATA_N = true_surface + matrix(rnorm(length(x) * length(y), 0, noise_sd),
-                                     length(x), length(y))
-    )
-  }
-
-  # Setup Simpson's integration weights
-  setup_simpson_weights <- function(n_x, n_y, h_x, h_y) {
-    # Initialize weight vector
-    W_delta <- array(dim = (n_x + 1) * (n_y + 1))
-
-    # Create Simpson weights for x direction
-    simp_w_x <- rep(1, n_x + 1)
-    simp_w_x[seq(2, n_x - 1, 2)] <- 4
-    simp_w_x[seq(3, n_x - 1, 2)] <- 2
-
-    # Combine with h_x/3
-    W_x <- (h_x/3) * simp_w_x
-
-    # Create full weight matrix
-    for (j in 1:(n_y + 1)) {
-      start_idx <- ((n_x + 1) * (j - 1) + 1)
-      end_idx <- ((n_x + 1) * j)
-
-      if (j == 1 || j == (n_y + 1)) {
-        W_delta[start_idx:end_idx] <- (h_y/3) * W_x
-      } else if (j %% 2 == 0) {
-        W_delta[start_idx:end_idx] <- (4 * h_y/3) * W_x
-      } else {
-        W_delta[start_idx:end_idx] <- (2 * h_y/3) * W_x
-      }
-    }
-
-    W_delta
-  }
 
   # Generate data and compute response
   for (i in 1:n) {
@@ -570,8 +530,8 @@ generate_2d_po_functional_data <- function(
       stochastic_components[i, ] <- c(a1, a2)
     } else {
       stochastic_components[i, ] <- c(
-        rnorm(1, 0, 0.2),  # a1
-        rnorm(1, 0, 0.2)   # a2
+        stats::rnorm(1, 0, 0.2),  # a1
+        stats::rnorm(1, 0, 0.2)   # a2
       )
     }
 
@@ -616,8 +576,8 @@ generate_2d_po_functional_data <- function(
   }
 
   # Generate response with desired R-squared
-  var_e <- (1/rsq - 1) * var(nu)
-  response <- nu + rnorm(n, 0, sqrt(var_e))
+  var_e <- (1/rsq - 1) * stats::var(nu)
+  response <- nu + stats::rnorm(n, 0, sqrt(var_e))
 
   # Generate beta on original grid for output
   beta_surface <- if (beta_type == "saddle") {
@@ -650,10 +610,7 @@ generate_2d_po_functional_data <- function(
 
 #' Generate saddle-shaped coefficient surface
 #'
-#' @param x Grid points for x-axis
-#' @param y Grid points for y-axis
-#' @return Matrix containing the coefficient surface values
-#'
+#' @noRd
 generate_saddle_surface <- function(x, y) {
   surface <- matrix(nrow = length(x), ncol = length(y))
 
@@ -668,10 +625,7 @@ generate_saddle_surface <- function(x, y) {
 
 #' Generate exponential coefficient surface
 #'
-#' @param x Grid points for x-axis
-#' @param y Grid points for y-axis
-#' @return Matrix containing the coefficient surface values
-#'
+#' @noRd
 generate_exp_surface <- function(x, y) {
   surface <- matrix(nrow = length(x), ncol = length(y))
 
@@ -684,28 +638,55 @@ generate_exp_surface <- function(x, y) {
   surface
 }
 
-# # Example usage
-# set.seed(123)
-#
-# # Generate data with random a1 and a2
-# data_random <- generate_2d_po_functional_data(n = 5)
-# print("Random stochastic components:")
-# print(data_random$stochastic_components)
-#
-# # Generate data with fixed a1 and a2
-# data_fixed <- generate_2d_po_functional_data(n = 5, a1 = 0.5, a2 = -0.3)
-# print("\nFixed stochastic components:")
-# print(data_fixed$stochastic_components)
-#
-# data <- generate_2d_po_functional_data()
-# plotly::plot_ly(z = data$noisy_surfaces_miss$X_miss[[1]], type = "surface")
-#
-# # Visualize example surfaces
-# par(mfrow = c(1, 3))
-# image(data_fixed$grid_x, data_fixed$grid_y, data_fixed$surfaces[[1]],
-#       main = "True Surface (Fixed a1,a2)", xlab = "x", ylab = "y")
-# image(data_fixed$grid_x, data_fixed$grid_y, data_fixed$noisy_surfaces[[1]],
-#       main = "Noisy Surface", xlab = "x", ylab = "y")
-# image(data_fixed$grid_x, data_fixed$grid_y, data_fixed$beta,
-#       main = "Beta Coefficient", xlab = "x", ylab = "y")
+#' Helper function to generate surface with given parameters
+#'
+#' @noRd
+generate_surface <- function(x, y, a1, a2, noise_sd) {
+  true_surface <- matrix(nrow = length(x), ncol = length(y))
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      true_surface[i, j] <- a1 * cos(2 * pi * x[i]) +
+        a2 * cos(2 * pi * y[j]) + 1
+    }
+  }
 
+  list(
+    DATA_T = true_surface,
+    DATA_N = true_surface + matrix(
+      stats::rnorm(length(x) * length(y), 0, noise_sd),
+      length(x),
+      length(y)
+    )
+  )
+}
+
+#' Setup Simpson's integration weights
+#'
+#' @noRd
+setup_simpson_weights <- function(n_x, n_y, h_x, h_y) {
+  W_delta <- array(dim = (n_x + 1) * (n_y + 1))
+
+  # Create Simpson weights for x direction
+  simp_w_x <- rep(1, n_x + 1)
+  simp_w_x[seq(2, n_x - 1, 2)] <- 4
+  simp_w_x[seq(3, n_x - 1, 2)] <- 2
+
+  # Combine with h_x/3
+  W_x <- (h_x/3) * simp_w_x
+
+  # Create full weight matrix
+  for (j in 1:(n_y + 1)) {
+    start_idx <- ((n_x + 1) * (j - 1) + 1)
+    end_idx <- ((n_x + 1) * j)
+
+    if (j == 1 || j == (n_y + 1)) {
+      W_delta[start_idx:end_idx] <- (h_y/3) * W_x
+    } else if (j %% 2 == 0) {
+      W_delta[start_idx:end_idx] <- (4 * h_y/3) * W_x
+    } else {
+      W_delta[start_idx:end_idx] <- (2 * h_y/3) * W_x
+    }
+  }
+
+  W_delta
+}

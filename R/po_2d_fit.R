@@ -32,20 +32,15 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     vdpoenv[[var]] <- data[[var]]
   }
 
-  tf <- stats::terms.formula(formula, specials = c("ffpo", "ffpo_2d"))
+  tf <- stats::terms.formula(formula, specials = c("ffpo_2d"))
 
   terms <- attr(tf, "term.labels")
   nterms <- length(terms)
   specials_indices <- attr(tf, "specials") # indices for the special terms
 
   if (attr(tf, "response")) {
-    # > formula <- y ~ x + z + 1
-    # > "list" "y"    "x"    "z"
     response <- as.character(attr(tf, "variables"))[2]
     variables <- as.character(attr(tf, "variables"))[-c(1, 2)]
-
-    # If the response exists, we need to lower in the index for every
-    # special term
 
     specials_indices <- lapply(
       specials_indices,
@@ -53,8 +48,6 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     )
   } else {
     variables <- as.character(attr(tf, "variables"))[-1]
-
-    # No need to lower the index of the specials terms if the response exists
     specials_indices <- lapply(
       specials_indices,
       function(x) if (is.null(x)) NA else x
@@ -73,12 +66,12 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
   names(evals) <- terms
 
   # nf <- sum(grepl("\\bf\\(\\b", names(evals)))
-  nffpo    <- sum(grepl("\\bffpo\\(\\b", names(evals)))
+  # nffpo    <- sum(grepl("\\bffpo\\(\\b", names(evals)))
   nffpo_2d <- sum(grepl("\\bffpo_2d\\(\\b", names(evals)))
 
-  if (nffpo == 0 && nffpo_2d == 0) {
+  if (nffpo_2d == 0) {
     stop(
-      "this function should be used with at least one 'ffpo' or 'ffpo_2d' term",
+      "this function should be used with at least one 'ffpo_2d' term",
       call. = FALSE
     )
   }
@@ -92,7 +85,6 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     deglist <- vector(mode = "list", length = nffpo_2d)
     Phi_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
     M_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
-    # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffpo2d_counter <- 0
     for (ffpo2d_evaluation in evals[grepl("ffpo_2d", names(evals))]) {

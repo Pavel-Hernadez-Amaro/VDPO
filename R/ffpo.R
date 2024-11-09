@@ -31,7 +31,7 @@
 #' Varying observation points introduce complexity, as each covariate might be
 #' sampled at different time instances.
 #'
-#' @seealso \code{\link{VDPO}}, \code{\link{add_grid}}
+#' @seealso \code{\link{add_grid}}
 #'
 #' @export
 ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {

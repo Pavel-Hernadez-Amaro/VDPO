@@ -431,7 +431,6 @@ invvec <- function (x, ncol, nrow, byrow = FALSE) {
 #'
 #' @noRd
 process_evals <- function(evals, type = c("ffvd", "ffpo", "ffpo_2d")) {
-  # Match argument and perform input validation
   type <- match.arg(type)
 
   # Handle ffpo_2d first to avoid partial matching with ffpo
@@ -444,13 +443,11 @@ process_evals <- function(evals, type = c("ffvd", "ffpo", "ffpo_2d")) {
   # Filter evaluations based on type
   filtered_evals <- evals[grepl(pattern, names(evals))]
 
-  # Create new names
   new_names <- paste0(
     type, "_",
     gsub(".*?\\((.+?),.+", "\\1", names(filtered_evals))
   )
 
-  # Assign new names to the filtered evaluations
   names(filtered_evals) <- new_names
 
   filtered_evals

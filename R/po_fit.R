@@ -32,29 +32,24 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     vdpoenv[[var]] <- data[[var]]
   }
 
-  tf <- stats::terms.formula(formula, specials = c("ffpo", "ffpo_2d"))
+  tf <- stats::terms.formula(formula, specials = c("ffpo"))
 
   terms <- attr(tf, "term.labels")
   nterms <- length(terms)
   specials_indices <- attr(tf, "specials") # indices for the special terms
 
   if (attr(tf, "response")) {
-    # > formula <- y ~ x + z + 1
-    # > "list" "y"    "x"    "z"
     response <- as.character(attr(tf, "variables"))[2]
     variables <- as.character(attr(tf, "variables"))[-c(1, 2)]
 
     # If the response exists, we need to lower in the index for every
     # special term
-
     specials_indices <- lapply(
       specials_indices,
       function(x) if (is.null(x)) NA else x - 1
     )
   } else {
     variables <- as.character(attr(tf, "variables"))[-1]
-
-    # No need to lower the index of the specials terms if the response exists
     specials_indices <- lapply(
       specials_indices,
       function(x) if (is.null(x)) NA else x
@@ -74,11 +69,11 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   # nf <- sum(grepl("\\bf\\(\\b", names(evals)))
   nffpo    <- sum(grepl("\\bffpo\\(\\b", names(evals)))
-  nffpo_2d <- sum(grepl("\\bffpo_2d\\(\\b", names(evals)))
+  # nffpo_2d <- sum(grepl("\\bffpo_2d\\(\\b", names(evals)))
 
-  if (nffpo == 0 && nffpo_2d == 0) {
+  if (nffpo == 0) {
     stop(
-      "this function should be used with at least one 'ffpo' or 'ffpo_2d' term",
+      "this function should be used with at least one 'ffpo' term",
       call. = FALSE
     )
   }
@@ -92,7 +87,6 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     deglist <- vector(mode = "list", length = nffpo)
     Phi_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
     M_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
-    # TMatrix <- vector(mode = "list", length = nffvd) # matrix
 
     ffpo_counter <- 0
     for (ffpo_evaluation in evals[grepl("ffpo", names(evals))]) {

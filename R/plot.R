@@ -1,7 +1,5 @@
 #' @export
 plot.vd_fit <- function(x, beta_index = 1, ...) {
-  Beta <- NULL
-
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
@@ -17,6 +15,8 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
       call. = FALSE
     )
   }
+
+  Beta <- NULL
 
   N <- attr(x, "N")
 
@@ -58,44 +58,55 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
 }
 
 
-plot_beta_with_ci <- function(res, curve = 1) {
-  if (curve > nrow(res$Beta[[1]])) {
-    stop("Requested curve index is out of range.")
+plot_beta_with_ci <- function(object, curve = 1) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
+
+  if (!inherits(res, "vd_fit")) {
+    stop("input object should be of class 'vd_fit'", call. = FALSE)
+  }
+
+  if (curve > nrow(res$Beta[[1]])) {
+    stop("requested curve index is out of range", call. = FALSE)
+  }
+
+  res    <- NULL
+  value  <- NULL
+  values <- NULL
+  index  <- NULL
+  group  <- NULL
 
   N <- length(res$fit$fitted.values)
   Beta_FFVD_inf <- Beta_FFVD_sup <- matrix(nrow = nrow(res$Beta[[1]]), ncol = ncol(res$Beta[[1]]))
-  M <- res$M[[1]][,2]
+  M <- res$M[[1]][, 2]
 
   for (aux_ind in 1:N) {
-    prod = as.matrix(kronecker(res$ffvd_evals[[1]]$L_Phi$B[1:M[aux_ind],], t(res$ffvd_evals[[1]]$B_T$B[aux_ind,])))
-    var_curve = diag(prod %*% res$covar_theta %*% t(prod))
-    std_curve = sqrt(var_curve)
-    Beta_FFVD_inf[aux_ind,1:M[aux_ind]] = res$Beta[[1]][aux_ind,1:M[aux_ind]] - 1.96 * std_curve
-    Beta_FFVD_sup[aux_ind,1:M[aux_ind]] = res$Beta[[1]][aux_ind,1:M[aux_ind]] + 1.96 * std_curve
+    prod <- as.matrix(kronecker(res$ffvd_evals[[1]]$L_Phi$B[1:M[aux_ind], ], t(res$ffvd_evals[[1]]$B_T$B[aux_ind, ])))
+    var_curve <- diag(prod %*% res$covar_theta %*% t(prod))
+    std_curve <- sqrt(var_curve)
+    Beta_FFVD_inf[aux_ind, 1:M[aux_ind]] <- res$Beta[[1]][aux_ind, 1:M[aux_ind]] - 1.96 * std_curve
+    Beta_FFVD_sup[aux_ind, 1:M[aux_ind]] <- res$Beta[[1]][aux_ind, 1:M[aux_ind]] + 1.96 * std_curve
   }
 
   plot_data <- data.frame(
-    index = rep(1:length(res$Beta[[1]][curve,]), 3),
-    value = c(res$Beta[[1]][curve,], Beta_FFVD_inf[curve,], Beta_FFVD_sup[curve,]),
-    group = rep(c("Estimate", "Lower CI", "Upper CI"), each = length(res$Beta[[1]][curve,]))
+    index = rep(1:length(res$Beta[[1]][curve, ]), 3),
+    value = c(res$Beta[[1]][curve, ], Beta_FFVD_inf[curve, ], Beta_FFVD_sup[curve, ]),
+    group = rep(c("Estimate", "Lower CI", "Upper CI"), each = length(res$Beta[[1]][curve, ]))
   )
 
   # Filter out missing values and values outside the scale range
-  plot_data <- na.omit(plot_data)
+  plot_data <- stats::na.omit(plot_data)
   plot_data <- subset(plot_data, value >= min(plot_data$value) & value <= max(plot_data$value))
 
-  ggplot(plot_data, aes(x = index, y = value, color = group, linetype = group)) +
-    geom_line() +
-    scale_color_manual(values = c("black", "#0072B2", "#009E73")) +
-    scale_linetype_manual(values = c("solid", "dashed", "dashed")) +
-    theme_minimal() +
-    labs(
+  ggplot2::ggplot(plot_data, ggplot2::aes(x = index, y = value, color = group, linetype = group)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_color_manual(values = c("black", "#0072B2", "#009E73")) +
+    ggplot2::scale_linetype_manual(values = c("solid", "dashed", "dashed")) +
+    ggplot2::theme_minimal() +
+    ggplot2::labs(
       x = "Index",
       y = "res$Beta[[1]][100,]",
       title = paste0("Confidence Intervals for the ", curve, "th Row of res$Beta[[1]]")
     )
 }
-
-plot <- plot_beta_with_ci(res, 10)
-plot
