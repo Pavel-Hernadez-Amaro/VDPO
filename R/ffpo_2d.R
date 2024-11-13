@@ -200,9 +200,10 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
              ncol = y_b
       )
 
+    if(!is.null(missing_points[[j]])){
     for (aux in 1:dim(missing_points[[j]])[1]) {
       X_hat[[j]][missing_points[[j]][aux, 1], missing_points[[j]][aux, 2]] <- NA
-    }
+    }}
     # plotly::plot_ly(z = X_hat[[1]], type = "surface")
 
     # HERE BEGINS THE DOUBLE INTEGRAL
