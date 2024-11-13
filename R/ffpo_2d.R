@@ -345,7 +345,7 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
     # all.equal(Inner_matrix_WO[(c1*c2*(j-1)+1):(c1*c2*j),],(aux_apperm))
     # all.equal(Inner_matrix_WO[(c1*c2*(j-1)+1):(c1*c2*j),],(aux_GLAM_apperm))
 
-    Inner_matrix[(c1 * c2 * (j - 1) + 1):(c1 * c2 * j), ] <- aux_GLAM_apperm/min(c((x_b*y_b)-nrow(missing_points[[1]]),x_b*y_b))
+    Inner_matrix[(c1 * c2 * (j - 1) + 1):(c1 * c2 * j), ] <- aux_GLAM_apperm#/min(c((x_b*y_b)-nrow(missing_points[[1]]),x_b*y_b))
   }
 
   B_ffpo2d <- A %*% Inner_matrix
