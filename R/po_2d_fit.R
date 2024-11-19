@@ -160,8 +160,13 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     # theta_f = theta_f
   )
 
-  class(res) <- "po_fit"
+  class(res) <- "po_2d_fit"
   attr(res, "N") <- length(data[[response]])
 
   res
+}
+
+#' @export
+summary.po_2d_fit <- function(object, ...) {
+  base::summary(object$fit, ...)
 }
