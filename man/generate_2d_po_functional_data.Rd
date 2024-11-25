@@ -11,6 +11,7 @@ generate_2d_po_functional_data(
   noise_sd = 0.015,
   rsq = 0.95,
   beta_type = c("saddle", "exp"),
+  response_type = c("gaussian", "binomial"),
   a1 = NULL,
   a2 = NULL,
   sub_response = 50,
@@ -20,29 +21,31 @@ generate_2d_po_functional_data(
 )
 }
 \arguments{
-\item{n}{Number of samples to generate}
+\item{n}{Number of samples to generate.}
 
-\item{grid_x}{Number of points in x-axis grid. Default is 20}
+\item{grid_x}{Number of points in x-axis grid. Default is 20.}
 
-\item{grid_y}{Number of points in y-axis grid. Default is 20}
+\item{grid_y}{Number of points in y-axis grid. Default is 20.}
 
-\item{noise_sd}{Standard deviation of measurement noise. Default is 0.015}
+\item{noise_sd}{Standard deviation of measurement noise. Default is 0.015.}
 
-\item{rsq}{Desired R-squared value for the response. Default is 0.95}
+\item{rsq}{Desired R-squared value for the response. Default is 0.95.}
 
-\item{beta_type}{Type of coefficient surface ("saddle" or "exp"). Default is "saddle"}
+\item{beta_type}{Type of coefficient surface ("saddle" or "exp"). Default is "saddle".}
 
-\item{a1}{Optional fixed value for first stochastic component. If provided, a2 must also be provided}
+\item{response_type}{Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".}
 
-\item{a2}{Optional fixed value for second stochastic component. If provided, a1 must also be provided}
+\item{a1}{Optional fixed value for first stochastic component. If provided, a2 must also be provided.}
 
-\item{sub_response}{Number of intervals for Simpson integration. Default is 50}
+\item{a2}{Optional fixed value for second stochastic component. If provided, a1 must also be provided.}
 
-\item{n_missing}{Number of holes in every curve}
+\item{sub_response}{Number of intervals for Simpson integration. Default is 50.}
 
-\item{min_distance_x}{Length of the holes in the x axis}
+\item{n_missing}{Number of holes in every curve.}
 
-\item{min_distance_y}{Length of the holes in the y axis}
+\item{min_distance_x}{Length of the holes in the x axis.}
+
+\item{min_distance_y}{Length of the holes in the y axis.}
 }
 \value{
 A list containing:

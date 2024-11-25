@@ -66,14 +66,12 @@ data_generator_vd <- function(
     multivariate = FALSE,
     beta_index = 1,
     use_x = FALSE,
-    use_f = FALSE
-) {
+    use_f = FALSE) {
   if (!(beta_index %in% c(1, 2))) {
     stop("'beta_index' could only be 1 or 2", call. = FALSE)
   }
 
   for (iter in 1:nsims) {
-
     if (aligned) {
       # Generating the domain for all subject with a minimum of 10 observations (min = 10)
       M <- round(stats::runif(N, min = 10, max = J), digits = 0)
@@ -255,13 +253,11 @@ generate_1d_po_functional_data <- function(
     rsq = 0.95,
     beta_type = c("sin", "gaussian"),
     n_missing = 1,
-    min_distance = NULL
-) {
-
+    min_distance = NULL) {
   beta_type <- match.arg(beta_type)
 
   if (is.null(min_distance)) {
-    min_distance <- round(1/5 * grid_points)
+    min_distance <- round(1 / 5 * grid_points)
   }
 
   # Create grid points
@@ -318,7 +314,7 @@ generate_1d_po_functional_data <- function(
   }
 
   # Generate response with desired R-squared
-  var_e <- (1/rsq - 1) * stats::var(nu)
+  var_e <- (1 / rsq - 1) * stats::var(nu)
   response <- nu + stats::rnorm(n, 0, sqrt(var_e))
 
   # Add missing values
@@ -398,9 +394,7 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
   }
 
   for (j in seq_along(missing_points)) {
-
-    if (n_missing>=1) {
-
+    if (n_missing >= 1) {
       x_missing <- sort(sample(1:(x_b - min_distance_x), n_missing))
       y_missing <- sort(sample(1:(y_b - min_distance_y), n_missing))
 
@@ -445,18 +439,19 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #' Creates synthetic 2D functional data with optional noise components and different
 #' coefficient patterns. Uses Simpson's rule for accurate integration.
 #'
-#' @param n Number of samples to generate
-#' @param grid_x Number of points in x-axis grid. Default is 20
-#' @param grid_y Number of points in y-axis grid. Default is 20
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015
-#' @param rsq Desired R-squared value for the response. Default is 0.95
-#' @param beta_type Type of coefficient surface ("saddle" or "exp"). Default is "saddle"
-#' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided
-#' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided
-#' @param sub_response Number of intervals for Simpson integration. Default is 50
-#' @param n_missing Number of holes in every curve
-#' @param min_distance_x Length of the holes in the x axis
-#' @param min_distance_y Length of the holes in the y axis
+#' @param n Number of samples to generate.
+#' @param grid_x Number of points in x-axis grid. Default is 20.
+#' @param grid_y Number of points in y-axis grid. Default is 20.
+#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
+#' @param rsq Desired R-squared value for the response. Default is 0.95.
+#' @param beta_type Type of coefficient surface ("saddle" or "exp"). Default is "saddle".
+#' @param response_type Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".
+#' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided.
+#' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided.
+#' @param sub_response Number of intervals for Simpson integration. Default is 50.
+#' @param n_missing Number of holes in every curve.
+#' @param min_distance_x Length of the holes in the x axis.
+#' @param min_distance_y Length of the holes in the y axis.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -476,16 +471,15 @@ generate_2d_po_functional_data <- function(
     noise_sd = 0.015,
     rsq = 0.95,
     beta_type = c("saddle", "exp"),
-    response_type = c("gaussian","binomial"),
+    response_type = c("gaussian", "binomial"),
     a1 = NULL,
     a2 = NULL,
     sub_response = 50,
     n_missing = 1,
     min_distance_x = NULL,
-    min_distance_y = NULL
-) {
-
+    min_distance_y = NULL) {
   beta_type <- match.arg(beta_type)
+  response_type <- match.arg(response_type)
 
   # Validate a1 and a2 parameters
   if (!is.null(a1) && is.null(a2) || is.null(a1) && !is.null(a2)) {
@@ -503,11 +497,11 @@ generate_2d_po_functional_data <- function(
   }
 
   if (is.null(min_distance_x)) {
-    min_distance_x <- round(1/5*grid_x)
+    min_distance_x <- round(1 / 5 * grid_x)
   }
 
   if (is.null(min_distance_y)) {
-    min_distance_y <- round(1/5*grid_y)
+    min_distance_y <- round(1 / 5 * grid_y)
   }
 
   # Create grid points
@@ -531,16 +525,18 @@ generate_2d_po_functional_data <- function(
       stochastic_components[i, ] <- c(a1, a2)
     } else {
       stochastic_components[i, ] <- c(
-        stats::rnorm(1, 0, 0.2),  # a1
-        stats::rnorm(1, 0, 0.2)   # a2
+        stats::rnorm(1, 0, 0.2), # a1
+        stats::rnorm(1, 0, 0.2) # a2
       )
     }
 
     # Generate surface
-    surface_data <- generate_surface(x, y,
-                                     stochastic_components[i, 1],
-                                     stochastic_components[i, 2],
-                                     noise_sd)
+    surface_data <- generate_surface(
+      x, y,
+      stochastic_components[i, 1],
+      stochastic_components[i, 2],
+      noise_sd
+    )
 
     surfaces[[i]] <- surface_data$DATA_T
     noisy_surfaces[[i]] <- surface_data$DATA_N
@@ -555,10 +551,12 @@ generate_2d_po_functional_data <- function(
     h_y <- (max(y_fine) - min(y_fine)) / m_y
 
     # Generate finer surface for integration
-    surface_fine <- generate_surface(x_fine, y_fine,
-                                     stochastic_components[i, 1],
-                                     stochastic_components[i, 2],
-                                     0)$DATA_T
+    surface_fine <- generate_surface(
+      x_fine, y_fine,
+      stochastic_components[i, 1],
+      stochastic_components[i, 2],
+      0
+    )$DATA_T
 
     # Generate beta surface on fine grid
     beta_fine <- if (beta_type == "saddle") {
@@ -572,19 +570,16 @@ generate_2d_po_functional_data <- function(
 
     # Compute double integral using Simpson's rule
     nu[i] <- as.double(t(as.vector(surface_fine)) %*%
-                         diag(W_delta) %*%
-                         as.vector(beta_fine))
+      diag(W_delta) %*%
+      as.vector(beta_fine))
   }
 
   response <- if (response_type == "gaussian") {
     # Generate response with desired R-squared
-    var_e <- (1/rsq - 1) * stats::var(nu)
+    var_e <- (1 / rsq - 1) * stats::var(nu)
     response <- nu + stats::rnorm(n, 0, sqrt(var_e))
-
   } else {
-    # BINOMIAL MODEL
-    response <- rbinom(N,1,(exp(nu)/(1+exp(nu))))
-
+    response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
   }
 
 
@@ -627,7 +622,7 @@ generate_saddle_surface <- function(x, y) {
   for (i in seq_along(x)) {
     for (j in seq_along(y)) {
       surface[i, j] <- ((4 * x[i] - 2)^3 -
-                          3 * (4 * x[i] - 2) * (4 * y[j] - 2)^2) / 10
+        3 * (4 * x[i] - 2) * (4 * y[j] - 2)^2) / 10
     }
   }
   surface
@@ -642,7 +637,7 @@ generate_exp_surface <- function(x, y) {
   for (i in seq_along(x)) {
     for (j in seq_along(y)) {
       surface[i, j] <- (5 * exp(-8 * ((x[i] - 0.75)^2 + (y[j] - 0.75)^2)) +
-                          5 * exp(-8 * ((x[i] - 0.1)^2 + (y[j] - 0.1)^2))) / 10
+        5 * exp(-8 * ((x[i] - 0.1)^2 + (y[j] - 0.1)^2))) / 10
     }
   }
   surface
@@ -682,7 +677,7 @@ setup_simpson_weights <- function(n_x, n_y, h_x, h_y) {
   simp_w_x[seq(3, n_x - 1, 2)] <- 2
 
   # Combine with h_x/3
-  W_x <- (h_x/3) * simp_w_x
+  W_x <- (h_x / 3) * simp_w_x
 
   # Create full weight matrix
   for (j in 1:(n_y + 1)) {
@@ -690,11 +685,11 @@ setup_simpson_weights <- function(n_x, n_y, h_x, h_y) {
     end_idx <- ((n_x + 1) * j)
 
     if (j == 1 || j == (n_y + 1)) {
-      W_delta[start_idx:end_idx] <- (h_y/3) * W_x
+      W_delta[start_idx:end_idx] <- (h_y / 3) * W_x
     } else if (j %% 2 == 0) {
-      W_delta[start_idx:end_idx] <- (4 * h_y/3) * W_x
+      W_delta[start_idx:end_idx] <- (4 * h_y / 3) * W_x
     } else {
-      W_delta[start_idx:end_idx] <- (2 * h_y/3) * W_x
+      W_delta[start_idx:end_idx] <- (2 * h_y / 3) * W_x
     }
   }
 
