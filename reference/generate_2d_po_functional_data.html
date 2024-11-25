@@ -53,6 +53,7 @@ coefficient patterns. Uses Simpson's rule for accurate integration.</p>
 <span>  noise_sd <span class="op">=</span> <span class="fl">0.015</span>,</span>
 <span>  rsq <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  beta_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"saddle"</span>, <span class="st">"exp"</span><span class="op">)</span>,</span>
+<span>  response_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="st">"binomial"</span><span class="op">)</span>,</span>
 <span>  a1 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  a2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sub_response <span class="op">=</span> <span class="fl">50</span>,</span>
@@ -67,51 +68,55 @@ coefficient patterns. Uses Simpson's rule for accurate integration.</p>
 
 
 <dl><dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
-<dd><p>Number of samples to generate</p></dd>
+<dd><p>Number of samples to generate.</p></dd>
 
 
 <dt id="arg-grid-x">grid_x<a class="anchor" aria-label="anchor" href="#arg-grid-x"></a></dt>
-<dd><p>Number of points in x-axis grid. Default is 20</p></dd>
+<dd><p>Number of points in x-axis grid. Default is 20.</p></dd>
 
 
 <dt id="arg-grid-y">grid_y<a class="anchor" aria-label="anchor" href="#arg-grid-y"></a></dt>
-<dd><p>Number of points in y-axis grid. Default is 20</p></dd>
+<dd><p>Number of points in y-axis grid. Default is 20.</p></dd>
 
 
 <dt id="arg-noise-sd">noise_sd<a class="anchor" aria-label="anchor" href="#arg-noise-sd"></a></dt>
-<dd><p>Standard deviation of measurement noise. Default is 0.015</p></dd>
+<dd><p>Standard deviation of measurement noise. Default is 0.015.</p></dd>
 
 
 <dt id="arg-rsq">rsq<a class="anchor" aria-label="anchor" href="#arg-rsq"></a></dt>
-<dd><p>Desired R-squared value for the response. Default is 0.95</p></dd>
+<dd><p>Desired R-squared value for the response. Default is 0.95.</p></dd>
 
 
 <dt id="arg-beta-type">beta_type<a class="anchor" aria-label="anchor" href="#arg-beta-type"></a></dt>
-<dd><p>Type of coefficient surface ("saddle" or "exp"). Default is "saddle"</p></dd>
+<dd><p>Type of coefficient surface ("saddle" or "exp"). Default is "saddle".</p></dd>
+
+
+<dt id="arg-response-type">response_type<a class="anchor" aria-label="anchor" href="#arg-response-type"></a></dt>
+<dd><p>Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".</p></dd>
 
 
 <dt id="arg-a-">a1<a class="anchor" aria-label="anchor" href="#arg-a-"></a></dt>
-<dd><p>Optional fixed value for first stochastic component. If provided, a2 must also be provided</p></dd>
+<dd><p>Optional fixed value for first stochastic component. If provided, a2 must also be provided.</p></dd>
 
 
 <dt id="arg-a-">a2<a class="anchor" aria-label="anchor" href="#arg-a-"></a></dt>
-<dd><p>Optional fixed value for second stochastic component. If provided, a1 must also be provided</p></dd>
+<dd><p>Optional fixed value for second stochastic component. If provided, a1 must also be provided.</p></dd>
 
 
 <dt id="arg-sub-response">sub_response<a class="anchor" aria-label="anchor" href="#arg-sub-response"></a></dt>
-<dd><p>Number of intervals for Simpson integration. Default is 50</p></dd>
+<dd><p>Number of intervals for Simpson integration. Default is 50.</p></dd>
 
 
 <dt id="arg-n-missing">n_missing<a class="anchor" aria-label="anchor" href="#arg-n-missing"></a></dt>
-<dd><p>Number of holes in every curve</p></dd>
+<dd><p>Number of holes in every curve.</p></dd>
 
 
 <dt id="arg-min-distance-x">min_distance_x<a class="anchor" aria-label="anchor" href="#arg-min-distance-x"></a></dt>
-<dd><p>Length of the holes in the x axis</p></dd>
+<dd><p>Length of the holes in the x axis.</p></dd>
 
 
 <dt id="arg-min-distance-y">min_distance_y<a class="anchor" aria-label="anchor" href="#arg-min-distance-y"></a></dt>
-<dd><p>Length of the holes in the y axis</p></dd>
+<dd><p>Length of the holes in the y axis.</p></dd>
 
 </dl></div>
     <div class="section level2">
