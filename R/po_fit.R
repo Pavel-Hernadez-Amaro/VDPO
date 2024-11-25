@@ -167,3 +167,8 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   res
 }
+
+#' @export
+summary.po_fit <- function(object, ...) {
+  base::summary(object$fit, ...)
+}

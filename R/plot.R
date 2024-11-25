@@ -58,6 +58,28 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
 }
 
 
+
+#' Plot Beta Estimates with Confidence Intervals
+#'
+#' Generates a line plot of Beta estimates with their 95% confidence intervals for a specified curve.
+#' This function computes the 95% confidence intervals for Beta estimates using the fitted values and
+#' covariance matrix from the `vd_fit` object. The resulting plot displays the Beta estimates, lower confidence bounds,
+#' and upper confidence bounds as separate lines.
+#'
+#' @param object An object of class `'vd_fit'` containing the fitted model results.
+#' @param curve An integer specifying the row (curve) of Beta to plot. Default is 1.
+#'
+#' @return A `ggplot2` object representing the plot of Beta estimates and confidence intervals.
+#'
+#' @examples
+#' \dontrun{
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   # Assuming `fit` is an object of class 'vd_fit'
+#'   plot_beta_with_ci(fit, curve = 1)
+#' }
+#' }
+#'
+#' @export
 plot_beta_with_ci <- function(object, curve = 1) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
@@ -106,7 +128,7 @@ plot_beta_with_ci <- function(object, curve = 1) {
     ggplot2::theme_minimal() +
     ggplot2::labs(
       x = "Index",
-      y = "res$Beta[[1]][100,]",
-      title = paste0("Confidence Intervals for the ", curve, "th Row of res$Beta[[1]]")
+      y = "Beta",      #res$Beta[[1]][100,]",
+      title = paste0("Confidence Intervals for the ", curve, "th Row of Beta") #res$Beta[[1]]")
     )
 }
