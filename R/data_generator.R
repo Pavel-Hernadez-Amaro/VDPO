@@ -476,6 +476,7 @@ generate_2d_po_functional_data <- function(
     noise_sd = 0.015,
     rsq = 0.95,
     beta_type = c("saddle", "exp"),
+    response_type = c("gaussian","binomial"),
     a1 = NULL,
     a2 = NULL,
     sub_response = 50,
@@ -575,9 +576,18 @@ generate_2d_po_functional_data <- function(
                          as.vector(beta_fine))
   }
 
-  # Generate response with desired R-squared
-  var_e <- (1/rsq - 1) * stats::var(nu)
-  response <- nu + stats::rnorm(n, 0, sqrt(var_e))
+  response <- if (response_type == "gaussian") {
+    # Generate response with desired R-squared
+    var_e <- (1/rsq - 1) * stats::var(nu)
+    response <- nu + stats::rnorm(n, 0, sqrt(var_e))
+
+  } else {
+    # BINOMIAL MODEL
+    response <- rbinom(N,1,(exp(nu)/(1+exp(nu))))
+
+  }
+
+
 
   # Generate beta on original grid for output
   beta_surface <- if (beta_type == "saddle") {
