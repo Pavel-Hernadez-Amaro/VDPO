@@ -57,78 +57,97 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
     ggplot2::labs(y = "T")
 }
 
-
-
-#' Plot Beta Estimates with Confidence Intervals
+#' Plot Functional Curves with Confidence Intervals
 #'
-#' Generates a line plot of Beta estimates with their 95% confidence intervals for a specified curve.
-#' This function computes the 95% confidence intervals for Beta estimates using the fitted values and
-#' covariance matrix from the `vd_fit` object. The resulting plot displays the Beta estimates, lower confidence bounds,
-#' and upper confidence bounds as separate lines.
+#' Generates a plot of functional Beta estimates for specified curves, along with their 95% confidence intervals.
+#' This function computes the 95% confidence intervals for each curve based on the covariance matrix and the fitted values
+#' from the provided object. The resulting plot includes estimated curves, confidence interval ribbons, and a legend
+#' distinguishing the curves.
 #'
-#' @param object An object of class `'vd_fit'` containing the fitted model results.
-#' @param curve An integer specifying the row (curve) of Beta to plot. Default is 1.
+#' @param object An object of class `'vd_fit'` or similar, containing the fitted model results, Beta estimates, and evaluation details.
+#' @param beta_index An integer specifying which Beta coefficient matrix to use. Default is 1.
+#' @param curves A numeric vector specifying the indices of the curves (rows) to plot.
 #'
-#' @return A `ggplot2` object representing the plot of Beta estimates and confidence intervals.
+#' @return A `ggplot2` object displaying the Beta estimates and confidence intervals for the specified curves.
 #'
 #' @examples
 #' \dontrun{
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   # Assuming `fit` is an object of class 'vd_fit'
-#'   plot_beta_with_ci(fit, curve = 1)
+#'   # Assuming `model_object` is an object of class 'vd_fit'
+#'   plot_functional_curves_combined(model_object, beta = 1, curves = c(50, 70, 100))
 #' }
 #' }
 #'
 #' @export
-plot_beta_with_ci <- function(object, curve = 1) {
+plot_ci <- function(object, beta_index = 1, curves) {
+
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
 
-  if (!inherits(res, "vd_fit")) {
-    stop("input object should be of class 'vd_fit'", call. = FALSE)
+  if (beta_index < 1 || beta_index > length(x$M)) {
+    stop(
+      "'beta_index' should be between 1 and the number of variable domain
+         functional variables used in the formula",
+      call. = FALSE
+    )
   }
 
-  if (curve > nrow(res$Beta[[1]])) {
-    stop("requested curve index is out of range", call. = FALSE)
-  }
+  # Bindings for global variables
+  x <- NULL
+  Domain <- NULL
+  lower <- NULL
+  upper <- NULL
+  estimated <- NULL
 
-  res    <- NULL
-  value  <- NULL
-  values <- NULL
-  index  <- NULL
-  group  <- NULL
-
-  N <- length(res$fit$fitted.values)
-  Beta_FFVD_inf <- Beta_FFVD_sup <- matrix(nrow = nrow(res$Beta[[1]]), ncol = ncol(res$Beta[[1]]))
-  M <- res$M[[1]][, 2]
+  N <- length(object$fit$fitted.values)
+  Beta_FFVD_inf <- Beta_FFVD_sup <- matrix(nrow = nrow(object$Beta[[beta_index]]), ncol = ncol(object$Beta[[beta_index]]))
+  M <- object$M[[1]][, 2]
 
   for (aux_ind in 1:N) {
-    prod <- as.matrix(kronecker(res$ffvd_evals[[1]]$L_Phi$B[1:M[aux_ind], ], t(res$ffvd_evals[[1]]$B_T$B[aux_ind, ])))
-    var_curve <- diag(prod %*% res$covar_theta %*% t(prod))
+    prod <- as.matrix(kronecker(object$ffvd_evals[[1]]$L_Phi$B[1:M[aux_ind], ], t(object$ffvd_evals[[1]]$B_T$B[aux_ind, ])))
+    var_curve <- diag(prod %*% object$covar_theta %*% t(prod))
     std_curve <- sqrt(var_curve)
-    Beta_FFVD_inf[aux_ind, 1:M[aux_ind]] <- res$Beta[[1]][aux_ind, 1:M[aux_ind]] - 1.96 * std_curve
-    Beta_FFVD_sup[aux_ind, 1:M[aux_ind]] <- res$Beta[[1]][aux_ind, 1:M[aux_ind]] + 1.96 * std_curve
+    Beta_FFVD_inf[aux_ind, 1:M[aux_ind]] <- object$Beta[[1]][aux_ind, 1:M[aux_ind]] - 1.96 * std_curve
+    Beta_FFVD_sup[aux_ind, 1:M[aux_ind]] <- object$Beta[[1]][aux_ind, 1:M[aux_ind]] + 1.96 * std_curve
   }
 
-  plot_data <- data.frame(
-    index = rep(1:length(res$Beta[[1]][curve, ]), 3),
-    value = c(res$Beta[[1]][curve, ], Beta_FFVD_inf[curve, ], Beta_FFVD_sup[curve, ]),
-    group = rep(c("Estimate", "Lower CI", "Upper CI"), each = length(res$Beta[[1]][curve, ]))
-  )
-
-  # Filter out missing values and values outside the scale range
-  plot_data <- stats::na.omit(plot_data)
-  plot_data <- subset(plot_data, value >= min(plot_data$value) & value <= max(plot_data$value))
-
-  ggplot2::ggplot(plot_data, ggplot2::aes(x = index, y = value, color = group, linetype = group)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_color_manual(values = c("black", "#0072B2", "#009E73")) +
-    ggplot2::scale_linetype_manual(values = c("solid", "dashed", "dashed")) +
-    ggplot2::theme_minimal() +
-    ggplot2::labs(
-      x = "Index",
-      y = "Beta",      #res$Beta[[1]][100,]",
-      title = paste0("Confidence Intervals for the ", curve, "th Row of Beta") #res$Beta[[1]]")
+  plot_data_list <- lapply(curves, function(curve) {
+    x_seq <- seq_len(ncol(object$Beta[[beta_index]]))
+    data.frame(
+      t = x_seq,
+      estimated = object$Beta[[beta_index]][curve,],
+      lower = Beta_FFVD_inf[curve,],
+      upper = Beta_FFVD_sup[curve,],
+      Domain = paste("Domain:", curve)
     )
+  })
+
+  plot_data <- do.call(rbind, plot_data_list)
+
+  case_colors <- c("#1f77b4", "#2ca02c", "#ff7f0e", "#d62728", "#9467bd", "#8c564b")[1:length(curves)]
+  names(case_colors) <- paste("Domain:", curves)
+
+  # Create the plot
+  ggplot2::ggplot(plot_data, ggplot2::aes(x = t, group = Domain)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper, fill = Domain),
+                alpha = 0.2, na.rm = TRUE) +
+    ggplot2::geom_line(ggplot2::aes(y = estimated, color = Domain),
+              size = 1, linetype = "solid", na.rm = TRUE) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray50", na.rm = TRUE) +
+    ggplot2::scale_color_manual(name = "Domains:",
+                       values = case_colors) +
+    ggplot2::scale_fill_manual(name = "Domains:",
+                      values = case_colors) +
+    ggplot2::labs(x = "t",
+         y = "Value") +
+    ggplot2::annotate("text", x = 50, y = 0.6,
+             label = "- Estimated",
+             size = 3, hjust = 0.5, color = "black") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(legend.position = "top",
+          panel.grid.minor = ggplot2::element_blank(),
+          legend.box = "horizontal",
+          plot.title = ggplot2::element_blank(),
+          plot.subtitle = ggplot2::element_blank())
 }

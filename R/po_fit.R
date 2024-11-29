@@ -1,3 +1,13 @@
+#' Title
+#'
+#' @param formula .
+#' @param data .
+#' @param family .
+#' @param offset .
+#'
+#' @return .
+#'
+#' @export
 po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   if (inherits(formula, "character")) {
     formula <- stats::as.formula(formula)

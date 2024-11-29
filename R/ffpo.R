@@ -1,4 +1,3 @@
-
 #' Defining partially observed functional data terms in VDPO formulae
 #'
 #' Auxiliary function used to define \code{ffpo} terms within \code{VDPO} model
@@ -215,5 +214,3 @@ add_grid <- function(df, grid) {
   df["grid"] <- newgrid
   df
 }
-
-
