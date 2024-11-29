@@ -1,5 +1,5 @@
 test_that("po_fit handles basic case correctly", {
-  data_1d <- generate_1d_po_functional_data(noise_sd = 0.1)
+  data_1d <- data_generator_po_1d(noise_sd = 0.1)
 
   formula <- response ~ ffpo(X = data_1d$noisy_curves_miss, grid = data_1d$grid, nbasis = c(10, 10))
 
@@ -16,7 +16,7 @@ test_that("po_fit handles basic case correctly", {
 })
 
 test_that("po_fit handles offset", {
-  data_1d <- generate_1d_po_functional_data(noise_sd = 0.1)
+  data_1d <- data_generator_po_1d(noise_sd = 0.1)
 
   formula <- response ~ ffpo(X = data_1d$noisy_curves_miss, grid = data_1d$grid, nbasis = c(10, 10))
 
@@ -32,7 +32,7 @@ test_that("po_fit handles offset", {
 })
 
 # test_that("po_fit handles different family distributions", {
-#   data_1d <- generate_1d_po_functional_data(noise_sd = 0.1)
+#   data_1d <- data_generator_po_1d(noise_sd = 0.1)
 #
 #   formula <- response ~ ffpo(X = data_1d$noisy_curves_miss, grid = data_1d$grid, nbasis = c(10, 10))
 #
@@ -48,7 +48,7 @@ test_that("po_fit handles offset", {
 
 test_that("po_fit throws appropriate errors", {
   # Generate test data
-  data_1d <- generate_1d_po_functional_data(noise_sd = 0.1)
+  data_1d <- data_generator_po_1d(noise_sd = 0.1)
 
   # Invalid formula without ffpo
   expect_error(

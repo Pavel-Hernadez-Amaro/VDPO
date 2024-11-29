@@ -245,8 +245,53 @@ add_miss1d <- function(X, n_missing = 1, min_distance = 5) {
 #'   \item beta: True coefficient function
 #'   \item stochastic_components: Vector of a values used for each curve
 #' }
+#' Generate 1D Functional Data for Simulation Studies
 #'
-generate_1d_po_functional_data <- function(
+#' Creates synthetic 1D functional data with optional noise components and different
+#' coefficient patterns. Uses the trapezoidal rule for numerical integration.
+#'
+#' @param n Number of samples to generate. Default is 100.
+#' @param grid_points Number of points in the grid. Default is 100.
+#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
+#' @param rsq Desired R-squared value for the response. Default is 0.95.
+#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin".
+#' @param n_missing Number of missing segments per curve. Default is 1.
+#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated).
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
+#'   \item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
+#'   \item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
+#'   \item \code{miss_points}: Indices of the missing segments in the noisy curves.
+#'   \item \code{missing_points}: Details of the missing segments for each curve.
+#'   \item \code{response}: Vector of \code{n} response values.
+#'   \item \code{grid}: Grid points on which the curves are defined.
+#'   \item \code{beta}: Coefficient function applied to the curves.
+#'   \item \code{stochastic_components}: List of stochastic coefficients used for each curve.
+#' }
+#'
+#' @examples
+#' # Generate basic 1D functional data with default parameters
+#' data <- data_generator_po_1d(n = 10)
+#'
+#' # Generate data with a Gaussian-shaped coefficient function
+#' data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
+#'
+#' # Generate data with higher grid resolution
+#' data <- data_generator_po_1d(n = 2, grid_points = 200)
+#'
+#' # Generate data with larger measurement noise
+#' data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
+#'
+#' # Introduce missing segments in the curves
+#' data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
+#'
+#' # Generate data with low R-squared value
+#' data <- data_generator_po_1d(n = 2, rsq = 0.8)
+#'
+#' @export
+data_generator_po_1d <- function(
     n = 100,
     grid_points = 100,
     noise_sd = 0.015,
@@ -347,27 +392,6 @@ generate_1d_po_functional_data <- function(
   )
 }
 
-# # Example usage
-# set.seed(123)
-#
-# # Generate data with random component
-# data_random <- generate_1d_po_functional_data(n = 5, beta_type = "gaussian")
-# print("Random stochastic components:")
-# print(data_random$stochastic_components)
-#
-# # Visualize example curves
-# par(mfrow = c(1, 3))
-# plot(data_random$grid, data_random$curves[[2]], type = "l",
-#      main = "True Curve", xlab = "t", ylab = "y")
-# plot(data_random$grid, data_random$noisy_curves[[2]], type = "l",
-#      main = "Noisy Curve", xlab = "t", ylab = "y")
-# plot(data_random$grid, data_random$beta, type = "l",
-#      main = "Beta Coefficient", xlab = "t", ylab = "y")
-#
-# plot(data_random$grid, data_random$noisy_curves_miss[[1]][[1]], type = "l",
-#      main = "Miss Curve", xlab = "t", ylab = "y")
-
-
 #' Set missing values to the surfaces
 #'
 #' @param X List of surfaces.
@@ -464,7 +488,24 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #'   \item stochastic_components: Matrix of a1 and a2 values used for each surface
 #' }
 #'
-generate_2d_po_functional_data <- function(
+#' @examples
+#' # Generate basic 2D functional data with default parameters
+#' data <- data_generator_po_2d(n = 2)
+#'
+#' # Generate data with custom grid size and Gaussian response
+#' data <- data_generator_po_2d(n = 2, grid_x = 30, grid_y = 30, response_type = "gaussian")
+#'
+#' # Generate data with binomial response and saddle-shaped coefficient surface
+#' data <- data_generator_po_2d(n = 2, response_type = "binomial", beta_type = "saddle")
+#'
+#' # Generate data with fixed stochastic components
+#' data <- data_generator_po_2d(n = 2, a1 = 0.1, a2 = -0.2)
+#'
+#' # Introduce missing data with holes along curves
+#' data <- data_generator_po_2d(n = 2, n_missing = 3, min_distance_x = 5, min_distance_y = 5)
+#'
+#' @export
+data_generator_po_2d <- function(
     n = 20,
     grid_x = 20,
     grid_y = 20,
@@ -598,7 +639,6 @@ generate_2d_po_functional_data <- function(
     min_distance_y
   )
 
-  # Return results
   list(
     surfaces = surfaces,
     noisy_surfaces = noisy_surfaces,
@@ -606,8 +646,8 @@ generate_2d_po_functional_data <- function(
     miss_points = noisy_surfaces_miss[[2]],
     missing_points = noisy_surfaces_miss[[3]],
     response = response,
-    grid_x = x,
-    grid_y = y,
+    points_x = x,
+    points_y = y,
     beta = beta_surface,
     stochastic_components = stochastic_components
   )
