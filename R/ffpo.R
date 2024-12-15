@@ -58,7 +58,7 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
   c2 <- nbasis[2]
   A <- matrix(0, nrow = N, ncol = N * c1)
 
-  if (!is_grid_matrix) {
+  if (is_grid_matrix) {
     grid_all <- sort(unique(c(t(grid)))) # Mathematical union of the grid rows
     M <- t(apply(X, 1, function(x) range(which(!is.na(x)))))
   } else {
