@@ -511,7 +511,7 @@ data_generator_po_2d <- function(
     grid_y = 20,
     noise_sd = 0.015,
     rsq = 0.95,
-    beta_type = c("saddle", "exp"),
+    beta_type = c("saddle", "exp", "smooth"),
     response_type = c("gaussian", "binomial"),
     a1 = NULL,
     a2 = NULL,
@@ -602,8 +602,10 @@ data_generator_po_2d <- function(
     # Generate beta surface on fine grid
     beta_fine <- if (beta_type == "saddle") {
       generate_saddle_surface(x_fine, y_fine)
-    } else {
+    } else if(beta_type == "exp") {
       generate_exp_surface(x_fine, y_fine)
+    }else{
+      generate_smooth_surface(x_fine, y_fine)
     }
 
     # Get integration weights
@@ -628,8 +630,10 @@ data_generator_po_2d <- function(
   # Generate beta on original grid for output
   beta_surface <- if (beta_type == "saddle") {
     generate_saddle_surface(x, y)
-  } else {
+  } else if(beta_type == "exp") {
     generate_exp_surface(x, y)
+  }else{
+    generate_smooth_surface(x, y)
   }
 
   noisy_surfaces_miss <- add_miss2(
@@ -678,6 +682,20 @@ generate_exp_surface <- function(x, y) {
     for (j in seq_along(y)) {
       surface[i, j] <- (5 * exp(-8 * ((x[i] - 0.75)^2 + (y[j] - 0.75)^2)) +
         5 * exp(-8 * ((x[i] - 0.1)^2 + (y[j] - 0.1)^2))) / 10
+    }
+  }
+  surface
+}
+
+#' Generate smooth coefficient surface
+#'
+#' @noRd
+generate_smooth_surface <- function(x, y) {
+  surface <- matrix(nrow = length(x), ncol = length(y))
+
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      surface[i, j] <- 0.5* (x[i])^2 +  0.5 * (y[i])^2
     }
   }
   surface
