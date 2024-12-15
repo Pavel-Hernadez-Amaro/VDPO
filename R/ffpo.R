@@ -117,6 +117,9 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
   res <- matrix(nrow = N, ncol = c2)
 
   for (i in 1:N) {
+
+    po_weights <- ifelse(is_grid_matrix, M[i], M[i,2]-M[i,1]+1)
+
     aux_knots <- if (!is_grid_matrix) M[i, 1]:M[i, 2] else which(grid_all %in% grid[i, ])
     Phi_short <- Phi$B[aux_knots, ]
 
@@ -175,7 +178,7 @@ ffpo <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg =
       XI <- width * (XIa + XIb + 2 * XI2 + 4 * XI1) / 3
     }
 
-    res[i, ] <- t(L_theta[[i]]) %*% XI
+    res[i, ] <- t(L_theta[[i]]) %*% (XI / po_weights)
   }
 
   list(
