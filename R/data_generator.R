@@ -297,6 +297,7 @@ data_generator_po_1d <- function(
     noise_sd = 0.015,
     rsq = 0.95,
     beta_type = c("sin", "gaussian"),
+    univariate = TRUE,
     n_missing = 1,
     min_distance = NULL) {
   beta_type <- match.arg(beta_type)
@@ -312,6 +313,11 @@ data_generator_po_1d <- function(
   curves <- vector("list", n)
   noisy_curves <- vector("list", n)
   stochastic_components <- vector("list", n)
+  if (!univariate) {
+    curves_2 <- vector("list", n)
+    noisy_curves_2 <- vector("list", n)
+    stochastic_components_2 <- vector("list", n)
+  }
   nu <- numeric(n)
 
   # Helper function to generate curve with given parameters
@@ -353,9 +359,44 @@ data_generator_po_1d <- function(
     curves[[i]] <- curve_data$curve_true
     noisy_curves[[i]] <- curve_data$curve_noisy
 
+    if (univariate) {
+
+      integrand <- curves[[i]] * beta
+      nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)]))
+    }else{
+
+      # Use fixed value if provided, otherwise generate random component
+      stochastic_components_2[[i]] <- stats::rnorm(3, 0, 0.2)
+
+      # Generate curve
+      curve_data_2 <- generate_curve(
+        t,
+        stochastic_components_2[[i]][1],
+        stochastic_components_2[[i]][2],
+        stochastic_components_2[[i]][3],
+        noise_sd
+      )
+
+      curves_2[[i]] <- curve_data_2$curve_true
+      noisy_curves_2[[i]] <- curve_data_2$curve_noisy
+
+      # Generate coefficient function
+      # CHANGED BETA TYPES SO IT COULD HAVE DIFFERENT ONES FOR EACH VARIABLE
+      beta_2 <- if (beta_type == "sin") {
+        stats::dnorm(t, mean = 0.5, sd = 0.15) / stats::dnorm(0.5, mean = 0.5, sd = 0.15)
+      } else {
+        sin(2 * pi * t) * cos(pi * t)
+      }
+
+
+      integrand <- curves[[i]] * beta
+      integrand_2 <- curves_2[[i]] * beta_2
+
+
+      nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+               0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)]))
+    }
     # Compute integral using trapezoidal rule
-    integrand <- curves[[i]] * beta
-    nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)]))
   }
 
   # Generate response with desired R-squared
@@ -378,17 +419,60 @@ data_generator_po_1d <- function(
     byrow = TRUE
   )
 
+  if (!univariate) {
+    noisy_curves_miss_2 <- add_miss1d(
+      noisy_curves_2,
+      n_missing = n_missing,
+      min_distance = min_distance
+    )
+
+    miss_points_2 <- noisy_curves_miss_2[["miss_points"]]
+    missing_points_2 <- noisy_curves_miss_2[["missing_points"]]
+    X_miss_2 <- matrix(
+      unlist(noisy_curves_miss_2[["X_miss"]]),
+      nrow = length(noisy_curves_miss_2[["X_miss"]]),
+      ncol = length(noisy_curves_miss_2[["X_miss"]][[1]]),
+      byrow = TRUE
+    )
+    }
+
+
+
   # Return results
-  list(
-    curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
-    noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
-    noisy_curves_miss = X_miss,
-    miss_points = miss_points,
-    missing_points = missing_points,
-    response = response,
-    grid = t,
-    beta = beta,
-    stochastic_components = stochastic_components
+  return(if (univariate) {
+    list(
+      curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
+      noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
+      noisy_curves_miss = X_miss,
+      miss_points = miss_points,
+      missing_points = missing_points,
+      response = response,
+      grid = t,
+      beta = beta,
+      stochastic_components = stochastic_components
+    )
+
+  }else{
+    list(
+      curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
+      noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
+      noisy_curves_miss = X_miss,
+      miss_points = miss_points,
+      missing_points = missing_points,
+      curves_2 = matrix(unlist(curves_2), nrow = 100, byrow = TRUE),
+      noisy_curves_2 = matrix(unlist(noisy_curves_2), nrow = 100, byrow = TRUE),
+      noisy_curves_miss_2 = X_miss_2,
+      miss_points_2 = miss_points_2,
+      missing_points_2 = missing_points_2,
+      beta = beta,
+      beta_2 = beta_2,
+      stochastic_components = stochastic_components,
+      stochastic_components_2 = stochastic_components_2,
+      grid = t,
+      response = response
+    )
+
+  }
   )
 }
 
