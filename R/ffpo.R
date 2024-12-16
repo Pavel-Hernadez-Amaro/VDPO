@@ -325,10 +325,10 @@ ffpo <- function(X, missing_points, grid, bidimensional_grid = FALSE, nbasis = c
     # ADDING 0's TO THE WEIGHTS TO ONLY INTEGRATE IN THE OBSERVED DOMAIN
     #####
     if (!is_grid_matrix) {
-      zero_pos <- intersect(which(head(grid[miss_points[[i]]],1) <= x), which(x <= tail(grid[miss_points[[i]]],1)))
+      zero_pos <- intersect(which(head(grid[missing_points[[i]]],1) <= x), which(x <= tail(grid[missing_points[[i]]],1)))
       aux_1[zero_pos]<- 0
     } else {
-      zero_pos <- intersect(which(head(grid[i,miss_points[[i]]],1) <= x), which(x <= tail(grid[i,miss_points[[i]]],1)))
+      zero_pos <- intersect(which(head(grid[i,missing_points[[i]]],1) <= x), which(x <= tail(grid[i,missing_points[[i]]],1)))
       aux_1[zero_pos] <- 0
     }
 
