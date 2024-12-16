@@ -103,7 +103,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
       ffpo_counter <- ffpo_counter + 1
 
       B_all <- cbind(B_all, ffpo_evaluation[["B_ffpo"]])
-      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][1]
+      deglist[[ffpo_counter]] <- ffpo_evaluation[["nbasis"]][2]
 
       Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
       M_ffpo[[ffpo_counter]] <- ffpo_evaluation[["M"]]
