@@ -296,7 +296,7 @@ data_generator_po_1d <- function(
     grid_points = 100,
     noise_sd = 0.015,
     rsq = 0.95,
-    beta_type = c("sin", "exp"),
+    beta_type = c("sin", "exp", "naive"),
     univariate = TRUE,
     n_missing = 1,
     min_distance = NULL) {
@@ -338,8 +338,10 @@ data_generator_po_1d <- function(
   # Generate coefficient function
   beta <- if (beta_type == "sin") {
     stats::rnorm(1, 0, 0.5) * sin(2 * pi * grid) + stats::rnorm(1, 0, 0.5) * cos(pi * grid)
-  } else {
+  } else if(beta_type == "exp") {
     stats::rnorm(1, 0, 0.5) * exp(t)
+  }else{
+    t^2
   }
 
   # Generate data and compute response
@@ -384,8 +386,10 @@ data_generator_po_1d <- function(
       # CHANGED BETA TYPES SO IT COULD HAVE DIFFERENT ONES FOR EACH VARIABLE
       beta_2 <- if (beta_type == "sin") {
         stats::rnorm(1, 0, 0.5) * exp(t)
-      } else {
+      } else if(beta_type == "exp") {
         stats::rnorm(1, 0, 0.5) * sin(2 * pi * t) * cos(pi * t)
+      }else{
+        t
       }
 
 
