@@ -222,6 +222,55 @@ add_miss1d <- function(X, n_missing = 1, min_distance = 5) {
   )
 }
 
+#' Add missing values to curves
+#'
+#' @param X List of curves
+#' @param n_missing Number of holes in every curve
+#' @param min_distance Length of the holes
+#'
+#' @return List containing curves with missing values and missing points information
+#'
+#' @noRd
+add_miss1d_end <- function(X, n_missing = 1, min_distance = 5) {
+  N <- length(X)
+  missing_points <- miss_points <- vector(mode = "list", length = N)
+
+  n_points <- length(X[[1]])
+
+  for (i in 2:N) {
+    if (length(X[[i]]) != n_points) {
+      stop("The length of all curves must be the same.", call. = FALSE)
+    }
+  }
+
+  for (j in seq_along(missing_points)) {
+    if (n_missing >= 1) {
+      if (j<floor(length(seq_along(missing_points))/2)) {
+
+        x_missing <- rep(1, n_missing)
+
+      }else{
+        x_missing <- rep(n_points - min_distance + 1, n_missing)
+        }
+
+
+      missing_ranges <- lapply(x_missing, function(x) x:(x + min_distance - 1))
+      missing_points[[j]] <- unlist(missing_ranges)
+
+      X[[j]][missing_points[[j]]] <- NA
+    }
+
+    miss_points[[j]] <- which(is.na(X[[j]]))
+  }
+
+  list(
+    X_miss = X,
+    miss_points = miss_points,
+    missing_points = missing_points
+  )
+}
+
+
 #' Generate 1D functional data for simulation studies
 #'
 #' Creates synthetic 1D functional data with optional noise components and different
@@ -294,13 +343,18 @@ add_miss1d <- function(X, n_missing = 1, min_distance = 5) {
 data_generator_po_1d <- function(
     n = 100,
     grid_points = 100,
-    noise_sd = 0.015,
+    noise_sd = 0.25,
     rsq = 0.95,
-    beta_type = c("sin", "exp", "naive"),
+    beta_type = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
+    beta_type_2 = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
     univariate = TRUE,
+    response_type = c("gaussian","binomial"),
+    linear_predictor = c("integral","linear"),
     n_missing = 1,
     min_distance = NULL) {
+
   beta_type <- match.arg(beta_type)
+  beta_type_2 <- match.arg(beta_type_2)
 
   if (is.null(min_distance)) {
     min_distance <- round(1 / 5 * grid_points)
@@ -321,27 +375,43 @@ data_generator_po_1d <- function(
   nu <- numeric(n)
 
   # Helper function to generate curve with given parameters
-  generate_curve <- function(t, a1, a2, b1, noise_sd) {
+  generate_curve_1 <- function(t, a1, a2, b1, noise_sd) {
     true_curve <- a1 * sin(2 * pi * t) +
       a2 * cos(4 * pi * t) +
-      b1 * t +
+      b1 * t
+    list(
+      curve_true = true_curve,
+      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+    )
+  }
+  generate_curve_2 <- function(t, a1, a2, b1, noise_sd) {
+    true_curve <- a1 * sin(2 * pi * t) +
+      a2 * cos(4 * pi * t) +
       exp(-t) +
       1
 
     list(
       curve_true = true_curve,
-      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd)
+      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
     )
   }
 
 
   # Generate coefficient function
   beta <- if (beta_type == "sin") {
-    stats::rnorm(1, 0, 0.5) * sin(2 * pi * grid) + stats::rnorm(1, 0, 0.5) * cos(pi * grid)
-  } else if(beta_type == "exp") {
-    stats::rnorm(1, 0, 0.5) * exp(t)
+    2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
+  } else if(beta_type == "trig") {
+    0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
+    }else if(beta_type == "cubic") {
+      0.5*t^3
+    }else if(beta_type == "exp") {
+      0.5 * exp(t)
+  }else if(beta_type == "linear"){
+    2*t
+  }else if(beta_type == "Wang"){
+    1+3*sqrt(2)*cos(2 * pi * t)
   }else{
-    t^2
+    -t^2
   }
 
   # Generate data and compute response
@@ -350,7 +420,7 @@ data_generator_po_1d <- function(
     stochastic_components[[i]] <- stats::rnorm(3, 0, 0.2)
 
     # Generate curve
-    curve_data <- generate_curve(
+    curve_data <- generate_curve_1(
       t,
       stochastic_components[[i]][1],
       stochastic_components[[i]][2],
@@ -363,15 +433,20 @@ data_generator_po_1d <- function(
 
     if (univariate) {
 
+      if (linear_predictor=="integral") {
       integrand <- curves[[i]] * beta
       nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)]))
+      }else{
+        nu[i] <- (curves[[i]] %*% beta) / grid_points
+      }
+
     }else{
 
       # Use fixed value if provided, otherwise generate random component
       stochastic_components_2[[i]] <- stats::rnorm(3, 0, 0.2)
 
       # Generate curve
-      curve_data_2 <- generate_curve(
+      curve_data_2 <- generate_curve_2(
         t,
         stochastic_components_2[[i]][1],
         stochastic_components_2[[i]][2],
@@ -384,28 +459,48 @@ data_generator_po_1d <- function(
 
       # Generate coefficient function
       # CHANGED BETA TYPES SO IT COULD HAVE DIFFERENT ONES FOR EACH VARIABLE
-      beta_2 <- if (beta_type == "sin") {
-        stats::rnorm(1, 0, 0.5) * exp(t)
-      } else if(beta_type == "exp") {
-        stats::rnorm(1, 0, 0.5) * sin(2 * pi * t) * cos(pi * t)
+      beta_2 <- if (beta_type_2 == "sin") {
+        2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
+      }else if(beta_type_2 == "trig") {
+        0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
+      }else if(beta_type_2 == "cubic") {
+        -0.5*t^3
+      }else if(beta_type_2 == "exp") {
+        0.5 * exp(t)
+      }else if(beta_type_2 == "linear"){
+        -2*t
+      }else if(beta_type_2 == "Wang"){
+       1+3*sqrt(2)*cos(2 * pi * t)
       }else{
-        t
+        t^2
       }
 
 
       integrand <- curves[[i]] * beta
       integrand_2 <- curves_2[[i]] * beta_2
 
+      if (linear_predictor=="integral") {
+        nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)]))
+      }else{
+        nu[i] <- ((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points
+      }
 
-      nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
-               0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)]))
     }
     # Compute integral using trapezoidal rule
   }
 
-  # Generate response with desired R-squared
-  var_e <- (1 / rsq - 1) * stats::var(nu)
-  response <- nu + stats::rnorm(n, 0, sqrt(var_e))
+  if (response_type=="gaussian") {
+    # Generate response with desired R-squared
+    var_e <- (1 / rsq - 1) * stats::var(nu)
+    response <- nu + stats::rnorm(n, 0, sqrt(var_e))
+  }else{
+    response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
+    # if (sum(response)>=65 || sum(response)<=35) {
+    #   zeros <- round(n/2)
+    #   response <- c(rep(0,zeros),rep(1,n-zeros))
+    # }
+  }
 
   # Add missing values
   noisy_curves_miss <- add_miss1d(
@@ -458,11 +553,11 @@ data_generator_po_1d <- function(
 
   }else{
     list(
-      curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
-      noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
-      noisy_curves_miss = X_miss,
-      miss_points = miss_points,
-      missing_points = missing_points,
+      curves_1 = matrix(unlist(curves), nrow = 100, byrow = TRUE),
+      noisy_curves_1 = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
+      noisy_curves_miss_1 = X_miss,
+      miss_points_1 = miss_points,
+      missing_points_1 = missing_points,
       curves_2 = matrix(unlist(curves_2), nrow = 100, byrow = TRUE),
       noisy_curves_2 = matrix(unlist(noisy_curves_2), nrow = 100, byrow = TRUE),
       noisy_curves_miss_2 = X_miss_2,
@@ -546,6 +641,7 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
   )
 }
 
+
 #' Generate 2D functional data for simulation studies
 #'
 #' Creates synthetic 2D functional data with optional noise components and different
@@ -601,6 +697,7 @@ data_generator_po_2d <- function(
     rsq = 0.95,
     beta_type = c("saddle", "exp", "smooth"),
     response_type = c("gaussian", "binomial"),
+    linear_predictor = c("integral","linear"),
     a1 = NULL,
     a2 = NULL,
     sub_response = 50,
@@ -647,6 +744,44 @@ data_generator_po_2d <- function(
   )
   nu <- numeric(n)
 
+
+  # Prepare integration grid
+  n_x <- m_y <- 2 * sub_response
+
+  x_fine <- seq(min(x), max(x), length.out = n_x + 1)
+  y_fine <- seq(min(y), max(y), length.out = m_y + 1)
+
+  h_x <- (max(x_fine) - min(x_fine)) / n_x
+  h_y <- (max(y_fine) - min(y_fine)) / m_y
+
+
+  # Generate beta surface on fine grid
+  if(linear_predictor == "integral"){
+    beta_fine <- if (beta_type == "saddle") {
+      generate_saddle_surface(x_fine, y_fine)
+    }else if(beta_type == "exp") {
+      generate_exp_surface(x_fine, y_fine)
+    }else{
+      generate_smooth_surface(x_fine, y_fine)
+    }}else{
+      beta_fine <- if (beta_type == "saddle") {
+        generate_saddle_surface(x, y)
+      }else if(beta_type == "exp") {
+        generate_exp_surface(x, y)
+      }else{
+        generate_smooth_surface(x, y)
+      }}
+
+  # Generate beta on original grid for output
+  beta_surface <- if (beta_type == "saddle") {
+    generate_saddle_surface(x, y)
+  } else if(beta_type == "exp") {
+    generate_exp_surface(x, y)
+  }else{
+    generate_smooth_surface(x, y)
+  }
+
+
   # Generate data and compute response
   for (i in 1:n) {
     # Use fixed values if provided, otherwise generate random components
@@ -654,8 +789,8 @@ data_generator_po_2d <- function(
       stochastic_components[i, ] <- c(a1, a2)
     } else {
       stochastic_components[i, ] <- c(
-        stats::rnorm(1, 0, 0.2), # a1
-        stats::rnorm(1, 0, 0.2) # a2
+        stats::rnorm(1, 0, 1), # a1
+        stats::rnorm(1, 0, 1) # a2
       )
     }
 
@@ -670,58 +805,52 @@ data_generator_po_2d <- function(
     surfaces[[i]] <- surface_data$DATA_T
     noisy_surfaces[[i]] <- surface_data$DATA_N
 
-    # Prepare integration grid
-    n_x <- m_y <- 2 * sub_response
-
-    x_fine <- seq(min(x), max(x), length.out = n_x + 1)
-    y_fine <- seq(min(y), max(y), length.out = m_y + 1)
-
-    h_x <- (max(x_fine) - min(x_fine)) / n_x
-    h_y <- (max(y_fine) - min(y_fine)) / m_y
 
     # Generate finer surface for integration
-    surface_fine <- generate_surface(
+    if(linear_predictor == "integral"){
+
+      surface_fine <- generate_surface(
       x_fine, y_fine,
       stochastic_components[i, 1],
       stochastic_components[i, 2],
       0
     )$DATA_T
-
-    # Generate beta surface on fine grid
-    beta_fine <- if (beta_type == "saddle") {
-      generate_saddle_surface(x_fine, y_fine)
-    } else if(beta_type == "exp") {
-      generate_exp_surface(x_fine, y_fine)
-    }else{
-      generate_smooth_surface(x_fine, y_fine)
     }
 
-    # Get integration weights
-    W_delta <- setup_simpson_weights(n_x, m_y, h_x, h_y)
+    if(linear_predictor == "integral"){
 
-    # Compute double integral using Simpson's rule
-    nu[i] <- as.double(t(as.vector(surface_fine)) %*%
-      diag(W_delta) %*%
-      as.vector(beta_fine))
+      integrand = surfaces[[i]] %*% beta_surface
+
+      nu[i] <- double_integral(integrand, x, y)
+
+      # Get integration weights
+      # W_delta <- setup_simpson_weights(n_x, m_y, h_x, h_y)
+
+      # Compute double integral using Simpson's rule
+      # nu[i] <- as.double(t(as.vector(surface_fine)) %*%
+      #                      diag(W_delta) %*%
+      #                      as.vector(beta_fine))
+    }else{
+
+      nu[i] <- mean(surfaces[[i]] * beta_surface)
+
+      # nu[i] <- as.double(t(as.vector(surfaces[[i]])) %*%
+      #                      as.vector(beta_surface))
+    }
+
   }
 
-  response <- if (response_type == "gaussian") {
+  if (response_type == "gaussian") {
     # Generate response with desired R-squared
     var_e <- (1 / rsq - 1) * stats::var(nu)
     response <- nu + stats::rnorm(n, 0, sqrt(var_e))
   } else {
     response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
-  }
+    # if (sum(response)>=65 || sum(response)<=35) {
+    #   zeros <- round(n/2)
+    #   response <- c(rep(0,zeros),rep(1,n-zeros))
+    # }
 
-
-
-  # Generate beta on original grid for output
-  beta_surface <- if (beta_type == "saddle") {
-    generate_saddle_surface(x, y)
-  } else if(beta_type == "exp") {
-    generate_exp_surface(x, y)
-  }else{
-    generate_smooth_surface(x, y)
   }
 
   noisy_surfaces_miss <- add_miss2(
@@ -797,7 +926,7 @@ generate_surface <- function(x, y, a1, a2, noise_sd) {
   for (i in seq_along(x)) {
     for (j in seq_along(y)) {
       true_surface[i, j] <- a1 * cos(2 * pi * x[i]) +
-        a2 * cos(2 * pi * y[j]) + 1
+        a2 * sin(2 * pi * y[j]) + 1 #+ 2 * y[j] - 0.5 * x[i]*y[j]
     }
   }
 
@@ -840,4 +969,34 @@ setup_simpson_weights <- function(n_x, n_y, h_x, h_y) {
   }
 
   W_delta
+}
+
+#' Setup 2D Trapeizodal integration
+#'
+#' @noRd
+double_integral <- function(integrand, x, y) {
+  # Get dimensions
+  nx <- nrow(integrand)
+  ny <- ncol(integrand)
+
+  dx <- diff(x)[1]  # spacing in x direction
+  dy <- diff(y)[1]  # spacing in y direction
+
+  # Corner points (weight = 1/4)
+  corner_sum <- sum(integrand[1,1], integrand[1,ny],
+                   integrand[nx,1], integrand[nx,ny],na.rm=TRUE) / 4
+
+  # Edge points (weight = 1/2)
+  edge_sum <- (sum(integrand[1, 2:(ny-1)],na.rm=TRUE) +    # top edge
+                 sum(integrand[nx, 2:(ny-1)],na.rm=TRUE) +    # bottom edge
+                 sum(integrand[2:(nx-1), 1],na.rm=TRUE) +     # left edge
+                 sum(integrand[2:(nx-1), ny],na.rm=TRUE)) / 2 # right edge
+
+  # Interior points (weight = 1)
+  interior_sum <- sum(integrand[2:(nx-1), 2:(ny-1)],na.rm=TRUE)
+
+  # Combine all parts and multiply by grid spacing
+  result <- dx * dy * (corner_sum + edge_sum + interior_sum)
+
+  return(result)
 }
