@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   VDPO-01-introduction: VDPO-01-introduction.html
   VDPO-02-vd-models: VDPO-02-vd-models.html
-last_built: 2025-03-03T11:36Z
+last_built: 2025-04-22T11:07Z
 urls:
   reference: https://pavel-hernadez-amaro.github.io/VDPO/reference
   article: https://pavel-hernadez-amaro.github.io/VDPO/articles
