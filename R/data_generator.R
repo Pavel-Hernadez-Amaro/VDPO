@@ -345,6 +345,7 @@ data_generator_po_1d <- function(
     grid_points = 100,
     noise_sd = 0.25,
     rsq = 0.95,
+    mu = 0.1,
     beta_type = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
     beta_type_2 = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
     univariate = TRUE,
@@ -380,8 +381,8 @@ data_generator_po_1d <- function(
       a2 * cos(4 * pi * t) +
       b1 * t
     list(
-      curve_true = true_curve,
-      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      curve_true = true_curve - mean(true_curve),
+      curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
     )
   }
   generate_curve_2 <- function(t, a1, a2, b1, noise_sd) {
@@ -391,8 +392,8 @@ data_generator_po_1d <- function(
       1
 
     list(
-      curve_true = true_curve,
-      curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      curve_true = true_curve - mean(true_curve),
+      curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
     )
   }
 
@@ -435,9 +436,9 @@ data_generator_po_1d <- function(
 
       if (linear_predictor=="integral") {
       integrand <- curves[[i]] * beta
-      nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)]))
+      nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
       }else{
-        nu[i] <- (curves[[i]] %*% beta) / grid_points
+        nu[i] <- mu + ((curves[[i]] %*% beta) / grid_points)
       }
 
     }else{
@@ -480,10 +481,10 @@ data_generator_po_1d <- function(
       integrand_2 <- curves_2[[i]] * beta_2
 
       if (linear_predictor=="integral") {
-        nu[i] <- 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
-          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)]))
+        nu[i] <- mu + ( 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
       }else{
-        nu[i] <- ((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points
+        nu[i] <- mu + (((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points)
       }
 
     }
