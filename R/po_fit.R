@@ -164,6 +164,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   res <- list(
     fit = fit,
     # Beta = Beta_ffvd,
+    intercept = intercept,
     theta = theta_ffpo,
     # covar_theta = covar_theta,
     # M = M,

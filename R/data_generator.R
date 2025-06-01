@@ -340,10 +340,11 @@ add_miss1d_end <- function(X, n_missing = 1, min_distance = 5) {
 #' data <- data_generator_po_1d(n = 2, rsq = 0.8)
 #'
 #' @export
-data_generator_po_1d <- function(
+data_generator_po_1d_old <- function(
     n = 100,
     grid_points = 100,
     noise_sd = 0.25,
+    center = TRUE,
     rsq = 0.95,
     mu = 0.1,
     beta_type = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
@@ -375,45 +376,155 @@ data_generator_po_1d <- function(
   }
   nu <- numeric(n)
 
+  # # Helper function to generate curve with given parameters
+  # generate_curve_1 <- function(t, a1, a2, b1, noise_sd) {
+  #   true_curve <- a1 * sin(2 * pi * t) +
+  #     a2 * cos(4 * pi * t) +
+  #     b1 * t
+  #
+  #   if (center == TRUE) {
+  #     sol=list(
+  #       curve_true = true_curve - mean(true_curve),
+  #       curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+  #     )
+  #   }else{
+  #     sol=list(
+  #       curve_true = true_curve,
+  #       curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+  #     )
+  #   }
+  #   sol
+  #   }
+  #
+  # generate_curve_2 <- function(t, a1, a2, b1, noise_sd) {
+  #   true_curve <- a1 * sin(2 * pi * t) +
+  #     a2 * cos(4 * pi * t) +
+  #     exp(-t) +
+  #     1
+  #
+  #   if (center == TRUE) {
+  #     sol=list(
+  #       curve_true = true_curve - mean(true_curve),
+  #       curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+  #     )
+  #   }else{
+  #     sol=list(
+  #       curve_true = true_curve,
+  #       curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+  #     )
+  #   }
+  #   sol
+  #   }
+
   # Helper function to generate curve with given parameters
-  generate_curve_1 <- function(t, a1, a2, b1, noise_sd) {
-    true_curve <- a1 * sin(2 * pi * t) +
-      a2 * cos(4 * pi * t) +
-      b1 * t
-    list(
-      curve_true = true_curve - mean(true_curve),
-      curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
-    )
+  generate_curve_1 <- function(t, a1, a2, a3, noise_sd) {
+    true_curve <- a1 * cos(1 * pi * t) +
+                  a2 * cos(3 * pi * t) +
+                  a3 * cos(5 * pi * t)
+
+
+    if (center == TRUE) {
+      sol=list(
+        curve_true = true_curve - mean(true_curve),
+        curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }else{
+      sol=list(
+        curve_true = true_curve,
+        curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }
+    sol
   }
-  generate_curve_2 <- function(t, a1, a2, b1, noise_sd) {
-    true_curve <- a1 * sin(2 * pi * t) +
-      a2 * cos(4 * pi * t) +
-      exp(-t) +
-      1
 
-    list(
-      curve_true = true_curve - mean(true_curve),
-      curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
-    )
+  generate_curve_2 <- function(t, a1, a2, a3, noise_sd) {
+    true_curve <- a1 * sin(1 * pi * t) +
+                  a2 * sin(3 * pi * t) +
+                  a3 * sin(5 * pi * t)
+
+
+    if (center == TRUE) {
+      sol=list(
+        curve_true = true_curve - mean(true_curve),
+        curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }else{
+      sol=list(
+        curve_true = true_curve,
+        curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }
+    sol
   }
 
-
-  # Generate coefficient function
-  beta <- if (beta_type == "sin") {
-    2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
-  } else if(beta_type == "trig") {
-    0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
-    }else if(beta_type == "cubic") {
+  # Function to generate beta coefficients as in your original code
+  generate_beta <- function(beta_type, t) {
+    if (beta_type == "sin") {
+      2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
+    } else if(beta_type == "trig") {
+      0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
+    } else if(beta_type == "cubic") {
       0.5*t^3
-    }else if(beta_type == "exp") {
+    } else if(beta_type == "exp") {
       0.5 * exp(t)
-  }else if(beta_type == "linear"){
-    2*t
-  }else if(beta_type == "Wang"){
-    1+3*sqrt(2)*cos(2 * pi * t)
-  }else{
-    -t^2
+    } else if(beta_type == "linear") {
+      2*t
+    } else if(beta_type == "Wang") {
+      1+3*sqrt(2)*cos(2 * pi * t)
+    } else { # quadratic
+      -t^2
+    }
   }
+
+  # Function to scale a vector to a desired range
+  scale_to_range <- function(vec) {
+
+    # Check if beta2 can be negative
+    if(min(vec) < 0){
+      new_min = -1
+    }else{
+      new_min = 0
+      }
+
+    new_max = 1
+    old_min <- min(vec)
+    old_max <- max(vec)
+
+
+
+    # Check if vector is constant
+    if (old_min == old_max) {
+      return(rep((new_min + new_max) / 2, length(vec)))
+    }
+
+    # Scale
+    scaled <- (vec - old_min) / (old_max - old_min) * (new_max - new_min) + new_min
+    return(scaled)
+  }
+
+  # Create grid
+  t <- seq(0, 1, length.out = 100)
+
+  # Generate beta coefficients with your original functions
+  beta <- generate_beta(beta_type, t)
+  beta_scaled <- scale_to_range(beta)
+
+  # # Generate coefficient function
+  # beta <- if (beta_type == "sin") {
+  #   2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
+  # } else if(beta_type == "trig") {
+  #   0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
+  #   }else if(beta_type == "cubic") {
+  #     0.5*t^3
+  #   }else if(beta_type == "exp") {
+  #     0.5 * exp(t)
+  # }else if(beta_type == "linear"){
+  #   2*t
+  # }else if(beta_type == "Wang"){
+  #   1+3*sqrt(2)*cos(2 * pi * t)
+  # }else{
+  #   -t^2
+  # }
 
   # Generate data and compute response
   for (i in 1:n) {
@@ -435,10 +546,10 @@ data_generator_po_1d <- function(
     if (univariate) {
 
       if (linear_predictor=="integral") {
-      integrand <- curves[[i]] * beta
+      integrand <- curves[[i]] * beta_scaled
       nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
       }else{
-        nu[i] <- mu + ((curves[[i]] %*% beta) / grid_points)
+        nu[i] <- mu + ((curves[[i]] %*% beta_scaled) / grid_points)
       }
 
     }else{
@@ -460,31 +571,34 @@ data_generator_po_1d <- function(
 
       # Generate coefficient function
       # CHANGED BETA TYPES SO IT COULD HAVE DIFFERENT ONES FOR EACH VARIABLE
-      beta_2 <- if (beta_type_2 == "sin") {
-        2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
-      }else if(beta_type_2 == "trig") {
-        0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
-      }else if(beta_type_2 == "cubic") {
-        -0.5*t^3
-      }else if(beta_type_2 == "exp") {
-        0.5 * exp(t)
-      }else if(beta_type_2 == "linear"){
-        -2*t
-      }else if(beta_type_2 == "Wang"){
-       1+3*sqrt(2)*cos(2 * pi * t)
-      }else{
-        t^2
-      }
+      # beta_2 <- if (beta_type_2 == "sin") {
+      #   2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
+      # }else if(beta_type_2 == "trig") {
+      #   0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
+      # }else if(beta_type_2 == "cubic") {
+      #   -0.5*t^3
+      # }else if(beta_type_2 == "exp") {
+      #   0.5 * exp(t)
+      # }else if(beta_type_2 == "linear"){
+      #   -2*t
+      # }else if(beta_type_2 == "Wang"){
+      #  1+3*sqrt(2)*cos(2 * pi * t)
+      # }else{
+      #   t^2
+      # }
+
+      beta_2 <- generate_beta(beta_type_2, t)
+      beta_2_scaled <- scale_to_range(beta_2)
 
 
-      integrand <- curves[[i]] * beta
-      integrand_2 <- curves_2[[i]] * beta_2
+      integrand <- curves[[i]] * beta_scaled
+      integrand_2 <- curves_2[[i]] * beta_2_scaled
 
       if (linear_predictor=="integral") {
         nu[i] <- mu + ( 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
           0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
       }else{
-        nu[i] <- mu + (((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points)
+        nu[i] <- mu + (((curves[[i]] %*% beta_scaled) + (curves_2[[i]] %*% beta_2_scaled)) / grid_points)
       }
 
     }
@@ -494,6 +608,7 @@ data_generator_po_1d <- function(
   if (response_type=="gaussian") {
     # Generate response with desired R-squared
     var_e <- (1 / rsq - 1) * stats::var(nu)
+    print(var_e)
     response <- nu + stats::rnorm(n, 0, sqrt(var_e))
   }else{
     response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
@@ -541,31 +656,34 @@ data_generator_po_1d <- function(
   # Return results
   return(if (univariate) {
     list(
-      curves = matrix(unlist(curves), nrow = 100, byrow = TRUE),
-      noisy_curves = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
+      curves = matrix(unlist(curves), nrow = n, byrow = TRUE),
+      noisy_curves = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
       noisy_curves_miss = X_miss,
       miss_points = miss_points,
       missing_points = missing_points,
       response = response,
       grid = t,
       beta = beta,
+      beta_scaled = beta_scaled,
       stochastic_components = stochastic_components
     )
 
   }else{
     list(
-      curves_1 = matrix(unlist(curves), nrow = 100, byrow = TRUE),
-      noisy_curves_1 = matrix(unlist(noisy_curves), nrow = 100, byrow = TRUE),
+      curves_1 = matrix(unlist(curves), nrow = n, byrow = TRUE),
+      noisy_curves_1 = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
       noisy_curves_miss_1 = X_miss,
       miss_points_1 = miss_points,
       missing_points_1 = missing_points,
-      curves_2 = matrix(unlist(curves_2), nrow = 100, byrow = TRUE),
-      noisy_curves_2 = matrix(unlist(noisy_curves_2), nrow = 100, byrow = TRUE),
+      curves_2 = matrix(unlist(curves_2), nrow = n, byrow = TRUE),
+      noisy_curves_2 = matrix(unlist(noisy_curves_2), nrow = n, byrow = TRUE),
       noisy_curves_miss_2 = X_miss_2,
       miss_points_2 = miss_points_2,
       missing_points_2 = missing_points_2,
       beta = beta,
       beta_2 = beta_2,
+      beta_scaled = beta_scaled,
+      beta_2_scaled = beta_2_scaled,
       stochastic_components = stochastic_components,
       stochastic_components_2 = stochastic_components_2,
       grid = t,
@@ -575,6 +693,348 @@ data_generator_po_1d <- function(
   }
   )
 }
+
+
+#' Generate 1D functional data for simulation studies
+#'
+#' Creates synthetic 1D functional data with optional noise components and different
+#' coefficient patterns. Uses trapezoidal rule for integration.
+#'
+#' @param n Number of samples to generate
+#' @param grid_points Number of points in the grid. Default is 100
+#' @param noise_sd Standard deviation of measurement noise. Default is 0.015
+#' @param rsq Desired R-squared value for the response. Default is 0.95
+#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin"
+#' @param n_missing Number of missing segments per curve. Default is 1
+#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated)
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item curves: List of n true (noiseless) curves
+#'   \item noisy_curves: List of n observed (noisy) curves
+#'   \item noisy_curves_miss: List containing curves with missing values
+#'   \item response: Vector of n response values
+#'   \item grid: Grid points
+#'   \item beta: True coefficient function
+#'   \item stochastic_components: Vector of a values used for each curve
+#' }
+#' Generate 1D Functional Data for Simulation Studies
+#'
+#' Creates synthetic 1D functional data with optional noise components and different
+#' coefficient patterns. Uses the trapezoidal rule for numerical integration.
+#'
+#' @param n Number of samples to generate. Default is 100.
+#' @param grid_points Number of points in the grid. Default is 100.
+#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
+#' @param rsq Desired R-squared value for the response. Default is 0.95.
+#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin".
+#' @param n_missing Number of missing segments per curve. Default is 1.
+#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated).
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
+#'   \item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
+#'   \item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
+#'   \item \code{miss_points}: Indices of the missing segments in the noisy curves.
+#'   \item \code{missing_points}: Details of the missing segments for each curve.
+#'   \item \code{response}: Vector of \code{n} response values.
+#'   \item \code{grid}: Grid points on which the curves are defined.
+#'   \item \code{beta}: Coefficient function applied to the curves.
+#'   \item \code{stochastic_components}: List of stochastic coefficients used for each curve.
+#' }
+#'
+#' @examples
+#' # Generate basic 1D functional data with default parameters
+#' data <- data_generator_po_1d(n = 10)
+#'
+#' # Generate data with a Gaussian-shaped coefficient function
+#' data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
+#'
+#' # Generate data with higher grid resolution
+#' data <- data_generator_po_1d(n = 2, grid_points = 200)
+#'
+#' # Generate data with larger measurement noise
+#' data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
+#'
+#' # Introduce missing segments in the curves
+#' data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
+#'
+#' # Generate data with low R-squared value
+#' data <- data_generator_po_1d(n = 2, rsq = 0.8)
+#'
+#' @export
+data_generator_po_1d <- function(
+    n = 100,
+    grid_points = 100,
+    noise_sd = 0.25,
+    center = TRUE,
+    rsq = 0.95,
+    mu = 0.1,
+    univariate = TRUE,
+    response_type = c("gaussian","binomial"),
+    linear_predictor = c("rectangular", "trapezoidal","linear"),
+    n_missing = 1,
+    min_distance = NULL) {
+
+  if (is.null(min_distance)) {
+    min_distance <- round(1 / 5 * grid_points)
+  }
+
+  # Create grid points
+  t <- seq(0, 10, length.out = grid_points) #seq(0, 1, length.out = grid_points)
+
+  # Initialize storage
+  curves <- vector("list", n)
+  noisy_curves <- vector("list", n)
+  # stochastic_components <- vector("list", n)
+  if (!univariate) {
+    curves_2 <- vector("list", n)
+    noisy_curves_2 <- vector("list", n)
+    # stochastic_components_2 <- vector("list", n)
+  }
+  nu <- numeric(n)
+
+  # Helper function to generate curve with given parameters
+  generate_curve_1 <- function(t, noise_sd, center = TRUE) {
+
+      # Generate random coefficients for each subject
+      u_i1 <- rnorm(1, mean = 0, sd = 5)  # u_i1 ~ N(0, 25)
+      u_i2 <- rnorm(1, mean = 0, sd = 0.2) # u_i2 ~ N(0, 0.04)
+
+      v_i1k <- rnorm(10, mean = 0, sd = 1) # v_i1k ~ N(0, 1)
+      v_i2k <- rnorm(10, mean = 0, sd = 1) # v_i2k ~ N(0, 1)
+
+      true_curve=rep(0,length(t))
+
+      # For each grid point, compute X_i(t_g)
+      for (g in 1:length(t)) {
+        t_g <- t[g]
+
+        # Base components
+        base <- u_i1 + u_i2 * t_g
+
+        # Sum components with sine and cosine terms
+        sum_component <- 0
+        for (k in 1:10) {
+          sum_component <- sum_component +
+            v_i1k[k] * sin((2*pi*k/10) * t_g) +
+            v_i2k[k] * cos((2*pi*k/10) * t_g)
+        }
+
+        true_curve[g] <- base + sum_component
+      }
+
+      if (center == TRUE) {
+        sol=list(
+          curve_true = true_curve - mean(true_curve),
+          curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+        )
+      }else{
+        sol=list(
+          curve_true = true_curve,
+          curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+        )
+      }
+
+    sol
+  }
+
+  generate_curve_2 <- function(t, noise_sd, center = TRUE) {
+
+    u_i1 <- rnorm(1, mean = 2, sd = 3)  # Different distribution than X1
+    u_i2 <- rnorm(1, mean = -0.1, sd = 0.15) # Different slope distribution
+
+    # Use different random seeds for v coefficients
+    v_i1k <- rnorm(10, mean = -0.5, sd = 0.8) # Different than X1
+    v_i2k <- rnorm(10, mean = 0.5, sd = 0.8)  # Different than X1
+
+    true_curve=rep(0,length(t))
+
+    # For each grid point, compute X2_i(t_g)
+    for (g in 1:length(t)) {
+      t_g <- t[g]
+
+      # Different base components
+      base <- u_i1 + u_i2 * t_g
+
+      # Sum components with different frequencies and phase shifts
+      sum_component <- 0
+      for (k in 1:10) {
+        # Use different frequencies and phase shifts for low correlation
+        sum_component <- sum_component +
+          v_i1k[k] * sin((2*pi*(k+0.5)/10) * t_g + pi/4) + # Phase shift by pi/4
+          v_i2k[k] * cos((2*pi*(k+0.5)/10) * t_g - pi/4)   # Phase shift by -pi/4
+      }
+
+      true_curve[g] <- base + sum_component
+    }
+
+    if (center == TRUE) {
+      sol=list(
+        curve_true = true_curve - mean(true_curve),
+        curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }else{
+      sol=list(
+        curve_true = true_curve,
+        curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }
+    sol
+  }
+
+  beta1 <- function(t) 0.05 * sin(pi*t/5)  # Scaled by 0.05
+  beta2 <- function(t) 0.05 * (t/2.5)^2    # Scaled by 0.05
+
+
+  # Generate beta coefficients with your original functions
+  beta <- beta1(t)
+
+
+
+  # Generate data and compute response
+  for (i in 1:n) {
+
+    # Generate curve
+    curve_data <- generate_curve_1(
+      t,
+      noise_sd,
+      center
+    )
+
+    curves[[i]] <- curve_data$curve_true
+    noisy_curves[[i]] <- curve_data$curve_noisy
+
+    if (univariate) {
+
+      if (linear_predictor=="trapezoidal") {
+        integrand <- curves[[i]] * beta
+        nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
+      }else if(linear_predictor=="linear") {
+        nu[i] <- mu + ((curves[[i]] %*% beta) / grid_points)
+      }else if(linear_predictor=="rectangular"){
+        integral1_approx = mean(curves[[i]] * beta) * (max(t) - min(t))
+        nu[i] = mu + integral1_approx
+      }
+
+    }else{
+
+      # Generate curve
+      curve_data_2 <- generate_curve_2(
+        t,
+        noise_sd,
+        center
+      )
+
+      curves_2[[i]] <- curve_data_2$curve_true
+      noisy_curves_2[[i]] <- curve_data_2$curve_noisy
+
+      beta_2 <- beta2(t)
+      # beta_2_scaled <- scale_to_range(beta_2)
+
+
+      integrand <- curves[[i]] * beta
+      integrand_2 <- curves_2[[i]] * beta_2
+
+      if (linear_predictor=="trapezoidal") {
+        nu[i] <- mu + ( 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+                          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
+      }else if(linear_predictor=="linear"){
+        nu[i] <- mu + (((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points)
+      }else if(linear_predictor=="rectangular"){
+        integral1_approx = mean(curves[[i]] * beta) * (max(t) - min(t))
+        integral2_approx = mean(curves_2[[i]] * beta_2) * (max(t) - min(t))
+
+       nu[i] = mu + integral1_approx + integral2_approx
+      }
+
+    }
+  }
+
+  if (response_type=="gaussian") {
+    # Generate response with desired R-squared
+    sd_e <- (1 / rsq - 1) * stats::sd(nu)
+    # print(sd_e)
+    response <- nu + stats::rnorm(n, 0, (sd_e))
+  }else{
+    response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
+    # if (sum(response)>=65 || sum(response)<=35) {
+    #   zeros <- round(n/2)
+    #   response <- c(rep(0,zeros),rep(1,n-zeros))
+    # }
+  }
+
+  # Add missing values
+  noisy_curves_miss <- add_miss1d(
+    noisy_curves,
+    n_missing = n_missing,
+    min_distance = min_distance
+  )
+
+  miss_points <- noisy_curves_miss[["miss_points"]]
+  missing_points <- noisy_curves_miss[["missing_points"]]
+  X_miss <- matrix(
+    unlist(noisy_curves_miss[["X_miss"]]),
+    nrow = length(noisy_curves_miss[["X_miss"]]),
+    ncol = length(noisy_curves_miss[["X_miss"]][[1]]),
+    byrow = TRUE
+  )
+
+  if (!univariate) {
+    noisy_curves_miss_2 <- add_miss1d(
+      noisy_curves_2,
+      n_missing = n_missing,
+      min_distance = min_distance
+    )
+
+    miss_points_2 <- noisy_curves_miss_2[["miss_points"]]
+    missing_points_2 <- noisy_curves_miss_2[["missing_points"]]
+    X_miss_2 <- matrix(
+      unlist(noisy_curves_miss_2[["X_miss"]]),
+      nrow = length(noisy_curves_miss_2[["X_miss"]]),
+      ncol = length(noisy_curves_miss_2[["X_miss"]][[1]]),
+      byrow = TRUE
+    )
+  }
+
+
+
+  # Return results
+  return(if (univariate) {
+    list(
+      curves = matrix(unlist(curves), nrow = n, byrow = TRUE),
+      noisy_curves = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
+      noisy_curves_miss = X_miss,
+      miss_points = miss_points,
+      missing_points = missing_points,
+      response = response,
+      grid = t,
+      beta = beta
+    )
+
+  }else{
+    list(
+      curves_1 = matrix(unlist(curves), nrow = n, byrow = TRUE),
+      noisy_curves_1 = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
+      noisy_curves_miss_1 = X_miss,
+      miss_points_1 = miss_points,
+      missing_points_1 = missing_points,
+      curves_2 = matrix(unlist(curves_2), nrow = n, byrow = TRUE),
+      noisy_curves_2 = matrix(unlist(noisy_curves_2), nrow = n, byrow = TRUE),
+      noisy_curves_miss_2 = X_miss_2,
+      miss_points_2 = miss_points_2,
+      missing_points_2 = missing_points_2,
+      beta = beta,
+      beta_2 = beta_2,
+      grid = t,
+      response = response
+    )
+
+  }
+  )
+}
+
 
 #' Set missing values to the surfaces
 #'
@@ -934,7 +1394,7 @@ generate_surface <- function(x, y, a1, a2, noise_sd) {
   list(
     DATA_T = true_surface,
     DATA_N = true_surface + matrix(
-      stats::rnorm(length(x) * length(y), 0, noise_sd),
+      stats::rnorm(length(x) * length(y), 0, noise_sd*sd(as.vector(true_surface))),
       length(x),
       length(y)
     )
