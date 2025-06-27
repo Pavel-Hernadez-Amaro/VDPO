@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 # VDPO
 
 <!-- badges: start -->
@@ -9,6 +14,12 @@
 <!-- badges: end -->
 
 The **VDPO** package provides tools for working with and analyzing functional data of varying lengths. This variation in length can occur in two different scenarios: **Variable Domain Data and Partially Observed Data.** This refers to cases where the domain over which the data is observed changes between observations or when the functional data are not fully observed over the entire domain of interest, respectively. For instance, in growth curve analysis, each individual might have measurements starting and ending at different ages, leading to varying observation ranges. Similarly, in environmental studies, different locations might have data collected over distinct time periods, creating domains of different lengths.
+
+This publication/result/equipment/video/activity/contract/other is part of the project/grant
+PDC2022-133359-I00 funded by MCIN/AEI/10.13039/501100011033 and by the European
+Union “NextGenerationEU/PRTR”.
+
+![Funding acknowledgment](funding/Clausula publicidad.jpg)
 
 ## Related Papers
 
