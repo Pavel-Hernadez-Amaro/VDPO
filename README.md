@@ -14,7 +14,7 @@ This publication/result/equipment/video/activity/contract/other is part of the p
 PDC2022-133359-I00 funded by MCIN/AEI/10.13039/501100011033 and by the European
 Union “NextGenerationEU/PRTR”.
 
-![Funding acknowledgment](funding/Clausula publicidad.jpg)
+![Funding acknowledgment](funding/Clausula_publicidad.jpg)
 
 ## Related Papers
 
