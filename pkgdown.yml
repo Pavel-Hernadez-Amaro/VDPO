@@ -1,10 +1,10 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   VDPO-01-introduction: VDPO-01-introduction.html
   VDPO-02-vd-models: VDPO-02-vd-models.html
-last_built: 2025-04-22T11:07Z
+last_built: 2025-09-03T12:50Z
 urls:
   reference: https://pavel-hernadez-amaro.github.io/VDPO/reference
   article: https://pavel-hernadez-amaro.github.io/VDPO/articles
