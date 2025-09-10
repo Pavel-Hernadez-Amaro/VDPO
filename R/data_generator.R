@@ -1156,7 +1156,8 @@ data_generator_po_2d <- function(
     grid_y = 20,
     noise_sd = 0.015,
     rsq = 0.95,
-    beta_type = c("saddle", "exp", "smooth"),
+    intercept = 0.1,
+    beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
     response_type = c("gaussian", "binomial"),
     linear_predictor = c("integral","linear"),
     a1 = NULL,
@@ -1222,24 +1223,37 @@ data_generator_po_2d <- function(
       generate_saddle_surface(x_fine, y_fine)
     }else if(beta_type == "exp") {
       generate_exp_surface(x_fine, y_fine)
-    }else{
+    }else if(beta_type == "smooth"){
       generate_smooth_surface(x_fine, y_fine)
+    }else if(beta_type == "peaks"){
+     generate_multipeak_surface(x_fine, y_fine)
+    }
+    else{
+      generate_sinusoidal_surface(x_fine, y_fine)
     }}else{
       beta_fine <- if (beta_type == "saddle") {
         generate_saddle_surface(x, y)
       }else if(beta_type == "exp") {
         generate_exp_surface(x, y)
-      }else{
+      }else if(beta_type == "smooth"){
         generate_smooth_surface(x, y)
+      }else if(beta_type == "peaks"){
+        generate_multipeak_surface(x, y)
+      }else{
+        generate_sinusoidal_surface(x, y)
       }}
 
   # Generate beta on original grid for output
   beta_surface <- if (beta_type == "saddle") {
     generate_saddle_surface(x, y)
-  } else if(beta_type == "exp") {
+  }else if(beta_type == "exp") {
     generate_exp_surface(x, y)
-  }else{
+  }else if(beta_type == "smooth"){
     generate_smooth_surface(x, y)
+  }else if(beta_type == "peaks"){
+    generate_multipeak_surface(x, y)
+  }else{
+    generate_sinusoidal_surface(x, y)
   }
 
 
@@ -1265,6 +1279,8 @@ data_generator_po_2d <- function(
 
     surfaces[[i]] <- surface_data$DATA_T
     noisy_surfaces[[i]] <- surface_data$DATA_N
+
+
 
 
     # Generate finer surface for integration
@@ -1304,13 +1320,15 @@ data_generator_po_2d <- function(
   if (response_type == "gaussian") {
     # Generate response with desired R-squared
     var_e <- (1 / rsq - 1) * stats::var(nu)
-    response <- nu + stats::rnorm(n, 0, sqrt(var_e))
+    response <- intercept + nu + stats::rnorm(n, 0, sqrt(var_e))
   } else {
-    response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
-    # if (sum(response)>=65 || sum(response)<=35) {
-    #   zeros <- round(n/2)
-    #   response <- c(rep(0,zeros),rep(1,n-zeros))
-    # }
+
+    # stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
+
+    aux=adjust_proportion(intercept, nu, max_iter = 150, tolerance = 0.001)
+
+    response = aux$y
+    intercept = aux$intercept
 
   }
 
@@ -1328,6 +1346,8 @@ data_generator_po_2d <- function(
     miss_points = noisy_surfaces_miss[[2]],
     missing_points = noisy_surfaces_miss[[3]],
     response = response,
+    nu = nu,
+    intercept = intercept,
     points_x = x,
     points_y = y,
     beta = beta_surface,
@@ -1373,13 +1393,55 @@ generate_smooth_surface <- function(x, y) {
 
   for (i in seq_along(x)) {
     for (j in seq_along(y)) {
-      surface[i, j] <- 0.5* (x[i])^2 +  0.5 * (y[i])^2
+      surface[i, j] <- 0.5* (x[i])^2 +  0.5 * (y[j])^2
     }
   }
   surface
 }
 
-#' Helper function to generate surface with given parameters
+#' Generate sinusoidal coefficient surface with Gaussian decay
+#'
+#' @noRd
+generate_sinusoidal_surface <- function(x, y) {
+  surface <- matrix(nrow = length(x), ncol = length(y))
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      surface[i, j] <- 0.8 * sin(2 * pi * x[i]) * cos(2 * pi * y[j]) *
+        exp(-2 * (x[i] - 0.5)^2) * exp(-2 * (y[j] - 0.5)^2)
+    }
+  }
+  surface
+}
+
+#' Generate multi-peak coefficient surface
+#'
+#' @noRd
+generate_multipeak_surface <- function(x, y) {
+  surface <- matrix(nrow = length(x), ncol = length(y))
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      surface[i, j] <- 0.5 * sin(4 * pi * x[i]) * cos(4 * pi * y[j]) +
+        0.3 * exp(-5 * ((x[i] - 0.3)^2 + (y[j] - 0.7)^2))
+    }
+  }
+  surface
+}
+
+#' Generate simple test coefficient surface
+#'
+#' @noRd
+generate_test_surface <- function(x, y) {
+  surface <- matrix(nrow = length(x), ncol = length(y))
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      # Simple quadratic surface
+      surface[i, j] <- 5 * ((x[i] - 0.5)^2 + (y[j] - 0.5)^2) - 2
+      # surface[i, j] <- 2 * (x[i] - 0.5)^2 + 2 * (y[j] - 0.5)^2 - 0.5
+    }
+  }
+  surface
+}
+#' Helper function to generate surface X(t_1,t_2) with given parameters
 #'
 #' @noRd
 generate_surface <- function(x, y, a1, a2, noise_sd) {
@@ -1398,6 +1460,54 @@ generate_surface <- function(x, y, a1, a2, noise_sd) {
       length(x),
       length(y)
     )
+  )
+}
+
+#' Generate 2D functional predictors using B-spline basis expansion
+#'
+#' @noRd
+generate_bspline_surfaces <- function(n_obs, x, y, n_basis_x = 8, n_basis_y = 8, coef_sd = 0.3, noise_sd) {
+
+  # Create tensor product B-spline basis for 2D surfaces
+  basis_x <- fda::create.bspline.basis(c(0, 1), n_basis_x)
+  basis_y <- fda::create.bspline.basis(c(0, 1), n_basis_y)
+
+  # Generate coefficients for each observation's surface
+  # Each observation has a 2D surface X_i(t_1,t_2)
+  X_coefs <- array(stats::rnorm(n_obs * n_basis_x * n_basis_y, 0, coef_sd),
+                   dim = c(n_obs, n_basis_x, n_basis_y))
+
+  # Evaluate surfaces on the grid manually using tensor products
+  X_surfaces <- array(0, dim = c(n_obs, length(x), length(y)))
+  X_noisy_surfaces <- array(0, dim = c(n_obs, length(x), length(y)))
+
+  # Evaluate basis functions on grids
+  basis_x_vals <- fda::eval.basis(x, basis_x)  # n_s x n_basis_x
+  basis_y_vals <- fda::eval.basis(y, basis_y)  # n_t x n_basis_y
+
+  for(i in 1:n_obs) {
+    # Compute tensor product: X_i(t_1,t_2) = sum_j sum_k c_ijk * phi_j(t_1) * psi_k(t_2)
+    for(j in 1:n_basis_x) {
+      for(k in 1:n_basis_y) {
+        # Add contribution of basis function (j,k) with coefficient c_ijk
+        X_surfaces[i,,] <- X_surfaces[i,,] +
+          X_coefs[i,j,k] * outer(basis_x_vals[,j], basis_y_vals[,k])
+      }
+    }
+
+    # Add noise to create observed surface
+    X_noisy_surfaces[i,,] <- X_surfaces[i,,] +
+      matrix(stats::rnorm(length(x) * length(y), 0,
+                          noise_sd * stats::sd(as.vector(X_surfaces[i,,]))),
+             length(x), length(y))
+  }
+
+  list(
+    surfaces = X_surfaces,
+    noisy_surfaces = X_noisy_surfaces,
+    coefficients = X_coefs,
+    basis_x = basis_x,
+    basis_y = basis_y
   )
 }
 
@@ -1460,4 +1570,440 @@ double_integral <- function(integrand, x, y) {
   result <- dx * dy * (corner_sum + edge_sum + interior_sum)
 
   return(result)
+}
+
+#' Iteratively adjust intercept to achieve target proportion in binomial simulation
+#'
+#' This function uses an iterative approach to find the appropriate intercept value
+#' that produces a desired proportion of 1s in binomial response simulation. It works
+#' by adjusting the intercept on the log-odds scale using adaptive damping to prevent
+#' overshooting due to the nonlinear logistic transformation.
+#'
+#' @param target_prop Desired proportion of 1s in the response. Must be between 0 and 1 (exclusive).
+#' @param functional_effects Numeric vector of functional effects (e.g., from 2D integration
+#'   of surfaces). These represent the variability around the baseline intercept.
+#' @param max_iter Maximum number of iterations for adjustment. Default is 15.
+#' @param tolerance Convergence tolerance for the difference between target and achieved
+#'   proportion. Default is 0.03.
+#' @param verbose Logical indicating whether to print iteration progress. Default is FALSE.
+#'
+#' @details
+#' The function works by:
+#' \enumerate{
+#'   \item Starting with an initial intercept based on \code{qlogis(target_prop)}
+#'   \item Computing probabilities using \code{plogis(intercept + functional_effects)}
+#'   \item Generating binary outcomes using \code{rbinom()}
+#'   \item Adjusting the intercept based on the error between target and achieved proportions
+#'   \item Using adaptive damping (0.3 for large errors, 0.5 for medium, 0.7 for small)
+#' }
+#'
+#' The adjustment formula is:
+#' \code{adjustment = (qlogis(target_prop) - qlogis(achieved_prop)) * damping_factor}
+#'
+#' This approach works in log-odds space to prevent probabilities from exceeding [0,1]
+#' bounds and provides robust control over response proportions in functional regression
+#' simulation studies.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item y: Binary response vector of length equal to \code{functional_effects}
+#'   \item intercept: Final adjusted intercept value
+#'   \item final_prop: Achieved proportion of 1s in the response
+#'   \item iterations: Number of iterations used
+#'   \item converged: Logical indicating whether convergence was achieved
+#'   \item final_error: Final absolute error between target and achieved proportion
+#' }
+#'
+#' @examples
+#' # Basic usage with simulated functional effects
+#' set.seed(123)
+#' effects <- rnorm(100, mean = 0, sd = 0.5)
+#' result <- adjust_proportion(target_prop = 0.3, functional_effects = effects)
+#' cat("Achieved proportion:", result$final_prop, "\n")
+#' cat("Converged in", result$iterations, "iterations\n")
+#'
+#' # Usage with 2D functional regression effects
+#' # Assuming you have computed 2D integral effects from surfaces
+#' # integral_effects <- compute_2d_integrals(surfaces, beta_surface)
+#' # result <- adjust_proportion(0.4, integral_effects, tolerance = 0.01)
+#'
+#' # Check for convergence issues
+#' if (!result$converged) {
+#'   warning("Adjustment did not converge. Final error: ", result$final_error)
+#' }
+#'
+#' @seealso \code{\link{data_generator_po_2d}} for using this function in 2D functional
+#'   data simulation.
+adjust_proportion <- function(target_prop, functional_effects,
+                              max_iter = 15, tolerance = 0.03, verbose = FALSE) {
+
+  # Input validation
+  if(any(is.na(functional_effects)) || any(is.infinite(functional_effects))) {
+    stop("functional_effects contains NA or infinite values", call. = FALSE)
+  }
+
+  if(target_prop <= 0 || target_prop >= 1) {
+    stop("target_prop must be between 0 and 1 (exclusive)", call. = FALSE)
+  }
+
+  if(max_iter < 1) {
+    stop("max_iter must be at least 1", call. = FALSE)
+  }
+
+  if(tolerance <= 0) {
+    stop("tolerance must be positive", call. = FALSE)
+  }
+
+  intercept <- qlogis(target_prop)
+
+  # Check if initial intercept is reasonable
+  if(is.infinite(intercept)) {
+    stop("target_prop too close to 0 or 1, causing infinite initial intercept", call. = FALSE)
+  }
+
+  for(iter in 1:max_iter) {
+    linear_pred <- intercept + functional_effects
+
+    # Check for extreme linear predictors
+    if(any(is.na(linear_pred)) || any(is.infinite(linear_pred))) {
+      if(verbose) cat("Warning: NA or infinite linear predictors at iteration", iter, "\n")
+      # Try to recover by reducing intercept magnitude
+      intercept <- intercept * 0.5
+      next
+    }
+
+    # Check for extreme linear predictors that would cause numerical issues
+    if(max(abs(linear_pred)) > 20) {
+      if(verbose) cat("Warning: Very large linear predictors (max =", max(abs(linear_pred)), ") at iteration", iter, "\n")
+      # Clip extreme values
+      linear_pred <- pmax(pmin(linear_pred, 20), -20)
+    }
+
+    probabilities <- plogis(linear_pred)
+
+    # Check probabilities for issues
+    if(any(is.na(probabilities))) {
+      if(verbose) cat("Warning: NA probabilities at iteration", iter, "\n")
+      intercept <- intercept * 0.8
+      next
+    }
+
+    # Generate binary outcomes
+    y <- rbinom(length(functional_effects), 1, probabilities)
+
+    # Check for NA in y
+    if(any(is.na(y))) {
+      if(verbose) cat("Warning: NA in binary outcomes at iteration", iter, "\n")
+      intercept <- intercept * 0.8
+      next
+    }
+
+    achieved_prop <- mean(y)
+
+    # Check if achieved_prop is valid
+    if(is.na(achieved_prop)) {
+      if(verbose) cat("Warning: NA achieved proportion at iteration", iter, "\n")
+      intercept <- intercept * 0.8
+      next
+    }
+
+    # Handle edge cases BEFORE computing error
+    # This prevents qlogis() from producing infinite values
+    if(achieved_prop == 0) {
+      achieved_prop <- 0.5 / length(functional_effects)  # Small positive value
+    } else if(achieved_prop == 1) {
+      achieved_prop <- 1 - 0.5 / length(functional_effects)  # Small value less than 1
+    }
+
+    error <- abs(achieved_prop - target_prop)
+
+    # Check if error is valid
+    if(is.na(error)) {
+      if(verbose) cat("Warning: NA error at iteration", iter, "\n")
+      break
+    }
+
+    # Adaptive damping based on error size
+    if(error > 0.1) {
+      damp <- 0.3  # Very conservative for large errors
+    } else if(error > 0.05) {
+      damp <- 0.5  # Moderate for medium errors
+    } else {
+      damp <- 0.7  # More aggressive for small errors
+    }
+
+    if(verbose) cat("Iteration", iter, ": achieved_prop =", round(achieved_prop, 4),
+                    ", error =", round(error, 4), ", damping =", damp, "\n")
+
+    # Check convergence
+    if(error <= tolerance) {
+      if(verbose) cat("Converged after", iter, "iterations\n")
+      break
+    }
+
+    # Normal adjustment (no more edge case handling needed)
+    adjustment <- (qlogis(target_prop) - qlogis(achieved_prop)) * damp
+    intercept <- intercept + adjustment
+
+    # Check if new intercept is reasonable
+    if(is.infinite(adjustment) || is.na(adjustment)) {
+      if(verbose) cat("Warning: Invalid adjustment at iteration", iter, "\n")
+      # Use a small fixed adjustment instead
+      if(achieved_prop < target_prop) {
+        intercept <- intercept + 0.1
+      } else {
+        intercept <- intercept - 0.1
+      }
+    }
+
+    # Prevent intercept from becoming too extreme
+    if(abs(intercept) > 10) {
+      if(verbose) cat("Warning: Intercept becoming too extreme (", intercept, "), clipping\n")
+      intercept <- sign(intercept) * 10
+    }
+  }
+
+  # Final check
+  if(iter >= max_iter) {
+    warning("Maximum iterations reached without convergence. Final error: ", round(error, 4))
+  }
+
+  return(list(
+    y = y,
+    intercept = intercept,
+    final_prop = achieved_prop,
+    iterations = iter,
+    converged = error <= tolerance,
+    final_error = error
+  ))
+}
+
+
+#' Generate high-signal 2D functional data with proper interface
+#'
+#' Creates synthetic 2D functional data using the working high-signal approach
+#' but with the same interface as data_generator_po_2d for compatibility
+#'
+#' @param n Number of samples to generate
+#' @param grid_x Number of points in x-axis grid
+#' @param grid_y Number of points in y-axis grid
+#' @param intercept Target proportion for binomial or intercept for Gaussian
+#' @param noise_sd Standard deviation of measurement noise
+#' @param beta_type Type of coefficient surface (kept for compatibility)
+#' @param response_type Type of response ("binomial" or "gaussian")
+#' @param signal_strength Strength of discriminative signal (default 2.5)
+#' @param n_missing Not used (kept for compatibility)
+#' @param min_distance_x Not used (kept for compatibility)
+#' @param min_distance_y Not used (kept for compatibility)
+#' @param linear_predictor Not used (kept for compatibility)
+#' @param sub_response Not used (kept for compatibility)
+#'
+#' @return A list containing simulated data with same structure as data_generator_po_2d
+
+#' @export
+data_generator_high_signal <- function(n = 100,
+                                       grid_x = 20,
+                                       grid_y = 20,
+                                       intercept = 0.6,
+                                       noise_sd = 0.25,
+                                       response_type = "binomial",
+                                       signal_strength = 2.5,
+                                       n_missing = 0,
+                                       min_distance_x = NULL,
+                                       min_distance_y = NULL){
+
+  # Create coordinate grids
+  x <- seq(0, 1, length.out = grid_x)
+  y <- seq(0, 1, length.out = grid_y)
+
+  if(response_type == "binomial") {
+    target_prop <- intercept
+  } else {
+    target_prop <- 0.5  # Not used for Gaussian
+  }
+
+  cat("=== HIGH-SIGNAL DATA GENERATION ===\n")
+  cat("Response type:", response_type, "\n")
+  cat("Sample size:", n, "\n")
+  cat("Grid size:", grid_x, "x", grid_y, "\n")
+  if(response_type == "binomial") {
+    cat("Target proportion:", target_prop, "\n")
+  }
+
+  # Step 1: Create discriminative coefficient surface
+  beta_surface <- matrix(nrow = length(x), ncol = length(y))
+  for(i in seq_along(x)) {
+    for(j in seq_along(y)) {
+      # Strong discriminative pattern
+      beta_surface[i, j] <- signal_strength * (
+        sin(2*pi*x[i]) * cos(2*pi*y[j]) +
+          0.8 * (x[i] - 0.5) * (y[j] - 0.5)
+      )
+    }
+  }
+
+  cat("Beta surface range:", range(beta_surface), "\n")
+
+  # Step 2: Generate functional predictor surfaces
+  surfaces <- vector("list", n)
+  noisy_surfaces <- vector("list", n)
+  stochastic_components <- matrix(nrow = n, ncol = 2,
+                                  dimnames = list(NULL, c("a1", "a2")))
+  functional_effects <- numeric(n)
+
+  group1_size <- round(n * target_prop)
+  group_assignment <- c(rep(1, group1_size), rep(2, n - group1_size))
+  group_assignment <- sample(group_assignment)
+
+  for(i in 1:n) {
+    # Generate coefficients based on group membership
+    if(group_assignment[i] == 1) {
+      # Group 1: positive correlation with beta surface
+      a1 <- rnorm(1, 1.5, 0.3)
+      a2 <- rnorm(1, 1.2, 0.3)
+    } else {
+      # Group 2: negative correlation with beta surface
+      a1 <- rnorm(1, -1.2, 0.3)
+      a2 <- rnorm(1, -1.0, 0.3)
+    }
+
+    stochastic_components[i, ] <- c(a1, a2)
+
+    # Generate surface using matching basis functions
+    true_surface <- matrix(nrow = length(x), ncol = length(y))
+    for(ii in seq_along(x)) {
+      for(jj in seq_along(y)) {
+        true_surface[ii, jj] <-
+          a1 * sin(2*pi*x[ii]) +                    # Matches beta's sin component
+          a2 * cos(2*pi*y[jj]) +                    # Matches beta's cos component
+          0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) +    # Matches beta's interaction
+          2.0                                        # Baseline level
+
+        ## THIS ONE IS TO USE WITH THE double_integral() FUNCTION
+        # true_surface[ii, jj] <-
+        #   a1 * (sin(2*pi*x[ii]) + 1) +                    # Shift to positive
+        #   a2 * (cos(2*pi*y[jj]) + 1) +                    # Shift to positive
+        #   0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) +
+        #   2.0
+      }
+    }
+
+    surfaces[[i]] <- true_surface
+
+    # Add noise proportional to surface variation
+    surface_sd <- sd(as.vector(true_surface))
+    noise_matrix <- matrix(rnorm(length(x) * length(y), 0, noise_sd * surface_sd),
+                           length(x), length(y))
+    noisy_surfaces[[i]] <- true_surface + noise_matrix
+
+    # Compute functional effect (integral)
+    integrand <- true_surface * beta_surface
+    functional_effects[i] <- mean(integrand) * (max(x) - min(x)) * (max(y) - min(y))
+    # functional_effects[i] <- double_integral(integrand, x, y)
+  }
+
+  cat("Functional effects range:", range(functional_effects), "\n")
+  cat("Functional effects std:", sd(functional_effects), "\n")
+
+  # Step 3: Generate response based on type
+  if(response_type == "binomial") {
+    # Binomial response using functional effects
+    # scaled_effects <- scale(functional_effects)[,1] * 1.5
+    scaled_effects <- functional_effects
+
+    probabilities <- plogis(qlogis(target_prop) + scaled_effects)
+    response <- rbinom(n, 1, probabilities)
+
+    cat("Response proportion:", mean(response), "\n")
+    final_intercept <- qlogis(target_prop)
+
+  } else {
+    # Gaussian response
+    rsq <- 0.95
+    var_e <- (1 / rsq - 1) * var(functional_effects)
+    response <- intercept + functional_effects + rnorm(n, 0, sqrt(var_e))
+
+    cat("Response range:", range(response), "\n")
+    cat("Response mean:", mean(response), "\n")
+    final_intercept <- intercept
+  }
+
+  noisy_surfaces_miss <- add_miss2(
+    noisy_surfaces,
+    n_missing,
+    min_distance_x,
+    min_distance_y
+  )
+
+
+  # Step 4: Create data structure matching data_generator_po_2d output
+  simulation_data <- list(
+    # Core surfaces (same format as original)
+    surfaces = surfaces,
+    noisy_surfaces = noisy_surfaces,
+    noisy_surfaces_miss = noisy_surfaces_miss[[1]],
+
+
+    # Missing data structures (empty for now)
+    miss_points = noisy_surfaces_miss[[2]],
+    missing_points = noisy_surfaces_miss[[3]],
+
+    # Response and parameters
+    response = response,
+    intercept = final_intercept,
+
+    # Grid information (matching original naming)
+    points_x = x,
+    points_y = y,
+
+    # True parameters
+    beta = beta_surface,
+    stochastic_components = stochastic_components,
+
+    # Additional information
+    functional_effects = functional_effects,
+    group_assignment = group_assignment,
+    response_type = response_type,
+    signal_strength = signal_strength
+  )
+
+  # Step 5: Diagnostics
+  if(response_type == "binomial") {
+    correlation <- cor(functional_effects, response)
+    simple_model <- glm(response ~ functional_effects, family = binomial())
+    simple_pred <- predict(simple_model, type = "response")
+
+    simple_auc <- tryCatch({
+      if(requireNamespace("pROC", quietly = TRUE)) {
+        as.numeric(pROC::auc(response, simple_pred, quiet = TRUE))
+      } else {
+        NA
+      }
+    }, error = function(e) NA)
+
+    cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
+    cat("Simple model AUC:", round(simple_auc, 3), "\n")
+
+    if(correlation > 0.3 && !is.na(simple_auc) && simple_auc > 0.7) {
+      cat("SUCCESS: Strong discriminative signal achieved!\n")
+    } else {
+      cat("WARNING: Signal may be insufficient\n")
+    }
+
+    simulation_data$diagnostics <- list(
+      correlation = correlation,
+      simple_auc = simple_auc
+    )
+  } else {
+    # Gaussian diagnostics
+    correlation <- cor(functional_effects, response)
+    cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
+
+    simulation_data$diagnostics <- list(
+      correlation = correlation,
+      r_squared = correlation^2
+    )
+  }
+
+  return(simulation_data)
 }
