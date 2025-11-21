@@ -1156,18 +1156,19 @@ data_generator_po_2d <- function(
     grid_y = 20,
     noise_sd = 0.015,
     rsq = 0.95,
-    intercept = 0.1,
-    beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
-    response_type = c("gaussian", "binomial"),
-    linear_predictor = c("integral","linear"),
-    a1 = NULL,
-    a2 = NULL,
-    sub_response = 50,
-    n_missing = 1,
-    min_distance_x = NULL,
-    min_distance_y = NULL) {
+  intercept = 0.1,
+  beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
+  response_type = c("gaussian", "binomial"),
+  linear_predictor = c("integral","linear"),
+  a1 = NULL,
+  a2 = NULL,
+  sub_response = 50,
+  n_missing = 1,
+  min_distance_x = NULL,
+  min_distance_y = NULL) {
   beta_type <- match.arg(beta_type)
   response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   # Validate a1 and a2 parameters
   if (!is.null(a1) && is.null(a2) || is.null(a1) && !is.null(a2)) {
