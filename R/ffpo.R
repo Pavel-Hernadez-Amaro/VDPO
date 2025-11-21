@@ -30,10 +30,14 @@
 #' Varying observation points introduce complexity, as each covariate might be
 #' sampled at different time instances.
 #'
+#' If \code{missing_points} is \code{NULL}, they are inferred from \code{NA}
+#' locations in \code{X}.
+#'
 #' @seealso \code{\link{add_grid}}
 #'
-#' @export
-ffpo_old <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
+#' @keywords internal
+#' @noRd
+.ffpo_legacy <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
   if (!is.matrix(X)) {
     stop("argument 'X' should be a matrix", call. = FALSE)
   }
@@ -204,6 +208,8 @@ ffpo_old <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bd
 #' \code{FALSE} (1-dimensional). See also 'Details'.
 #' @param nbasis number of basis to be used.
 #' @param bdeg degree of the basis to be used.
+#' @param version Choose the `"current"` (default) or `"legacy"` implementation. The
+#'   legacy version matches the previous \code{ffpo_old()} behavior.
 #'
 #' @return the function is interpreted in the formula of a \code{VDPO} model.
 #' \code{list} containing the following elements:
@@ -227,9 +233,25 @@ ffpo_old <- function(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bd
 #' @seealso \code{\link{add_grid}}
 #'
 #' @export
-ffpo <- function(X, missing_points, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3)) {
+ffpo <- function(X, missing_points = NULL, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3), version = c("current", "legacy")) {
+  version <- match.arg(version)
+
+  if (version == "legacy") {
+    return(.ffpo_legacy(
+      X = X,
+      grid = grid,
+      bidimensional_grid = bidimensional_grid,
+      nbasis = nbasis,
+      bdeg = bdeg
+    ))
+  }
+
   if (!is.matrix(X)) {
     stop("argument 'X' should be a matrix", call. = FALSE)
+  }
+
+  if (is.null(missing_points)) {
+    missing_points <- lapply(seq_len(nrow(X)), function(i) which(is.na(X[i, ])))
   }
 
   if (!bidimensional_grid) {

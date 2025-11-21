@@ -339,8 +339,9 @@ add_miss1d_end <- function(X, n_missing = 1, min_distance = 5) {
 #' # Generate data with low R-squared value
 #' data <- data_generator_po_1d(n = 2, rsq = 0.8)
 #'
-#' @export
-data_generator_po_1d_old <- function(
+#' @keywords internal
+#' @noRd
+.data_generator_po_1d_legacy <- function(
     n = 100,
     grid_points = 100,
     noise_sd = 0.25,
@@ -357,6 +358,8 @@ data_generator_po_1d_old <- function(
 
   beta_type <- match.arg(beta_type)
   beta_type_2 <- match.arg(beta_type_2)
+  response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   if (is.null(min_distance)) {
     min_distance <- round(1 / 5 * grid_points)
@@ -695,73 +698,31 @@ data_generator_po_1d_old <- function(
 }
 
 
-#' Generate 1D functional data for simulation studies
+#' Generate 1D functional data (current or legacy)
 #'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses trapezoidal rule for integration.
+#' Provides the current 1D generator while keeping access to the previous
+#' implementation via \code{version = "legacy"} for reproducibility.
 #'
-#' @param n Number of samples to generate
-#' @param grid_points Number of points in the grid. Default is 100
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015
-#' @param rsq Desired R-squared value for the response. Default is 0.95
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin"
-#' @param n_missing Number of missing segments per curve. Default is 1
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated)
+#' @param n Number of samples to generate.
+#' @param grid_points Number of points in the grid.
+#' @param noise_sd Standard deviation of measurement noise.
+#' @param center Whether to mean-center each curve.
+#' @param rsq Desired R-squared value for the response.
+#' @param mu Intercept term added to the linear predictor.
+#' @param univariate If \code{TRUE}, generate a single functional predictor; otherwise generate two.
+#' @param response_type Response distribution ("gaussian" or "binomial").
+#' @param linear_predictor Integration approach for the linear predictor ("rectangular", "trapezoidal", or "linear").
+#' @param n_missing Number of missing segments per curve.
+#' @param min_distance Minimum length of missing segments (defaults to one fifth of the grid length).
+#' @param version Choose \code{"current"} (default) or \code{"legacy"} implementation.
+#' @param ... Additional arguments forwarded to the legacy implementation.
 #'
-#' @return A list containing:
-#' \itemize{
-#'   \item curves: List of n true (noiseless) curves
-#'   \item noisy_curves: List of n observed (noisy) curves
-#'   \item noisy_curves_miss: List containing curves with missing values
-#'   \item response: Vector of n response values
-#'   \item grid: Grid points
-#'   \item beta: True coefficient function
-#'   \item stochastic_components: Vector of a values used for each curve
-#' }
-#' Generate 1D Functional Data for Simulation Studies
-#'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses the trapezoidal rule for numerical integration.
-#'
-#' @param n Number of samples to generate. Default is 100.
-#' @param grid_points Number of points in the grid. Default is 100.
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
-#' @param rsq Desired R-squared value for the response. Default is 0.95.
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin".
-#' @param n_missing Number of missing segments per curve. Default is 1.
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated).
-#'
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
-#'   \item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
-#'   \item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
-#'   \item \code{miss_points}: Indices of the missing segments in the noisy curves.
-#'   \item \code{missing_points}: Details of the missing segments for each curve.
-#'   \item \code{response}: Vector of \code{n} response values.
-#'   \item \code{grid}: Grid points on which the curves are defined.
-#'   \item \code{beta}: Coefficient function applied to the curves.
-#'   \item \code{stochastic_components}: List of stochastic coefficients used for each curve.
-#' }
+#' @return A list containing simulated curves (noisy and noiseless), missing point indices,
+#'   the coefficient functions, and the generated response.
 #'
 #' @examples
-#' # Generate basic 1D functional data with default parameters
 #' data <- data_generator_po_1d(n = 10)
-#'
-#' # Generate data with a Gaussian-shaped coefficient function
-#' data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
-#'
-#' # Generate data with higher grid resolution
-#' data <- data_generator_po_1d(n = 2, grid_points = 200)
-#'
-#' # Generate data with larger measurement noise
-#' data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
-#'
-#' # Introduce missing segments in the curves
-#' data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
-#'
-#' # Generate data with low R-squared value
-#' data <- data_generator_po_1d(n = 2, rsq = 0.8)
+#' data_legacy <- data_generator_po_1d(n = 10, version = "legacy", beta_type = "trig")
 #'
 #' @export
 data_generator_po_1d <- function(
@@ -775,7 +736,44 @@ data_generator_po_1d <- function(
     response_type = c("gaussian","binomial"),
     linear_predictor = c("rectangular", "trapezoidal","linear"),
     n_missing = 1,
-    min_distance = NULL) {
+    min_distance = NULL,
+    version = c("current", "legacy"),
+    ...) {
+
+  version <- match.arg(version)
+  dots <- list(...)
+
+  if (version == "legacy") {
+    response_type_legacy <- match.arg(response_type[1], c("gaussian", "binomial"))
+    lp_choice <- linear_predictor[1]
+    if (!lp_choice %in% c("integral", "linear")) {
+      lp_choice <- "integral"
+    }
+    linear_predictor_legacy <- lp_choice
+
+    legacy_args <- modifyList(list(
+      n = n,
+      grid_points = grid_points,
+      noise_sd = noise_sd,
+      center = center,
+      rsq = rsq,
+      mu = mu,
+      univariate = univariate,
+      response_type = response_type_legacy,
+      linear_predictor = linear_predictor_legacy,
+      n_missing = n_missing,
+      min_distance = min_distance
+    ), dots)
+
+    return(do.call(.data_generator_po_1d_legacy, legacy_args))
+  }
+
+  if (length(dots) > 0) {
+    warning("unused arguments ignored for current version: ", paste(names(dots), collapse = ", "))
+  }
+
+  response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   if (is.null(min_distance)) {
     min_distance <- round(1 / 5 * grid_points)
@@ -1113,8 +1111,10 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #' @param grid_y Number of points in y-axis grid. Default is 20.
 #' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
 #' @param rsq Desired R-squared value for the response. Default is 0.95.
+#' @param intercept Intercept added to the linear predictor (or target logit for binomial responses).
 #' @param beta_type Type of coefficient surface ("saddle" or "exp"). Default is "saddle".
 #' @param response_type Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".
+#' @param linear_predictor Integration approach for the linear predictor ("integral" or "linear").
 #' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided.
 #' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided.
 #' @param sub_response Number of intervals for Simpson integration. Default is 50.
@@ -1600,9 +1600,9 @@ double_integral <- function(integrand, x, y) {
 #' The adjustment formula is:
 #' \code{adjustment = (qlogis(target_prop) - qlogis(achieved_prop)) * damping_factor}
 #'
-#' This approach works in log-odds space to prevent probabilities from exceeding [0,1]
-#' bounds and provides robust control over response proportions in functional regression
-#' simulation studies.
+#' This approach works in log-odds space to prevent probabilities from exceeding
+#' the unit interval and provides robust control over response proportions in
+#' functional regression simulation studies.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1634,6 +1634,7 @@ double_integral <- function(integrand, x, y) {
 #'
 #' @seealso \code{\link{data_generator_po_2d}} for using this function in 2D functional
 #'   data simulation.
+#' @export
 adjust_proportion <- function(target_prop, functional_effects,
                               max_iter = 15, tolerance = 0.03, verbose = FALSE) {
 
@@ -1789,14 +1790,11 @@ adjust_proportion <- function(target_prop, functional_effects,
 #' @param grid_y Number of points in y-axis grid
 #' @param intercept Target proportion for binomial or intercept for Gaussian
 #' @param noise_sd Standard deviation of measurement noise
-#' @param beta_type Type of coefficient surface (kept for compatibility)
 #' @param response_type Type of response ("binomial" or "gaussian")
 #' @param signal_strength Strength of discriminative signal (default 2.5)
 #' @param n_missing Not used (kept for compatibility)
 #' @param min_distance_x Not used (kept for compatibility)
 #' @param min_distance_y Not used (kept for compatibility)
-#' @param linear_predictor Not used (kept for compatibility)
-#' @param sub_response Not used (kept for compatibility)
 #'
 #' @return A list containing simulated data with same structure as data_generator_po_2d
 

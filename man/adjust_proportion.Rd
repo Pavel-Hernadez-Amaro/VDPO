@@ -55,9 +55,9 @@ The function works by:
 The adjustment formula is:
 \code{adjustment = (qlogis(target_prop) - qlogis(achieved_prop)) * damping_factor}
 
-This approach works in log-odds space to prevent probabilities from exceeding \link{0,1}
-bounds and provides robust control over response proportions in functional regression
-simulation studies.
+This approach works in log-odds space to prevent probabilities from exceeding
+the unit interval and provides robust control over response proportions in
+functional regression simulation studies.
 }
 \examples{
 # Basic usage with simulated functional effects

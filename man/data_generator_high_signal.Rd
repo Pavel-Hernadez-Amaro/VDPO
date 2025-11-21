@@ -37,12 +37,6 @@ data_generator_high_signal(
 \item{min_distance_x}{Not used (kept for compatibility)}
 
 \item{min_distance_y}{Not used (kept for compatibility)}
-
-\item{beta_type}{Type of coefficient surface (kept for compatibility)}
-
-\item{linear_predictor}{Not used (kept for compatibility)}
-
-\item{sub_response}{Not used (kept for compatibility)}
 }
 \value{
 A list containing simulated data with same structure as data_generator_po_2d

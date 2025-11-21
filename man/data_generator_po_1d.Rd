@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_generator.R
 \name{data_generator_po_1d}
 \alias{data_generator_po_1d}
-\title{Generate 1D functional data for simulation studies}
+\title{Generate 1D functional data (current or legacy)}
 \usage{
 data_generator_po_1d(
   n = 100,
@@ -15,74 +15,48 @@ data_generator_po_1d(
   response_type = c("gaussian", "binomial"),
   linear_predictor = c("rectangular", "trapezoidal", "linear"),
   n_missing = 1,
-  min_distance = NULL
+  min_distance = NULL,
+  version = c("current", "legacy"),
+  ...
 )
 }
 \arguments{
-\item{n}{Number of samples to generate. Default is 100.}
+\item{n}{Number of samples to generate.}
 
-\item{grid_points}{Number of points in the grid. Default is 100.}
+\item{grid_points}{Number of points in the grid.}
 
-\item{noise_sd}{Standard deviation of measurement noise. Default is 0.015.}
+\item{noise_sd}{Standard deviation of measurement noise.}
 
-\item{rsq}{Desired R-squared value for the response. Default is 0.95.}
+\item{center}{Whether to mean-center each curve.}
 
-\item{n_missing}{Number of missing segments per curve. Default is 1.}
+\item{rsq}{Desired R-squared value for the response.}
 
-\item{min_distance}{Minimum length of missing segments. Default is NULL (auto-calculated).}
+\item{mu}{Intercept term added to the linear predictor.}
 
-\item{beta_type}{Type of coefficient function ("sin" or "gaussian"). Default is "sin".}
+\item{univariate}{If \code{TRUE}, generate a single functional predictor; otherwise generate two.}
+
+\item{response_type}{Response distribution ("gaussian" or "binomial").}
+
+\item{linear_predictor}{Integration approach for the linear predictor ("rectangular", "trapezoidal", or "linear").}
+
+\item{n_missing}{Number of missing segments per curve.}
+
+\item{min_distance}{Minimum length of missing segments (defaults to one fifth of the grid length).}
+
+\item{version}{Choose \code{"current"} (default) or \code{"legacy"} implementation.}
+
+\item{...}{Additional arguments forwarded to the legacy implementation.}
 }
 \value{
-A list containing:
-\itemize{
-\item curves: List of n true (noiseless) curves
-\item noisy_curves: List of n observed (noisy) curves
-\item noisy_curves_miss: List containing curves with missing values
-\item response: Vector of n response values
-\item grid: Grid points
-\item beta: True coefficient function
-\item stochastic_components: Vector of a values used for each curve
-}
-Generate 1D Functional Data for Simulation Studies
-
-Creates synthetic 1D functional data with optional noise components and different
-coefficient patterns. Uses the trapezoidal rule for numerical integration.
-
-A list containing:
-\itemize{
-\item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
-\item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
-\item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
-\item \code{miss_points}: Indices of the missing segments in the noisy curves.
-\item \code{missing_points}: Details of the missing segments for each curve.
-\item \code{response}: Vector of \code{n} response values.
-\item \code{grid}: Grid points on which the curves are defined.
-\item \code{beta}: Coefficient function applied to the curves.
-\item \code{stochastic_components}: List of stochastic coefficients used for each curve.
-}
+A list containing simulated curves (noisy and noiseless), missing point indices,
+the coefficient functions, and the generated response.
 }
 \description{
-Creates synthetic 1D functional data with optional noise components and different
-coefficient patterns. Uses trapezoidal rule for integration.
+Provides the current 1D generator while keeping access to the previous
+implementation via \code{version = "legacy"} for reproducibility.
 }
 \examples{
-# Generate basic 1D functional data with default parameters
 data <- data_generator_po_1d(n = 10)
-
-# Generate data with a Gaussian-shaped coefficient function
-data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
-
-# Generate data with higher grid resolution
-data <- data_generator_po_1d(n = 2, grid_points = 200)
-
-# Generate data with larger measurement noise
-data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
-
-# Introduce missing segments in the curves
-data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
-
-# Generate data with low R-squared value
-data <- data_generator_po_1d(n = 2, rsq = 0.8)
+data_legacy <- data_generator_po_1d(n = 10, version = "legacy", beta_type = "trig")
 
 }

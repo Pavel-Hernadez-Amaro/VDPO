@@ -33,9 +33,13 @@ data_generator_po_2d(
 
 \item{rsq}{Desired R-squared value for the response. Default is 0.95.}
 
+\item{intercept}{Intercept added to the linear predictor (or target logit for binomial responses).}
+
 \item{beta_type}{Type of coefficient surface ("saddle" or "exp"). Default is "saddle".}
 
 \item{response_type}{Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".}
+
+\item{linear_predictor}{Integration approach for the linear predictor ("integral" or "linear").}
 
 \item{a1}{Optional fixed value for first stochastic component. If provided, a2 must also be provided.}
 
