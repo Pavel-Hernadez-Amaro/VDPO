@@ -388,10 +388,12 @@ f <- utils::getFromNamespace("f", "SOP")
 #'
 #' @noRd
 vec <- function(x, byrow = FALSE) {
-  if (is.vector(x))
+  if (is.vector(x)) {
     return(x)
-  if (byrow)
+  }
+  if (byrow) {
     x <- t(x)
+  }
   d <- ncol(x)
   vecx <- vector()
   for (j in 1:d) vecx <- c(vecx, x[, j])
@@ -403,20 +405,24 @@ vec <- function(x, byrow = FALSE) {
 #' @references All credits to the \href{https://cran.r-project.org/web/packages/ks/index.html}{ks} package authors.
 #'
 #' @noRd
-invvec <- function (x, ncol, nrow, byrow = FALSE) {
-  if (length(x) == 1)
+invvec <- function(x, ncol, nrow, byrow = FALSE) {
+  if (length(x) == 1) {
     return(x)
+  }
   d <- sqrt(length(x))
   if (missing(ncol) | missing(nrow)) {
     ncol <- d
     nrow <- d
-    if (round(d) != d)
+    if (round(d) != d) {
       stop("Need to specify nrow and ncol for non-square matrices")
+    }
   }
   invvecx <- matrix(0, nrow = nrow, ncol = ncol)
-  if (byrow)
+  if (byrow) {
     for (j in 1:nrow) invvecx[j, ] <- x[c(1:ncol) + (j - 1) * ncol]
-  else for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j - 1) * nrow]
+  } else {
+    for (j in 1:ncol) invvecx[, j] <- x[c(1:nrow) + (j - 1) * nrow]
+  }
   return(invvecx)
 }
 

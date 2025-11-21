@@ -1,4 +1,3 @@
-
 #' Defining partially observed bidimensional functional data terms in VDPO formulae
 #'
 #' Auxiliary function used to define \code{ffpo_2d} terms within \code{VDPO} model
@@ -36,7 +35,7 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
   for (i in 2:length(X)) {
     if (all(dim(X[[1]]) != dim(X[[i]]))) {
       stop("all matrices inside 'X_miss' should have the same dimensions",
-           call. = FALSE
+        call. = FALSE
       )
     }
   }
@@ -179,8 +178,8 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
 
     aux_22 <-
       B2XZG_2d(I %*% B_kron_model,
-               pord = c(2, 2),
-               c = c(c1, c2)
+        pord = c(2, 2),
+        c = c(c1, c2)
       )
 
     aux_33 <-
@@ -196,14 +195,15 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
 
     X_hat[[j]] <-
       matrix(t(aux_33$theta) %*% t(B_kron_model),
-             nrow = x_b,
-             ncol = y_b
+        nrow = x_b,
+        ncol = y_b
       )
 
-    if(!is.null(missing_points[[j]])){
-    for (aux in 1:dim(missing_points[[j]])[1]) {
-      X_hat[[j]][missing_points[[j]][aux, 1], missing_points[[j]][aux, 2]] <- NA
-    }}
+    if (!is.null(missing_points[[j]])) {
+      for (aux in 1:dim(missing_points[[j]])[1]) {
+        X_hat[[j]][missing_points[[j]][aux, 1], missing_points[[j]][aux, 2]] <- NA
+      }
+    }
     # plotly::plot_ly(z = X_hat[[1]], type = "surface")
 
     # HERE BEGINS THE DOUBLE INTEGRAL
@@ -345,7 +345,7 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
     # all.equal(Inner_matrix_WO[(c1*c2*(j-1)+1):(c1*c2*j),],(aux_apperm))
     # all.equal(Inner_matrix_WO[(c1*c2*(j-1)+1):(c1*c2*j),],(aux_GLAM_apperm))
 
-    Inner_matrix[(c1 * c2 * (j - 1) + 1):(c1 * c2 * j), ] <- aux_GLAM_apperm#/max(x_b,y_b)#/min(c((x_b*y_b)-nrow(missing_points[[1]]),x_b*y_b))
+    Inner_matrix[(c1 * c2 * (j - 1) + 1):(c1 * c2 * j), ] <- aux_GLAM_apperm # /max(x_b,y_b)#/min(c((x_b*y_b)-nrow(missing_points[[1]]),x_b*y_b))
   }
 
   B_ffpo2d <- A %*% Inner_matrix
@@ -354,7 +354,7 @@ ffpo_2d <- function(X, miss_points, missing_points, nbasis = rep(15, 4), bdeg = 
     B_ffpo2d = B_ffpo2d,
     A = A,
     Inner_matrix = Inner_matrix,
-    X_hat=X_hat,
+    X_hat = X_hat,
     Phi_ffpo2d = B_kron_beta,
     M_ffpo2d = missing_points,
     nbasis = nbasis
@@ -434,21 +434,21 @@ B2XZG_2d <- function(B, pord = c(2, 2), c = c(10, 10)) {
   ####
 
   list(
-    X    = X,
-    Z    = Z,
-    G    = G,
-    TMatrix    = TMatrix,
-    d1   = d1,
-    d2   = d2,
-    D_1  = D_1,
-    D_2  = D_2,
+    X = X,
+    Z = Z,
+    G = G,
+    TMatrix = TMatrix,
+    d1 = d1,
+    d2 = d2,
+    D_1 = D_1,
+    D_2 = D_2,
     U_1n = U_1n,
     U_1s = U_1s,
     U_2n = U_2n,
     U_2s = U_2s,
-    T_n  = T_n,
-    T_s  = T_s,
-    t_1  = t_1,
-    t_2  = t_2
+    T_n = T_n,
+    T_s = T_s,
+    t_1 = t_1,
+    t_2 = t_2
   )
 }

@@ -78,7 +78,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
   names(evals) <- terms
 
   # nf <- sum(grepl("\\bf\\(\\b", names(evals)))
-  nffpo    <- sum(grepl("\\bffpo\\(\\b", names(evals)))
+  nffpo <- sum(grepl("\\bffpo\\(\\b", names(evals)))
   # nffpo_2d <- sum(grepl("\\bffpo_2d\\(\\b", names(evals)))
 
   if (nffpo == 0) {

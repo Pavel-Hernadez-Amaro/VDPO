@@ -43,20 +43,26 @@ test_that("po_2d_fit throws appropriate errors for invalid inputs", {
   )
 
   expect_error(
-    po_2d_fit(response ~ ffpo_2d(
-      X = data_2d_internal$noisy_surfaces_miss,
-      miss_points = data_2d_internal$miss_points,
-      missing_points = data_2d_internal$missing_points),
-      data = c()),
+    po_2d_fit(
+      response ~ ffpo_2d(
+        X = data_2d_internal$noisy_surfaces_miss,
+        miss_points = data_2d_internal$miss_points,
+        missing_points = data_2d_internal$missing_points
+      ),
+      data = c()
+    ),
     regexp = "the 'data' argument should be a list"
   )
 
   expect_error(
-    po_2d_fit(response ~ ffpo_2d(
-      X = data_2d_internal$noisy_surfaces_miss,
-      miss_points = data_2d_internal$miss_points,
-      missing_points = data_2d_internal$missing_points),
-      data = list(response = c(1))),
+    po_2d_fit(
+      response ~ ffpo_2d(
+        X = data_2d_internal$noisy_surfaces_miss,
+        miss_points = data_2d_internal$miss_points,
+        missing_points = data_2d_internal$missing_points
+      ),
+      data = list(response = c(1))
+    ),
     regexp = "'data' should have at least a response and a covariate"
   )
 })

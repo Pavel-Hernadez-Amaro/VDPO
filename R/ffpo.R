@@ -121,7 +121,6 @@
   res <- matrix(nrow = N, ncol = c2)
 
   for (i in 1:N) {
-
     # po_weights <- ifelse(is_grid_matrix, M[i], M[i,2]-M[i,1]+1)
 
     aux_knots <- if (!is_grid_matrix) M[i, 1]:M[i, 2] else which(grid_all %in% grid[i, ])
@@ -294,11 +293,10 @@ ffpo <- function(X, missing_points = NULL, grid, bidimensional_grid = FALSE, nba
   L_X <- bspline(grid, XL, XR, c, bdeg[1])
 
   for (i in 1:N) {
+    response_x <- X[i, ]
 
-    response_x <- X[i,]
-
-    I <- diag(nrow=nrow(L_X$B),ncol=nrow(L_X$B))
-    I[missing_points[[i]],]=0
+    I <- diag(nrow = nrow(L_X$B), ncol = nrow(L_X$B))
+    I[missing_points[[i]], ] <- 0
 
     # Estimating the data coefficients (Matrix A)
 
@@ -336,7 +334,6 @@ ffpo <- function(X, missing_points = NULL, grid, bidimensional_grid = FALSE, nba
   #
 
   for (i in 1:N) {
-
     # INTEGRATE IN THE FULL DOMAIN BY USING ALL THE KNOTS
 
     w <- seq_along(x)
@@ -347,10 +344,10 @@ ffpo <- function(X, missing_points = NULL, grid, bidimensional_grid = FALSE, nba
     # ADDING 0's TO THE WEIGHTS TO ONLY INTEGRATE IN THE OBSERVED DOMAIN
     #####
     if (!is_grid_matrix) {
-      zero_pos <- intersect(which(head(grid[missing_points[[i]]],1) <= x), which(x <= tail(grid[missing_points[[i]]],1)))
-      aux_1[zero_pos]<- 0
+      zero_pos <- intersect(which(head(grid[missing_points[[i]]], 1) <= x), which(x <= tail(grid[missing_points[[i]]], 1)))
+      aux_1[zero_pos] <- 0
     } else {
-      zero_pos <- intersect(which(head(grid[i,missing_points[[i]]],1) <= x), which(x <= tail(grid[i,missing_points[[i]]],1)))
+      zero_pos <- intersect(which(head(grid[i, missing_points[[i]]], 1) <= x), which(x <= tail(grid[i, missing_points[[i]]], 1)))
       aux_1[zero_pos] <- 0
     }
 
