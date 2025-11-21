@@ -121,7 +121,7 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     stop("please use the 'lm' function from the 'stats' package", call. = TRUE)
   }
 
-  X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
+  X <- as.matrix(cbind(rep(1, length.out = nrow(X)), X))
 
   if (is.null(offset)) {
     nobs <- length(data[[response]])

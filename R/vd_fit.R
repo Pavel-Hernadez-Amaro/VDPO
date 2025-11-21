@@ -233,7 +233,7 @@ vd_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     stop("please use the 'lm' function from the 'stats' package", call. = TRUE)
   }
 
-  X <- as.matrix(cbind(rep(1, lenght = nrow(X)), X))
+  X <- as.matrix(cbind(rep(1, length.out = nrow(X)), X))
 
   G <- add_zeros_to_G(G, nf, ncol(Z))
 
