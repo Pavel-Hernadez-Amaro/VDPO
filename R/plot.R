@@ -71,12 +71,22 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
 #' @return A `ggplot2` object displaying the Beta estimates and confidence intervals for the specified curves.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   # Assuming `model_object` is an object of class 'vd_fit'
-#'   plot_functional_curves_combined(model_object, beta = 1, curves = c(50, 70, 100))
+#'   # set seed for reproducibility
+#'   set.seed(42)
+#'
+#'   # generate variable domain functional data and fit the model
+#'   data <- data_generator_vd(N = 100, J = 100, beta_index = 1)
+#'   res <- vd_fit(y ~ ffvd(X_se, nbasis = c(10, 10, 10)), data = data)
+#'
+#'   # plot the estimated coefficient and its confidence intervals
+#'   # for a selection of curves
+#'   plot_ci(res, beta_index = 1, curves = c(50, 70, 100))
 #' }
 #' }
+#'
+#' @seealso \code{\link{vd_fit}}
 #'
 #' @export
 plot_ci <- function(object, beta_index = 1, curves) {
@@ -84,7 +94,7 @@ plot_ci <- function(object, beta_index = 1, curves) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
 
-  if (beta_index < 1 || beta_index > length(x$M)) {
+  if (beta_index < 1 || beta_index > length(object$M)) {
     stop(
       "'beta_index' should be between 1 and the number of variable domain
          functional variables used in the formula",
@@ -93,7 +103,7 @@ plot_ci <- function(object, beta_index = 1, curves) {
   }
 
   # Bindings for global variables
-  x <- NULL
+  t <- NULL
   Domain <- NULL
   lower <- NULL
   upper <- NULL

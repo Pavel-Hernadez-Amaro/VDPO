@@ -23,11 +23,22 @@ from the provided object. The resulting plot includes estimated curves, confiden
 distinguishing the curves.
 }
 \examples{
-\dontrun{
+\donttest{
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  # Assuming `model_object` is an object of class 'vd_fit'
-  plot_functional_curves_combined(model_object, beta = 1, curves = c(50, 70, 100))
+  # set seed for reproducibility
+  set.seed(42)
+
+  # generate variable domain functional data and fit the model
+  data <- data_generator_vd(N = 100, J = 100, beta_index = 1)
+  res <- vd_fit(y ~ ffvd(X_se, nbasis = c(10, 10, 10)), data = data)
+
+  # plot the estimated coefficient and its confidence intervals
+  # for a selection of curves
+  plot_ci(res, beta_index = 1, curves = c(50, 70, 100))
 }
 }
 
+}
+\seealso{
+\code{\link{vd_fit}}
 }
