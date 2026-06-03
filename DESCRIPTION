@@ -1,6 +1,6 @@
 Package: VDPO
 Title: Working with and Analyzing Functional Data of Varying Lengths
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person(given = "Pavel", family = "Hernandez", role = c("aut", "cre"),
            email = "pavel.amaro96@gmail.com"),
@@ -27,12 +27,12 @@ Imports:
     SOP,
     splines,
     stats,
-    fda
+    fda,
+    pROC
 Suggests:
     ggplot2,
     knitr,
     RColorBrewer,
-    pROC,
     rmarkdown,
     testthat (>= 3.0.0)
 Roxygen: list(markdown = TRUE)
