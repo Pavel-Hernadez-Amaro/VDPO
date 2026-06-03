@@ -13,7 +13,7 @@ test_that("po_2d_fit handles basic case correctly", {
 
   expect_s3_class(res_po_2d, "po_2d_fit")
   expect_type(res_po_2d, "list")
-  expect_named(res_po_2d, c("fit", "theta", "ffpo_2d_evals"))
+  expect_named(res_po_2d, c("fit", "Beta", "intercept", "theta", "covar_theta", "M", "ffpo_2d_evals"))
 
   expect_true(attr(res_po_2d, "N") > 0)
 })

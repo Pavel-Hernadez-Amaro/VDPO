@@ -10,7 +10,7 @@ test_that("po_fit handles basic case correctly", {
 
   expect_s3_class(res_po, "po_fit")
   expect_type(res_po, "list")
-  expect_named(res_po, c("fit", "intercept", "theta", "ffpo_evals"))
+  expect_named(res_po, c("fit", "Beta", "intercept", "theta", "covar_theta", "M", "ffpo_evals"))
 
   expect_true(attr(res_po, "N") > 0)
 })
