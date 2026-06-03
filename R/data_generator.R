@@ -1717,8 +1717,8 @@ adjust_proportion <- function(target_prop, functional_effects,
 #' @param min_distance_y Not used (kept for compatibility)
 #'
 #' @return A list containing simulated data with same structure as data_generator_po_2d
-
-#' @export
+#'
+#' @noRd
 data_generator_high_signal <- function(n = 100,
                                        grid_x = 20,
                                        grid_y = 20,
