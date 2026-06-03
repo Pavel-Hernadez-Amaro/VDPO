@@ -80,7 +80,6 @@ plot.vd_fit <- function(x, beta_index = 1, ...) {
 #'
 #' @export
 plot_ci <- function(object, beta_index = 1, curves) {
-
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("package 'ggplot2' is required for this functionality", call. = FALSE)
   }
@@ -116,9 +115,9 @@ plot_ci <- function(object, beta_index = 1, curves) {
     x_seq <- seq_len(ncol(object$Beta[[beta_index]]))
     data.frame(
       t = x_seq,
-      estimated = object$Beta[[beta_index]][curve,],
-      lower = Beta_FFVD_inf[curve,],
-      upper = Beta_FFVD_sup[curve,],
+      estimated = object$Beta[[beta_index]][curve, ],
+      lower = Beta_FFVD_inf[curve, ],
+      upper = Beta_FFVD_sup[curve, ],
       Domain = paste("Domain:", curve)
     )
   })
@@ -131,23 +130,35 @@ plot_ci <- function(object, beta_index = 1, curves) {
   # Create the plot
   ggplot2::ggplot(plot_data, ggplot2::aes(x = t, group = Domain)) +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper, fill = Domain),
-                alpha = 0.2, na.rm = TRUE) +
+      alpha = 0.2, na.rm = TRUE
+    ) +
     ggplot2::geom_line(ggplot2::aes(y = estimated, color = Domain),
-              size = 1, linetype = "solid", na.rm = TRUE) +
+      size = 1, linetype = "solid", na.rm = TRUE
+    ) +
     ggplot2::geom_hline(yintercept = 0, linetype = "solid", color = "gray50", na.rm = TRUE) +
-    ggplot2::scale_color_manual(name = "Domains:",
-                       values = case_colors) +
-    ggplot2::scale_fill_manual(name = "Domains:",
-                      values = case_colors) +
-    ggplot2::labs(x = "t",
-         y = "Value") +
-    ggplot2::annotate("text", x = 50, y = 0.6,
-             label = "- Estimated",
-             size = 3, hjust = 0.5, color = "black") +
+    ggplot2::scale_color_manual(
+      name = "Domains:",
+      values = case_colors
+    ) +
+    ggplot2::scale_fill_manual(
+      name = "Domains:",
+      values = case_colors
+    ) +
+    ggplot2::labs(
+      x = "t",
+      y = "Value"
+    ) +
+    ggplot2::annotate("text",
+      x = 50, y = 0.6,
+      label = "- Estimated",
+      size = 3, hjust = 0.5, color = "black"
+    ) +
     ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "top",
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.box = "horizontal",
-          plot.title = ggplot2::element_blank(),
-          plot.subtitle = ggplot2::element_blank())
+    ggplot2::theme(
+      legend.position = "top",
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.box = "horizontal",
+      plot.title = ggplot2::element_blank(),
+      plot.subtitle = ggplot2::element_blank()
+    )
 }

@@ -245,13 +245,11 @@ add_miss1d_end <- function(X, n_missing = 1, min_distance = 5) {
 
   for (j in seq_along(missing_points)) {
     if (n_missing >= 1) {
-      if (j<floor(length(seq_along(missing_points))/2)) {
-
+      if (j < floor(length(seq_along(missing_points)) / 2)) {
         x_missing <- rep(1, n_missing)
-
-      }else{
+      } else {
         x_missing <- rep(n_points - min_distance + 1, n_missing)
-        }
+      }
 
 
       missing_ranges <- lapply(x_missing, function(x) x:(x + min_distance - 1))
@@ -271,92 +269,31 @@ add_miss1d_end <- function(X, n_missing = 1, min_distance = 5) {
 }
 
 
-#' Generate 1D functional data for simulation studies
+#' Legacy 1D functional data generator (internal)
 #'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses trapezoidal rule for integration.
+#' Internal legacy implementation retained for reproducibility and accessed via
+#' \code{data_generator_po_1d(version = "legacy")}.
 #'
-#' @param n Number of samples to generate
-#' @param grid_points Number of points in the grid. Default is 100
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015
-#' @param rsq Desired R-squared value for the response. Default is 0.95
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin"
-#' @param n_missing Number of missing segments per curve. Default is 1
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated)
-#'
-#' @return A list containing:
-#' \itemize{
-#'   \item curves: List of n true (noiseless) curves
-#'   \item noisy_curves: List of n observed (noisy) curves
-#'   \item noisy_curves_miss: List containing curves with missing values
-#'   \item response: Vector of n response values
-#'   \item grid: Grid points
-#'   \item beta: True coefficient function
-#'   \item stochastic_components: Vector of a values used for each curve
-#' }
-#' Generate 1D Functional Data for Simulation Studies
-#'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses the trapezoidal rule for numerical integration.
-#'
-#' @param n Number of samples to generate. Default is 100.
-#' @param grid_points Number of points in the grid. Default is 100.
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
-#' @param rsq Desired R-squared value for the response. Default is 0.95.
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin".
-#' @param n_missing Number of missing segments per curve. Default is 1.
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated).
-#'
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
-#'   \item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
-#'   \item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
-#'   \item \code{miss_points}: Indices of the missing segments in the noisy curves.
-#'   \item \code{missing_points}: Details of the missing segments for each curve.
-#'   \item \code{response}: Vector of \code{n} response values.
-#'   \item \code{grid}: Grid points on which the curves are defined.
-#'   \item \code{beta}: Coefficient function applied to the curves.
-#'   \item \code{stochastic_components}: List of stochastic coefficients used for each curve.
-#' }
-#'
-#' @examples
-#' # Generate basic 1D functional data with default parameters
-#' data <- data_generator_po_1d(n = 10)
-#'
-#' # Generate data with a Gaussian-shaped coefficient function
-#' data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
-#'
-#' # Generate data with higher grid resolution
-#' data <- data_generator_po_1d(n = 2, grid_points = 200)
-#'
-#' # Generate data with larger measurement noise
-#' data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
-#'
-#' # Introduce missing segments in the curves
-#' data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
-#'
-#' # Generate data with low R-squared value
-#' data <- data_generator_po_1d(n = 2, rsq = 0.8)
-#'
-#' @export
-data_generator_po_1d_old <- function(
+#' @keywords internal
+#' @noRd
+.data_generator_po_1d_legacy <- function(
     n = 100,
     grid_points = 100,
     noise_sd = 0.25,
     center = TRUE,
     rsq = 0.95,
     mu = 0.1,
-    beta_type = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
-    beta_type_2 = c("sin", "trig", "exp", "linear","quadratic", "cubic", "Wang"),
+    beta_type = c("sin", "trig", "exp", "linear", "quadratic", "cubic", "Wang"),
+    beta_type_2 = c("sin", "trig", "exp", "linear", "quadratic", "cubic", "Wang"),
     univariate = TRUE,
-    response_type = c("gaussian","binomial"),
-    linear_predictor = c("integral","linear"),
+    response_type = c("gaussian", "binomial"),
+    linear_predictor = c("integral", "linear"),
     n_missing = 1,
     min_distance = NULL) {
-
   beta_type <- match.arg(beta_type)
   beta_type_2 <- match.arg(beta_type_2)
+  response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   if (is.null(min_distance)) {
     min_distance <- round(1 / 5 * grid_points)
@@ -419,17 +356,17 @@ data_generator_po_1d_old <- function(
   # Helper function to generate curve with given parameters
   generate_curve_1 <- function(t, a1, a2, a3, noise_sd) {
     true_curve <- a1 * cos(1 * pi * t) +
-                  a2 * cos(3 * pi * t) +
-                  a3 * cos(5 * pi * t)
+      a2 * cos(3 * pi * t) +
+      a3 * cos(5 * pi * t)
 
 
     if (center == TRUE) {
-      sol=list(
+      sol <- list(
         curve_true = true_curve - mean(true_curve),
         curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
-    }else{
-      sol=list(
+    } else {
+      sol <- list(
         curve_true = true_curve,
         curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
@@ -439,17 +376,17 @@ data_generator_po_1d_old <- function(
 
   generate_curve_2 <- function(t, a1, a2, a3, noise_sd) {
     true_curve <- a1 * sin(1 * pi * t) +
-                  a2 * sin(3 * pi * t) +
-                  a3 * sin(5 * pi * t)
+      a2 * sin(3 * pi * t) +
+      a3 * sin(5 * pi * t)
 
 
     if (center == TRUE) {
-      sol=list(
+      sol <- list(
         curve_true = true_curve - mean(true_curve),
         curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
-    }else{
-      sol=list(
+    } else {
+      sol <- list(
         curve_true = true_curve,
         curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
@@ -460,17 +397,17 @@ data_generator_po_1d_old <- function(
   # Function to generate beta coefficients as in your original code
   generate_beta <- function(beta_type, t) {
     if (beta_type == "sin") {
-      2*sin(0.5*pi*(t))+4*sin(1.5*pi*(t))+5*sin(2.5*pi*(t))
-    } else if(beta_type == "trig") {
+      2 * sin(0.5 * pi * (t)) + 4 * sin(1.5 * pi * (t)) + 5 * sin(2.5 * pi * (t))
+    } else if (beta_type == "trig") {
       0.5 * sin(2 * pi * t) + 2 * cos(pi * t)
-    } else if(beta_type == "cubic") {
-      0.5*t^3
-    } else if(beta_type == "exp") {
+    } else if (beta_type == "cubic") {
+      0.5 * t^3
+    } else if (beta_type == "exp") {
       0.5 * exp(t)
-    } else if(beta_type == "linear") {
-      2*t
-    } else if(beta_type == "Wang") {
-      1+3*sqrt(2)*cos(2 * pi * t)
+    } else if (beta_type == "linear") {
+      2 * t
+    } else if (beta_type == "Wang") {
+      1 + 3 * sqrt(2) * cos(2 * pi * t)
     } else { # quadratic
       -t^2
     }
@@ -478,15 +415,14 @@ data_generator_po_1d_old <- function(
 
   # Function to scale a vector to a desired range
   scale_to_range <- function(vec) {
-
     # Check if beta2 can be negative
-    if(min(vec) < 0){
-      new_min = -1
-    }else{
-      new_min = 0
-      }
+    if (min(vec) < 0) {
+      new_min <- -1
+    } else {
+      new_min <- 0
+    }
 
-    new_max = 1
+    new_max <- 1
     old_min <- min(vec)
     old_max <- max(vec)
 
@@ -544,16 +480,13 @@ data_generator_po_1d_old <- function(
     noisy_curves[[i]] <- curve_data$curve_noisy
 
     if (univariate) {
-
-      if (linear_predictor=="integral") {
-      integrand <- curves[[i]] * beta_scaled
-      nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
-      }else{
+      if (linear_predictor == "integral") {
+        integrand <- curves[[i]] * beta_scaled
+        nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
+      } else {
         nu[i] <- mu + ((curves[[i]] %*% beta_scaled) / grid_points)
       }
-
-    }else{
-
+    } else {
       # Use fixed value if provided, otherwise generate random component
       stochastic_components_2[[i]] <- stats::rnorm(3, 0, 0.2)
 
@@ -594,23 +527,22 @@ data_generator_po_1d_old <- function(
       integrand <- curves[[i]] * beta_scaled
       integrand_2 <- curves_2[[i]] * beta_2_scaled
 
-      if (linear_predictor=="integral") {
-        nu[i] <- mu + ( 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+      if (linear_predictor == "integral") {
+        nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
           0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
-      }else{
+      } else {
         nu[i] <- mu + (((curves[[i]] %*% beta_scaled) + (curves_2[[i]] %*% beta_2_scaled)) / grid_points)
       }
-
     }
     # Compute integral using trapezoidal rule
   }
 
-  if (response_type=="gaussian") {
+  if (response_type == "gaussian") {
     # Generate response with desired R-squared
     var_e <- (1 / rsq - 1) * stats::var(nu)
     print(var_e)
     response <- nu + stats::rnorm(n, 0, sqrt(var_e))
-  }else{
+  } else {
     response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
     # if (sum(response)>=65 || sum(response)<=35) {
     #   zeros <- round(n/2)
@@ -649,7 +581,7 @@ data_generator_po_1d_old <- function(
       ncol = length(noisy_curves_miss_2[["X_miss"]][[1]]),
       byrow = TRUE
     )
-    }
+  }
 
 
 
@@ -667,8 +599,7 @@ data_generator_po_1d_old <- function(
       beta_scaled = beta_scaled,
       stochastic_components = stochastic_components
     )
-
-  }else{
+  } else {
     list(
       curves_1 = matrix(unlist(curves), nrow = n, byrow = TRUE),
       noisy_curves_1 = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
@@ -689,79 +620,35 @@ data_generator_po_1d_old <- function(
       grid = t,
       response = response
     )
-
-  }
-  )
+  })
 }
 
 
-#' Generate 1D functional data for simulation studies
+#' Generate 1D functional data (current or legacy)
 #'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses trapezoidal rule for integration.
+#' Provides the current 1D generator while keeping access to the previous
+#' implementation via \code{version = "legacy"} for reproducibility.
 #'
-#' @param n Number of samples to generate
-#' @param grid_points Number of points in the grid. Default is 100
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015
-#' @param rsq Desired R-squared value for the response. Default is 0.95
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin"
-#' @param n_missing Number of missing segments per curve. Default is 1
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated)
+#' @param n Number of samples to generate.
+#' @param grid_points Number of points in the grid.
+#' @param noise_sd Standard deviation of measurement noise.
+#' @param center Whether to mean-center each curve.
+#' @param rsq Desired R-squared value for the response.
+#' @param mu Intercept term added to the linear predictor.
+#' @param univariate If \code{TRUE}, generate a single functional predictor; otherwise generate two.
+#' @param response_type Response distribution ("gaussian" or "binomial").
+#' @param linear_predictor Integration approach for the linear predictor ("rectangular", "trapezoidal", or "linear").
+#' @param n_missing Number of missing segments per curve.
+#' @param min_distance Minimum length of missing segments (defaults to one fifth of the grid length).
+#' @param version Choose \code{"current"} (default) or \code{"legacy"} implementation.
+#' @param ... Additional arguments forwarded to the legacy implementation.
 #'
-#' @return A list containing:
-#' \itemize{
-#'   \item curves: List of n true (noiseless) curves
-#'   \item noisy_curves: List of n observed (noisy) curves
-#'   \item noisy_curves_miss: List containing curves with missing values
-#'   \item response: Vector of n response values
-#'   \item grid: Grid points
-#'   \item beta: True coefficient function
-#'   \item stochastic_components: Vector of a values used for each curve
-#' }
-#' Generate 1D Functional Data for Simulation Studies
-#'
-#' Creates synthetic 1D functional data with optional noise components and different
-#' coefficient patterns. Uses the trapezoidal rule for numerical integration.
-#'
-#' @param n Number of samples to generate. Default is 100.
-#' @param grid_points Number of points in the grid. Default is 100.
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
-#' @param rsq Desired R-squared value for the response. Default is 0.95.
-#' @param beta_type Type of coefficient function ("sin" or "gaussian"). Default is "sin".
-#' @param n_missing Number of missing segments per curve. Default is 1.
-#' @param min_distance Minimum length of missing segments. Default is NULL (auto-calculated).
-#'
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{curves}: Matrix of \code{n} true (noiseless) curves, each as a row.
-#'   \item \code{noisy_curves}: Matrix of \code{n} observed (noisy) curves, each as a row.
-#'   \item \code{noisy_curves_miss}: Matrix of noisy curves with missing values.
-#'   \item \code{miss_points}: Indices of the missing segments in the noisy curves.
-#'   \item \code{missing_points}: Details of the missing segments for each curve.
-#'   \item \code{response}: Vector of \code{n} response values.
-#'   \item \code{grid}: Grid points on which the curves are defined.
-#'   \item \code{beta}: Coefficient function applied to the curves.
-#'   \item \code{stochastic_components}: List of stochastic coefficients used for each curve.
-#' }
+#' @return A list containing simulated curves (noisy and noiseless), missing point indices,
+#'   the coefficient functions, and the generated response.
 #'
 #' @examples
-#' # Generate basic 1D functional data with default parameters
 #' data <- data_generator_po_1d(n = 10)
-#'
-#' # Generate data with a Gaussian-shaped coefficient function
-#' data <- data_generator_po_1d(n = 2, beta_type = "gaussian")
-#'
-#' # Generate data with higher grid resolution
-#' data <- data_generator_po_1d(n = 2, grid_points = 200)
-#'
-#' # Generate data with larger measurement noise
-#' data <- data_generator_po_1d(n = 2, noise_sd = 0.05)
-#'
-#' # Introduce missing segments in the curves
-#' data <- data_generator_po_1d(n = 2, n_missing = 3, min_distance = 10)
-#'
-#' # Generate data with low R-squared value
-#' data <- data_generator_po_1d(n = 2, rsq = 0.8)
+#' data_legacy <- data_generator_po_1d(n = 10, version = "legacy", beta_type = "trig")
 #'
 #' @export
 data_generator_po_1d <- function(
@@ -772,17 +659,53 @@ data_generator_po_1d <- function(
     rsq = 0.95,
     mu = 0.1,
     univariate = TRUE,
-    response_type = c("gaussian","binomial"),
-    linear_predictor = c("rectangular", "trapezoidal","linear"),
+    response_type = c("gaussian", "binomial"),
+    linear_predictor = c("rectangular", "trapezoidal", "linear"),
     n_missing = 1,
-    min_distance = NULL) {
+    min_distance = NULL,
+    version = c("current", "legacy"),
+    ...) {
+  version <- match.arg(version)
+  dots <- list(...)
+
+  if (version == "legacy") {
+    response_type_legacy <- match.arg(response_type[1], c("gaussian", "binomial"))
+    lp_choice <- linear_predictor[1]
+    if (!lp_choice %in% c("integral", "linear")) {
+      lp_choice <- "integral"
+    }
+    linear_predictor_legacy <- lp_choice
+
+    legacy_args <- modifyList(list(
+      n = n,
+      grid_points = grid_points,
+      noise_sd = noise_sd,
+      center = center,
+      rsq = rsq,
+      mu = mu,
+      univariate = univariate,
+      response_type = response_type_legacy,
+      linear_predictor = linear_predictor_legacy,
+      n_missing = n_missing,
+      min_distance = min_distance
+    ), dots)
+
+    return(do.call(.data_generator_po_1d_legacy, legacy_args))
+  }
+
+  if (length(dots) > 0) {
+    warning("unused arguments ignored for current version: ", paste(names(dots), collapse = ", "))
+  }
+
+  response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   if (is.null(min_distance)) {
     min_distance <- round(1 / 5 * grid_points)
   }
 
   # Create grid points
-  t <- seq(0, 10, length.out = grid_points) #seq(0, 1, length.out = grid_points)
+  t <- seq(0, 10, length.out = grid_points) # seq(0, 1, length.out = grid_points)
 
   # Initialize storage
   curves <- vector("list", n)
@@ -797,59 +720,57 @@ data_generator_po_1d <- function(
 
   # Helper function to generate curve with given parameters
   generate_curve_1 <- function(t, noise_sd, center = TRUE) {
+    # Generate random coefficients for each subject
+    u_i1 <- rnorm(1, mean = 0, sd = 5) # u_i1 ~ N(0, 25)
+    u_i2 <- rnorm(1, mean = 0, sd = 0.2) # u_i2 ~ N(0, 0.04)
 
-      # Generate random coefficients for each subject
-      u_i1 <- rnorm(1, mean = 0, sd = 5)  # u_i1 ~ N(0, 25)
-      u_i2 <- rnorm(1, mean = 0, sd = 0.2) # u_i2 ~ N(0, 0.04)
+    v_i1k <- rnorm(10, mean = 0, sd = 1) # v_i1k ~ N(0, 1)
+    v_i2k <- rnorm(10, mean = 0, sd = 1) # v_i2k ~ N(0, 1)
 
-      v_i1k <- rnorm(10, mean = 0, sd = 1) # v_i1k ~ N(0, 1)
-      v_i2k <- rnorm(10, mean = 0, sd = 1) # v_i2k ~ N(0, 1)
+    true_curve <- rep(0, length(t))
 
-      true_curve=rep(0,length(t))
+    # For each grid point, compute X_i(t_g)
+    for (g in 1:length(t)) {
+      t_g <- t[g]
 
-      # For each grid point, compute X_i(t_g)
-      for (g in 1:length(t)) {
-        t_g <- t[g]
+      # Base components
+      base <- u_i1 + u_i2 * t_g
 
-        # Base components
-        base <- u_i1 + u_i2 * t_g
-
-        # Sum components with sine and cosine terms
-        sum_component <- 0
-        for (k in 1:10) {
-          sum_component <- sum_component +
-            v_i1k[k] * sin((2*pi*k/10) * t_g) +
-            v_i2k[k] * cos((2*pi*k/10) * t_g)
-        }
-
-        true_curve[g] <- base + sum_component
+      # Sum components with sine and cosine terms
+      sum_component <- 0
+      for (k in 1:10) {
+        sum_component <- sum_component +
+          v_i1k[k] * sin((2 * pi * k / 10) * t_g) +
+          v_i2k[k] * cos((2 * pi * k / 10) * t_g)
       }
 
-      if (center == TRUE) {
-        sol=list(
-          curve_true = true_curve - mean(true_curve),
-          curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
-        )
-      }else{
-        sol=list(
-          curve_true = true_curve,
-          curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
-        )
-      }
+      true_curve[g] <- base + sum_component
+    }
+
+    if (center == TRUE) {
+      sol <- list(
+        curve_true = true_curve - mean(true_curve),
+        curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    } else {
+      sol <- list(
+        curve_true = true_curve,
+        curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
+      )
+    }
 
     sol
   }
 
   generate_curve_2 <- function(t, noise_sd, center = TRUE) {
-
-    u_i1 <- rnorm(1, mean = 2, sd = 3)  # Different distribution than X1
+    u_i1 <- rnorm(1, mean = 2, sd = 3) # Different distribution than X1
     u_i2 <- rnorm(1, mean = -0.1, sd = 0.15) # Different slope distribution
 
     # Use different random seeds for v coefficients
     v_i1k <- rnorm(10, mean = -0.5, sd = 0.8) # Different than X1
-    v_i2k <- rnorm(10, mean = 0.5, sd = 0.8)  # Different than X1
+    v_i2k <- rnorm(10, mean = 0.5, sd = 0.8) # Different than X1
 
-    true_curve=rep(0,length(t))
+    true_curve <- rep(0, length(t))
 
     # For each grid point, compute X2_i(t_g)
     for (g in 1:length(t)) {
@@ -863,20 +784,20 @@ data_generator_po_1d <- function(
       for (k in 1:10) {
         # Use different frequencies and phase shifts for low correlation
         sum_component <- sum_component +
-          v_i1k[k] * sin((2*pi*(k+0.5)/10) * t_g + pi/4) + # Phase shift by pi/4
-          v_i2k[k] * cos((2*pi*(k+0.5)/10) * t_g - pi/4)   # Phase shift by -pi/4
+          v_i1k[k] * sin((2 * pi * (k + 0.5) / 10) * t_g + pi / 4) + # Phase shift by pi/4
+          v_i2k[k] * cos((2 * pi * (k + 0.5) / 10) * t_g - pi / 4) # Phase shift by -pi/4
       }
 
       true_curve[g] <- base + sum_component
     }
 
     if (center == TRUE) {
-      sol=list(
+      sol <- list(
         curve_true = true_curve - mean(true_curve),
         curve_noisy = true_curve - mean(true_curve) + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
-    }else{
-      sol=list(
+    } else {
+      sol <- list(
         curve_true = true_curve,
         curve_noisy = true_curve + stats::rnorm(length(t), 0, noise_sd * stats::sd(true_curve))
       )
@@ -884,8 +805,8 @@ data_generator_po_1d <- function(
     sol
   }
 
-  beta1 <- function(t) 0.05 * sin(pi*t/5)  # Scaled by 0.05
-  beta2 <- function(t) 0.05 * (t/2.5)^2    # Scaled by 0.05
+  beta1 <- function(t) 0.05 * sin(pi * t / 5) # Scaled by 0.05
+  beta2 <- function(t) 0.05 * (t / 2.5)^2 # Scaled by 0.05
 
 
   # Generate beta coefficients with your original functions
@@ -895,7 +816,6 @@ data_generator_po_1d <- function(
 
   # Generate data and compute response
   for (i in 1:n) {
-
     # Generate curve
     curve_data <- generate_curve_1(
       t,
@@ -907,19 +827,16 @@ data_generator_po_1d <- function(
     noisy_curves[[i]] <- curve_data$curve_noisy
 
     if (univariate) {
-
-      if (linear_predictor=="trapezoidal") {
+      if (linear_predictor == "trapezoidal") {
         integrand <- curves[[i]] * beta
         nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])))
-      }else if(linear_predictor=="linear") {
+      } else if (linear_predictor == "linear") {
         nu[i] <- mu + ((curves[[i]] %*% beta) / grid_points)
-      }else if(linear_predictor=="rectangular"){
-        integral1_approx = mean(curves[[i]] * beta) * (max(t) - min(t))
-        nu[i] = mu + integral1_approx
+      } else if (linear_predictor == "rectangular") {
+        integral1_approx <- mean(curves[[i]] * beta) * (max(t) - min(t))
+        nu[i] <- mu + integral1_approx
       }
-
-    }else{
-
+    } else {
       # Generate curve
       curve_data_2 <- generate_curve_2(
         t,
@@ -937,27 +854,26 @@ data_generator_po_1d <- function(
       integrand <- curves[[i]] * beta
       integrand_2 <- curves_2[[i]] * beta_2
 
-      if (linear_predictor=="trapezoidal") {
-        nu[i] <- mu + ( 0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
-                          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
-      }else if(linear_predictor=="linear"){
+      if (linear_predictor == "trapezoidal") {
+        nu[i] <- mu + (0.5 * sum(diff(t) * (integrand[-1] + integrand[-length(integrand)])) +
+          0.5 * sum(diff(t) * (integrand_2[-1] + integrand_2[-length(integrand_2)])))
+      } else if (linear_predictor == "linear") {
         nu[i] <- mu + (((curves[[i]] %*% beta) + (curves_2[[i]] %*% beta_2)) / grid_points)
-      }else if(linear_predictor=="rectangular"){
-        integral1_approx = mean(curves[[i]] * beta) * (max(t) - min(t))
-        integral2_approx = mean(curves_2[[i]] * beta_2) * (max(t) - min(t))
+      } else if (linear_predictor == "rectangular") {
+        integral1_approx <- mean(curves[[i]] * beta) * (max(t) - min(t))
+        integral2_approx <- mean(curves_2[[i]] * beta_2) * (max(t) - min(t))
 
-       nu[i] = mu + integral1_approx + integral2_approx
+        nu[i] <- mu + integral1_approx + integral2_approx
       }
-
     }
   }
 
-  if (response_type=="gaussian") {
+  if (response_type == "gaussian") {
     # Generate response with desired R-squared
     sd_e <- (1 / rsq - 1) * stats::sd(nu)
     # print(sd_e)
     response <- nu + stats::rnorm(n, 0, (sd_e))
-  }else{
+  } else {
     response <- stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
     # if (sum(response)>=65 || sum(response)<=35) {
     #   zeros <- round(n/2)
@@ -1012,8 +928,7 @@ data_generator_po_1d <- function(
       grid = t,
       beta = beta
     )
-
-  }else{
+  } else {
     list(
       curves_1 = matrix(unlist(curves), nrow = n, byrow = TRUE),
       noisy_curves_1 = matrix(unlist(noisy_curves), nrow = n, byrow = TRUE),
@@ -1030,9 +945,7 @@ data_generator_po_1d <- function(
       grid = t,
       response = response
     )
-
-  }
-  )
+  })
 }
 
 
@@ -1113,8 +1026,10 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #' @param grid_y Number of points in y-axis grid. Default is 20.
 #' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
 #' @param rsq Desired R-squared value for the response. Default is 0.95.
+#' @param intercept Intercept added to the linear predictor (or target logit for binomial responses).
 #' @param beta_type Type of coefficient surface ("saddle" or "exp"). Default is "saddle".
 #' @param response_type Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".
+#' @param linear_predictor Integration approach for the linear predictor ("integral" or "linear").
 #' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided.
 #' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided.
 #' @param sub_response Number of intervals for Simpson integration. Default is 50.
@@ -1159,7 +1074,7 @@ data_generator_po_2d <- function(
     intercept = 0.1,
     beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
     response_type = c("gaussian", "binomial"),
-    linear_predictor = c("integral","linear"),
+    linear_predictor = c("integral", "linear"),
     a1 = NULL,
     a2 = NULL,
     sub_response = 50,
@@ -1168,6 +1083,7 @@ data_generator_po_2d <- function(
     min_distance_y = NULL) {
   beta_type <- match.arg(beta_type)
   response_type <- match.arg(response_type)
+  linear_predictor <- match.arg(linear_predictor)
 
   # Validate a1 and a2 parameters
   if (!is.null(a1) && is.null(a2) || is.null(a1) && !is.null(a2)) {
@@ -1218,41 +1134,42 @@ data_generator_po_2d <- function(
 
 
   # Generate beta surface on fine grid
-  if(linear_predictor == "integral"){
+  if (linear_predictor == "integral") {
     beta_fine <- if (beta_type == "saddle") {
       generate_saddle_surface(x_fine, y_fine)
-    }else if(beta_type == "exp") {
+    } else if (beta_type == "exp") {
       generate_exp_surface(x_fine, y_fine)
-    }else if(beta_type == "smooth"){
+    } else if (beta_type == "smooth") {
       generate_smooth_surface(x_fine, y_fine)
-    }else if(beta_type == "peaks"){
-     generate_multipeak_surface(x_fine, y_fine)
-    }
-    else{
+    } else if (beta_type == "peaks") {
+      generate_multipeak_surface(x_fine, y_fine)
+    } else {
       generate_sinusoidal_surface(x_fine, y_fine)
-    }}else{
-      beta_fine <- if (beta_type == "saddle") {
-        generate_saddle_surface(x, y)
-      }else if(beta_type == "exp") {
-        generate_exp_surface(x, y)
-      }else if(beta_type == "smooth"){
-        generate_smooth_surface(x, y)
-      }else if(beta_type == "peaks"){
-        generate_multipeak_surface(x, y)
-      }else{
-        generate_sinusoidal_surface(x, y)
-      }}
+    }
+  } else {
+    beta_fine <- if (beta_type == "saddle") {
+      generate_saddle_surface(x, y)
+    } else if (beta_type == "exp") {
+      generate_exp_surface(x, y)
+    } else if (beta_type == "smooth") {
+      generate_smooth_surface(x, y)
+    } else if (beta_type == "peaks") {
+      generate_multipeak_surface(x, y)
+    } else {
+      generate_sinusoidal_surface(x, y)
+    }
+  }
 
   # Generate beta on original grid for output
   beta_surface <- if (beta_type == "saddle") {
     generate_saddle_surface(x, y)
-  }else if(beta_type == "exp") {
+  } else if (beta_type == "exp") {
     generate_exp_surface(x, y)
-  }else if(beta_type == "smooth"){
+  } else if (beta_type == "smooth") {
     generate_smooth_surface(x, y)
-  }else if(beta_type == "peaks"){
+  } else if (beta_type == "peaks") {
     generate_multipeak_surface(x, y)
-  }else{
+  } else {
     generate_sinusoidal_surface(x, y)
   }
 
@@ -1284,19 +1201,17 @@ data_generator_po_2d <- function(
 
 
     # Generate finer surface for integration
-    if(linear_predictor == "integral"){
-
+    if (linear_predictor == "integral") {
       surface_fine <- generate_surface(
-      x_fine, y_fine,
-      stochastic_components[i, 1],
-      stochastic_components[i, 2],
-      0
-    )$DATA_T
+        x_fine, y_fine,
+        stochastic_components[i, 1],
+        stochastic_components[i, 2],
+        0
+      )$DATA_T
     }
 
-    if(linear_predictor == "integral"){
-
-      integrand = surfaces[[i]] %*% beta_surface
+    if (linear_predictor == "integral") {
+      integrand <- surfaces[[i]] %*% beta_surface
 
       nu[i] <- double_integral(integrand, x, y)
 
@@ -1307,14 +1222,12 @@ data_generator_po_2d <- function(
       # nu[i] <- as.double(t(as.vector(surface_fine)) %*%
       #                      diag(W_delta) %*%
       #                      as.vector(beta_fine))
-    }else{
-
+    } else {
       nu[i] <- mean(surfaces[[i]] * beta_surface)
 
       # nu[i] <- as.double(t(as.vector(surfaces[[i]])) %*%
       #                      as.vector(beta_surface))
     }
-
   }
 
   if (response_type == "gaussian") {
@@ -1322,14 +1235,12 @@ data_generator_po_2d <- function(
     var_e <- (1 / rsq - 1) * stats::var(nu)
     response <- intercept + nu + stats::rnorm(n, 0, sqrt(var_e))
   } else {
-
     # stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
 
-    aux=adjust_proportion(intercept, nu, max_iter = 150, tolerance = 0.001)
+    aux <- adjust_proportion(intercept, nu, max_iter = 150, tolerance = 0.001)
 
-    response = aux$y
-    intercept = aux$intercept
-
+    response <- aux$y
+    intercept <- aux$intercept
   }
 
   noisy_surfaces_miss <- add_miss2(
@@ -1393,7 +1304,7 @@ generate_smooth_surface <- function(x, y) {
 
   for (i in seq_along(x)) {
     for (j in seq_along(y)) {
-      surface[i, j] <- 0.5* (x[i])^2 +  0.5 * (y[j])^2
+      surface[i, j] <- 0.5 * (x[i])^2 + 0.5 * (y[j])^2
     }
   }
   surface
@@ -1456,7 +1367,7 @@ generate_surface <- function(x, y, a1, a2, noise_sd) {
   list(
     DATA_T = true_surface,
     DATA_N = true_surface + matrix(
-      stats::rnorm(length(x) * length(y), 0, noise_sd*sd(as.vector(true_surface))),
+      stats::rnorm(length(x) * length(y), 0, noise_sd * sd(as.vector(true_surface))),
       length(x),
       length(y)
     )
@@ -1467,7 +1378,6 @@ generate_surface <- function(x, y, a1, a2, noise_sd) {
 #'
 #' @noRd
 generate_bspline_surfaces <- function(n_obs, x, y, n_basis_x = 8, n_basis_y = 8, coef_sd = 0.3, noise_sd) {
-
   # Create tensor product B-spline basis for 2D surfaces
   basis_x <- fda::create.bspline.basis(c(0, 1), n_basis_x)
   basis_y <- fda::create.bspline.basis(c(0, 1), n_basis_y)
@@ -1475,31 +1385,36 @@ generate_bspline_surfaces <- function(n_obs, x, y, n_basis_x = 8, n_basis_y = 8,
   # Generate coefficients for each observation's surface
   # Each observation has a 2D surface X_i(t_1,t_2)
   X_coefs <- array(stats::rnorm(n_obs * n_basis_x * n_basis_y, 0, coef_sd),
-                   dim = c(n_obs, n_basis_x, n_basis_y))
+    dim = c(n_obs, n_basis_x, n_basis_y)
+  )
 
   # Evaluate surfaces on the grid manually using tensor products
   X_surfaces <- array(0, dim = c(n_obs, length(x), length(y)))
   X_noisy_surfaces <- array(0, dim = c(n_obs, length(x), length(y)))
 
   # Evaluate basis functions on grids
-  basis_x_vals <- fda::eval.basis(x, basis_x)  # n_s x n_basis_x
-  basis_y_vals <- fda::eval.basis(y, basis_y)  # n_t x n_basis_y
+  basis_x_vals <- fda::eval.basis(x, basis_x) # n_s x n_basis_x
+  basis_y_vals <- fda::eval.basis(y, basis_y) # n_t x n_basis_y
 
-  for(i in 1:n_obs) {
+  for (i in 1:n_obs) {
     # Compute tensor product: X_i(t_1,t_2) = sum_j sum_k c_ijk * phi_j(t_1) * psi_k(t_2)
-    for(j in 1:n_basis_x) {
-      for(k in 1:n_basis_y) {
+    for (j in 1:n_basis_x) {
+      for (k in 1:n_basis_y) {
         # Add contribution of basis function (j,k) with coefficient c_ijk
-        X_surfaces[i,,] <- X_surfaces[i,,] +
-          X_coefs[i,j,k] * outer(basis_x_vals[,j], basis_y_vals[,k])
+        X_surfaces[i, , ] <- X_surfaces[i, , ] +
+          X_coefs[i, j, k] * outer(basis_x_vals[, j], basis_y_vals[, k])
       }
     }
 
     # Add noise to create observed surface
-    X_noisy_surfaces[i,,] <- X_surfaces[i,,] +
-      matrix(stats::rnorm(length(x) * length(y), 0,
-                          noise_sd * stats::sd(as.vector(X_surfaces[i,,]))),
-             length(x), length(y))
+    X_noisy_surfaces[i, , ] <- X_surfaces[i, , ] +
+      matrix(
+        stats::rnorm(
+          length(x) * length(y), 0,
+          noise_sd * stats::sd(as.vector(X_surfaces[i, , ]))
+        ),
+        length(x), length(y)
+      )
   }
 
   list(
@@ -1550,21 +1465,23 @@ double_integral <- function(integrand, x, y) {
   nx <- nrow(integrand)
   ny <- ncol(integrand)
 
-  dx <- diff(x)[1]  # spacing in x direction
-  dy <- diff(y)[1]  # spacing in y direction
+  dx <- diff(x)[1] # spacing in x direction
+  dy <- diff(y)[1] # spacing in y direction
 
   # Corner points (weight = 1/4)
-  corner_sum <- sum(integrand[1,1], integrand[1,ny],
-                   integrand[nx,1], integrand[nx,ny],na.rm=TRUE) / 4
+  corner_sum <- sum(integrand[1, 1], integrand[1, ny],
+    integrand[nx, 1], integrand[nx, ny],
+    na.rm = TRUE
+  ) / 4
 
   # Edge points (weight = 1/2)
-  edge_sum <- (sum(integrand[1, 2:(ny-1)],na.rm=TRUE) +    # top edge
-                 sum(integrand[nx, 2:(ny-1)],na.rm=TRUE) +    # bottom edge
-                 sum(integrand[2:(nx-1), 1],na.rm=TRUE) +     # left edge
-                 sum(integrand[2:(nx-1), ny],na.rm=TRUE)) / 2 # right edge
+  edge_sum <- (sum(integrand[1, 2:(ny - 1)], na.rm = TRUE) + # top edge
+    sum(integrand[nx, 2:(ny - 1)], na.rm = TRUE) + # bottom edge
+    sum(integrand[2:(nx - 1), 1], na.rm = TRUE) + # left edge
+    sum(integrand[2:(nx - 1), ny], na.rm = TRUE)) / 2 # right edge
 
   # Interior points (weight = 1)
-  interior_sum <- sum(integrand[2:(nx-1), 2:(ny-1)],na.rm=TRUE)
+  interior_sum <- sum(integrand[2:(nx - 1), 2:(ny - 1)], na.rm = TRUE)
 
   # Combine all parts and multiply by grid spacing
   result <- dx * dy * (corner_sum + edge_sum + interior_sum)
@@ -1600,9 +1517,9 @@ double_integral <- function(integrand, x, y) {
 #' The adjustment formula is:
 #' \code{adjustment = (qlogis(target_prop) - qlogis(achieved_prop)) * damping_factor}
 #'
-#' This approach works in log-odds space to prevent probabilities from exceeding [0,1]
-#' bounds and provides robust control over response proportions in functional regression
-#' simulation studies.
+#' This approach works in log-odds space to prevent probabilities from exceeding
+#' the unit interval and provides robust control over response proportions in
+#' functional regression simulation studies.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -1634,47 +1551,47 @@ double_integral <- function(integrand, x, y) {
 #'
 #' @seealso \code{\link{data_generator_po_2d}} for using this function in 2D functional
 #'   data simulation.
+#' @export
 adjust_proportion <- function(target_prop, functional_effects,
                               max_iter = 15, tolerance = 0.03, verbose = FALSE) {
-
   # Input validation
-  if(any(is.na(functional_effects)) || any(is.infinite(functional_effects))) {
+  if (any(is.na(functional_effects)) || any(is.infinite(functional_effects))) {
     stop("functional_effects contains NA or infinite values", call. = FALSE)
   }
 
-  if(target_prop <= 0 || target_prop >= 1) {
+  if (target_prop <= 0 || target_prop >= 1) {
     stop("target_prop must be between 0 and 1 (exclusive)", call. = FALSE)
   }
 
-  if(max_iter < 1) {
+  if (max_iter < 1) {
     stop("max_iter must be at least 1", call. = FALSE)
   }
 
-  if(tolerance <= 0) {
+  if (tolerance <= 0) {
     stop("tolerance must be positive", call. = FALSE)
   }
 
   intercept <- qlogis(target_prop)
 
   # Check if initial intercept is reasonable
-  if(is.infinite(intercept)) {
+  if (is.infinite(intercept)) {
     stop("target_prop too close to 0 or 1, causing infinite initial intercept", call. = FALSE)
   }
 
-  for(iter in 1:max_iter) {
+  for (iter in 1:max_iter) {
     linear_pred <- intercept + functional_effects
 
     # Check for extreme linear predictors
-    if(any(is.na(linear_pred)) || any(is.infinite(linear_pred))) {
-      if(verbose) cat("Warning: NA or infinite linear predictors at iteration", iter, "\n")
+    if (any(is.na(linear_pred)) || any(is.infinite(linear_pred))) {
+      if (verbose) cat("Warning: NA or infinite linear predictors at iteration", iter, "\n")
       # Try to recover by reducing intercept magnitude
       intercept <- intercept * 0.5
       next
     }
 
     # Check for extreme linear predictors that would cause numerical issues
-    if(max(abs(linear_pred)) > 20) {
-      if(verbose) cat("Warning: Very large linear predictors (max =", max(abs(linear_pred)), ") at iteration", iter, "\n")
+    if (max(abs(linear_pred)) > 20) {
+      if (verbose) cat("Warning: Very large linear predictors (max =", max(abs(linear_pred)), ") at iteration", iter, "\n")
       # Clip extreme values
       linear_pred <- pmax(pmin(linear_pred, 20), -20)
     }
@@ -1682,8 +1599,8 @@ adjust_proportion <- function(target_prop, functional_effects,
     probabilities <- plogis(linear_pred)
 
     # Check probabilities for issues
-    if(any(is.na(probabilities))) {
-      if(verbose) cat("Warning: NA probabilities at iteration", iter, "\n")
+    if (any(is.na(probabilities))) {
+      if (verbose) cat("Warning: NA probabilities at iteration", iter, "\n")
       intercept <- intercept * 0.8
       next
     }
@@ -1692,8 +1609,8 @@ adjust_proportion <- function(target_prop, functional_effects,
     y <- rbinom(length(functional_effects), 1, probabilities)
 
     # Check for NA in y
-    if(any(is.na(y))) {
-      if(verbose) cat("Warning: NA in binary outcomes at iteration", iter, "\n")
+    if (any(is.na(y))) {
+      if (verbose) cat("Warning: NA in binary outcomes at iteration", iter, "\n")
       intercept <- intercept * 0.8
       next
     }
@@ -1701,43 +1618,47 @@ adjust_proportion <- function(target_prop, functional_effects,
     achieved_prop <- mean(y)
 
     # Check if achieved_prop is valid
-    if(is.na(achieved_prop)) {
-      if(verbose) cat("Warning: NA achieved proportion at iteration", iter, "\n")
+    if (is.na(achieved_prop)) {
+      if (verbose) cat("Warning: NA achieved proportion at iteration", iter, "\n")
       intercept <- intercept * 0.8
       next
     }
 
     # Handle edge cases BEFORE computing error
     # This prevents qlogis() from producing infinite values
-    if(achieved_prop == 0) {
-      achieved_prop <- 0.5 / length(functional_effects)  # Small positive value
-    } else if(achieved_prop == 1) {
-      achieved_prop <- 1 - 0.5 / length(functional_effects)  # Small value less than 1
+    if (achieved_prop == 0) {
+      achieved_prop <- 0.5 / length(functional_effects) # Small positive value
+    } else if (achieved_prop == 1) {
+      achieved_prop <- 1 - 0.5 / length(functional_effects) # Small value less than 1
     }
 
     error <- abs(achieved_prop - target_prop)
 
     # Check if error is valid
-    if(is.na(error)) {
-      if(verbose) cat("Warning: NA error at iteration", iter, "\n")
+    if (is.na(error)) {
+      if (verbose) cat("Warning: NA error at iteration", iter, "\n")
       break
     }
 
     # Adaptive damping based on error size
-    if(error > 0.1) {
-      damp <- 0.3  # Very conservative for large errors
-    } else if(error > 0.05) {
-      damp <- 0.5  # Moderate for medium errors
+    if (error > 0.1) {
+      damp <- 0.3 # Very conservative for large errors
+    } else if (error > 0.05) {
+      damp <- 0.5 # Moderate for medium errors
     } else {
-      damp <- 0.7  # More aggressive for small errors
+      damp <- 0.7 # More aggressive for small errors
     }
 
-    if(verbose) cat("Iteration", iter, ": achieved_prop =", round(achieved_prop, 4),
-                    ", error =", round(error, 4), ", damping =", damp, "\n")
+    if (verbose) {
+      cat(
+        "Iteration", iter, ": achieved_prop =", round(achieved_prop, 4),
+        ", error =", round(error, 4), ", damping =", damp, "\n"
+      )
+    }
 
     # Check convergence
-    if(error <= tolerance) {
-      if(verbose) cat("Converged after", iter, "iterations\n")
+    if (error <= tolerance) {
+      if (verbose) cat("Converged after", iter, "iterations\n")
       break
     }
 
@@ -1746,10 +1667,10 @@ adjust_proportion <- function(target_prop, functional_effects,
     intercept <- intercept + adjustment
 
     # Check if new intercept is reasonable
-    if(is.infinite(adjustment) || is.na(adjustment)) {
-      if(verbose) cat("Warning: Invalid adjustment at iteration", iter, "\n")
+    if (is.infinite(adjustment) || is.na(adjustment)) {
+      if (verbose) cat("Warning: Invalid adjustment at iteration", iter, "\n")
       # Use a small fixed adjustment instead
-      if(achieved_prop < target_prop) {
+      if (achieved_prop < target_prop) {
         intercept <- intercept + 0.1
       } else {
         intercept <- intercept - 0.1
@@ -1757,14 +1678,14 @@ adjust_proportion <- function(target_prop, functional_effects,
     }
 
     # Prevent intercept from becoming too extreme
-    if(abs(intercept) > 10) {
-      if(verbose) cat("Warning: Intercept becoming too extreme (", intercept, "), clipping\n")
+    if (abs(intercept) > 10) {
+      if (verbose) cat("Warning: Intercept becoming too extreme (", intercept, "), clipping\n")
       intercept <- sign(intercept) * 10
     }
   }
 
   # Final check
-  if(iter >= max_iter) {
+  if (iter >= max_iter) {
     warning("Maximum iterations reached without convergence. Final error: ", round(error, 4))
   }
 
@@ -1789,14 +1710,11 @@ adjust_proportion <- function(target_prop, functional_effects,
 #' @param grid_y Number of points in y-axis grid
 #' @param intercept Target proportion for binomial or intercept for Gaussian
 #' @param noise_sd Standard deviation of measurement noise
-#' @param beta_type Type of coefficient surface (kept for compatibility)
 #' @param response_type Type of response ("binomial" or "gaussian")
 #' @param signal_strength Strength of discriminative signal (default 2.5)
 #' @param n_missing Not used (kept for compatibility)
 #' @param min_distance_x Not used (kept for compatibility)
 #' @param min_distance_y Not used (kept for compatibility)
-#' @param linear_predictor Not used (kept for compatibility)
-#' @param sub_response Not used (kept for compatibility)
 #'
 #' @return A list containing simulated data with same structure as data_generator_po_2d
 
@@ -1810,33 +1728,32 @@ data_generator_high_signal <- function(n = 100,
                                        signal_strength = 2.5,
                                        n_missing = 0,
                                        min_distance_x = NULL,
-                                       min_distance_y = NULL){
-
+                                       min_distance_y = NULL) {
   # Create coordinate grids
   x <- seq(0, 1, length.out = grid_x)
   y <- seq(0, 1, length.out = grid_y)
 
-  if(response_type == "binomial") {
+  if (response_type == "binomial") {
     target_prop <- intercept
   } else {
-    target_prop <- 0.5  # Not used for Gaussian
+    target_prop <- 0.5 # Not used for Gaussian
   }
 
   cat("=== HIGH-SIGNAL DATA GENERATION ===\n")
   cat("Response type:", response_type, "\n")
   cat("Sample size:", n, "\n")
   cat("Grid size:", grid_x, "x", grid_y, "\n")
-  if(response_type == "binomial") {
+  if (response_type == "binomial") {
     cat("Target proportion:", target_prop, "\n")
   }
 
   # Step 1: Create discriminative coefficient surface
   beta_surface <- matrix(nrow = length(x), ncol = length(y))
-  for(i in seq_along(x)) {
-    for(j in seq_along(y)) {
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
       # Strong discriminative pattern
       beta_surface[i, j] <- signal_strength * (
-        sin(2*pi*x[i]) * cos(2*pi*y[j]) +
+        sin(2 * pi * x[i]) * cos(2 * pi * y[j]) +
           0.8 * (x[i] - 0.5) * (y[j] - 0.5)
       )
     }
@@ -1847,17 +1764,19 @@ data_generator_high_signal <- function(n = 100,
   # Step 2: Generate functional predictor surfaces
   surfaces <- vector("list", n)
   noisy_surfaces <- vector("list", n)
-  stochastic_components <- matrix(nrow = n, ncol = 2,
-                                  dimnames = list(NULL, c("a1", "a2")))
+  stochastic_components <- matrix(
+    nrow = n, ncol = 2,
+    dimnames = list(NULL, c("a1", "a2"))
+  )
   functional_effects <- numeric(n)
 
   group1_size <- round(n * target_prop)
   group_assignment <- c(rep(1, group1_size), rep(2, n - group1_size))
   group_assignment <- sample(group_assignment)
 
-  for(i in 1:n) {
+  for (i in 1:n) {
     # Generate coefficients based on group membership
-    if(group_assignment[i] == 1) {
+    if (group_assignment[i] == 1) {
       # Group 1: positive correlation with beta surface
       a1 <- rnorm(1, 1.5, 0.3)
       a2 <- rnorm(1, 1.2, 0.3)
@@ -1871,13 +1790,13 @@ data_generator_high_signal <- function(n = 100,
 
     # Generate surface using matching basis functions
     true_surface <- matrix(nrow = length(x), ncol = length(y))
-    for(ii in seq_along(x)) {
-      for(jj in seq_along(y)) {
+    for (ii in seq_along(x)) {
+      for (jj in seq_along(y)) {
         true_surface[ii, jj] <-
-          a1 * sin(2*pi*x[ii]) +                    # Matches beta's sin component
-          a2 * cos(2*pi*y[jj]) +                    # Matches beta's cos component
-          0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) +    # Matches beta's interaction
-          2.0                                        # Baseline level
+          a1 * sin(2 * pi * x[ii]) + # Matches beta's sin component
+          a2 * cos(2 * pi * y[jj]) + # Matches beta's cos component
+          0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) + # Matches beta's interaction
+          2.0 # Baseline level
 
         ## THIS ONE IS TO USE WITH THE double_integral() FUNCTION
         # true_surface[ii, jj] <-
@@ -1892,8 +1811,10 @@ data_generator_high_signal <- function(n = 100,
 
     # Add noise proportional to surface variation
     surface_sd <- sd(as.vector(true_surface))
-    noise_matrix <- matrix(rnorm(length(x) * length(y), 0, noise_sd * surface_sd),
-                           length(x), length(y))
+    noise_matrix <- matrix(
+      rnorm(length(x) * length(y), 0, noise_sd * surface_sd),
+      length(x), length(y)
+    )
     noisy_surfaces[[i]] <- true_surface + noise_matrix
 
     # Compute functional effect (integral)
@@ -1906,7 +1827,7 @@ data_generator_high_signal <- function(n = 100,
   cat("Functional effects std:", sd(functional_effects), "\n")
 
   # Step 3: Generate response based on type
-  if(response_type == "binomial") {
+  if (response_type == "binomial") {
     # Binomial response using functional effects
     # scaled_effects <- scale(functional_effects)[,1] * 1.5
     scaled_effects <- functional_effects
@@ -1916,7 +1837,6 @@ data_generator_high_signal <- function(n = 100,
 
     cat("Response proportion:", mean(response), "\n")
     final_intercept <- qlogis(target_prop)
-
   } else {
     # Gaussian response
     rsq <- 0.95
@@ -1968,23 +1888,26 @@ data_generator_high_signal <- function(n = 100,
   )
 
   # Step 5: Diagnostics
-  if(response_type == "binomial") {
+  if (response_type == "binomial") {
     correlation <- cor(functional_effects, response)
     simple_model <- glm(response ~ functional_effects, family = binomial())
     simple_pred <- predict(simple_model, type = "response")
 
-    simple_auc <- tryCatch({
-      if(requireNamespace("pROC", quietly = TRUE)) {
-        as.numeric(pROC::auc(response, simple_pred, quiet = TRUE))
-      } else {
-        NA
-      }
-    }, error = function(e) NA)
+    simple_auc <- tryCatch(
+      {
+        if (requireNamespace("pROC", quietly = TRUE)) {
+          as.numeric(pROC::auc(response, simple_pred, quiet = TRUE))
+        } else {
+          NA
+        }
+      },
+      error = function(e) NA
+    )
 
     cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
     cat("Simple model AUC:", round(simple_auc, 3), "\n")
 
-    if(correlation > 0.3 && !is.na(simple_auc) && simple_auc > 0.7) {
+    if (correlation > 0.3 && !is.na(simple_auc) && simple_auc > 0.7) {
       cat("SUCCESS: Strong discriminative signal achieved!\n")
     } else {
       cat("WARNING: Signal may be insufficient\n")

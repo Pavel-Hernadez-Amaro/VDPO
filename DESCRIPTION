@@ -26,11 +26,13 @@ Imports:
     Matrix,
     SOP,
     splines,
-    stats
+    stats,
+    fda
 Suggests:
     ggplot2,
     knitr,
     RColorBrewer,
+    pROC,
     rmarkdown,
     testthat (>= 3.0.0)
 Roxygen: list(markdown = TRUE)

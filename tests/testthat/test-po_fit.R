@@ -10,7 +10,7 @@ test_that("po_fit handles basic case correctly", {
 
   expect_s3_class(res_po, "po_fit")
   expect_type(res_po, "list")
-  expect_named(res_po, c("fit", "theta", "ffpo_evals"))
+  expect_named(res_po, c("fit", "intercept", "theta", "ffpo_evals"))
 
   expect_true(attr(res_po, "N") > 0)
 })
@@ -59,14 +59,16 @@ test_that("po_fit throws appropriate errors", {
   # Invalid data type
   expect_error(
     po_fit(response ~ ffpo(X = data_1d$noisy_curves_miss, grid = data_1d$grid),
-           data = c()),
+      data = c()
+    ),
     regexp = "the 'data' argument should be a list"
   )
 
   # Insufficient data
   expect_error(
     po_fit(response ~ ffpo(X = data_1d$noisy_curves_miss, grid = data_1d$grid),
-           data = list(response = c(1))),
+      data = list(response = c(1))
+    ),
     regexp = "'data' should have at least a response and a covariate"
   )
 })

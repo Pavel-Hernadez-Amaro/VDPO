@@ -4,10 +4,20 @@
 \alias{ffpo}
 \title{Defining partially observed functional data terms in VDPO formulae}
 \usage{
-ffpo(X, grid, bidimensional_grid = FALSE, nbasis = c(30, 30), bdeg = c(3, 3))
+ffpo(
+  X,
+  missing_points = NULL,
+  grid,
+  bidimensional_grid = FALSE,
+  nbasis = c(30, 30),
+  bdeg = c(3, 3),
+  version = c("current", "legacy")
+)
 }
 \arguments{
 \item{X}{partially observed functional covariate \code{matrix}.}
+
+\item{missing_points}{observation points that were missing for each functional covariate \code{list}.}
 
 \item{grid}{observation grid of the covariate.}
 
@@ -18,6 +28,9 @@ be treated as 1-dimensional or 2-dimensional. The default value is
 \item{nbasis}{number of basis to be used.}
 
 \item{bdeg}{degree of the basis to be used.}
+
+\item{version}{Choose the \code{"current"} (default) or \code{"legacy"} implementation. The
+legacy version matches the previous \code{ffpo_old()} behavior.}
 }
 \value{
 the function is interpreted in the formula of a \code{VDPO} model.
