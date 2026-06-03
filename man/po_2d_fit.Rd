@@ -2,22 +2,72 @@
 % Please edit documentation in R/po_2d_fit.R
 \name{po_2d_fit}
 \alias{po_2d_fit}
-\title{Title}
+\title{Estimation of functional regression models for partially observed
+bidimensional functional data}
 \usage{
 po_2d_fit(formula, data, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
-\item{formula}{.}
+\item{formula}{a formula object with at least one \code{ffpo_2d} term.}
 
-\item{data}{.}
+\item{data}{a \code{list} object containing the response variable
+and the covariates as the components of the list.}
 
-\item{family}{.}
+\item{family}{a \code{family} object specifying the distribution from which the
+data originates. The default distribution is \code{\link{gaussian}}.}
 
-\item{offset}{.}
+\item{offset}{an offset vector. The default value is \code{NULL}.}
 }
 \value{
-.
+An object of class \code{po_2d_fit}. It is a \code{list} containing the
+following items:
+\itemize{
+\item An item named \code{fit} of class \code{sop}. See \link[SOP]{sop.fit}.
+\item An item named \code{theta} which is the basis coefficient vector of the
+estimated bidimensional functional coefficient.
+\item An item named \code{ffpo_2d_evals} which is the result of the evaluations of the
+\code{ffpo_2d} terms in the formula.
+}
 }
 \description{
-Title
+The \code{po_2d_fit} function fits functional regression models for partially
+observed bidimensional functional data, where each surface is only observed
+over part of the common domain.
+}
+\examples{
+# PARTIALLY OBSERVED BIDIMENSIONAL FUNCTIONAL DATA EXAMPLE
+\donttest{
+# set seed for reproducibility
+set.seed(123)
+
+# generate example data with partially observed surfaces
+sim  <- data_generator_po_2d(n = 30, grid_x = 8, grid_y = 8)
+X    <- sim$noisy_surfaces_miss
+y    <- sim$response
+mp   <- sim$missing_points
+mpts <- sim$miss_points
+
+# Fit the model using an 'ffpo_2d' term for the partially observed surfaces.
+# 'miss_points' and 'missing_points' describe the missing observations in the
+# two complementary formats expected by 'ffpo_2d'.
+fit  <- po_2d_fit(
+  response ~ ffpo_2d(
+    X = X, miss_points = mpts, missing_points = mp, nbasis = rep(5, 4)
+  ),
+  data = list(response = y, X = X)
+)
+
+# Inspect the structure of the returned object
+str(fit, max.level = 1)
+
+# The basis coefficients of the functional coefficient can be accessed directly
+fit$theta
+
+# A summary of the underlying fit can be obtained using the summary function
+summary(fit)
+}
+
+}
+\seealso{
+\code{\link{ffpo_2d}}
 }

@@ -1,11 +1,59 @@
-#' Title
+#' Estimation of functional regression models for partially observed
+#' functional data
 #'
-#' @param formula .
-#' @param data .
-#' @param family .
-#' @param offset .
+#' The \code{po_fit} function fits functional regression models for partially
+#' observed functional data, where each curve is only observed over part of the
+#' common domain.
 #'
-#' @return .
+#' @param formula a formula object with at least one \code{ffpo} term.
+#' @param data a \code{list} object containing the response variable
+#' and the covariates as the components of the list.
+#' @param family a \code{family} object specifying the distribution from which the
+#' data originates. The default distribution is \code{\link{gaussian}}.
+#' @param offset an offset vector. The default value is \code{NULL}.
+#'
+#' @return An object of class \code{po_fit}. It is a \code{list} containing the
+#' following items:
+#'
+#' - An item named `fit` of class \code{sop}. See \link[SOP]{sop.fit}.
+#' - An item named `intercept` which is the estimated intercept of the model.
+#' - An item named `theta` which is the basis coefficient vector of the
+#' estimated functional coefficient.
+#' - An item named `ffpo_evals` which is the result of the evaluations of the
+#' `ffpo` terms in the formula.
+#'
+#' @examples
+#' # PARTIALLY OBSERVED FUNCTIONAL DATA EXAMPLE
+#'
+#' # set seed for reproducibility
+#' set.seed(123)
+#'
+#' # generate example data with partially observed curves
+#' sim  <- data_generator_po_1d(n = 50, grid_points = 60)
+#' X    <- sim$noisy_curves_miss
+#' y    <- sim$response
+#' grid <- sim$grid
+#' mp   <- sim$missing_points
+#'
+#' # Fit the model using an 'ffpo' term for the partially observed covariate.
+#' # 'nbasis' sets the number of basis functions for the data reconstruction
+#' # and for the functional coefficient, respectively.
+#' fit  <- po_fit(
+#'   response ~ ffpo(X = X, missing_points = mp, grid = grid, nbasis = c(20, 20)),
+#'   data = list(response = y, X = X, grid = grid, missing_points = mp)
+#' )
+#'
+#' # Inspect the structure of the returned object
+#' str(fit, max.level = 1)
+#'
+#' # The estimated intercept and the basis coefficients can be accessed directly
+#' fit$intercept
+#' fit$theta
+#'
+#' # A summary of the underlying fit can be obtained using the summary function
+#' summary(fit)
+#'
+#' @seealso \code{\link{ffpo}}
 #'
 #' @export
 po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {

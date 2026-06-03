@@ -2,22 +2,71 @@
 % Please edit documentation in R/po_fit.R
 \name{po_fit}
 \alias{po_fit}
-\title{Title}
+\title{Estimation of functional regression models for partially observed
+functional data}
 \usage{
 po_fit(formula, data, family = stats::gaussian(), offset = NULL)
 }
 \arguments{
-\item{formula}{.}
+\item{formula}{a formula object with at least one \code{ffpo} term.}
 
-\item{data}{.}
+\item{data}{a \code{list} object containing the response variable
+and the covariates as the components of the list.}
 
-\item{family}{.}
+\item{family}{a \code{family} object specifying the distribution from which the
+data originates. The default distribution is \code{\link{gaussian}}.}
 
-\item{offset}{.}
+\item{offset}{an offset vector. The default value is \code{NULL}.}
 }
 \value{
-.
+An object of class \code{po_fit}. It is a \code{list} containing the
+following items:
+\itemize{
+\item An item named \code{fit} of class \code{sop}. See \link[SOP]{sop.fit}.
+\item An item named \code{intercept} which is the estimated intercept of the model.
+\item An item named \code{theta} which is the basis coefficient vector of the
+estimated functional coefficient.
+\item An item named \code{ffpo_evals} which is the result of the evaluations of the
+\code{ffpo} terms in the formula.
+}
 }
 \description{
-Title
+The \code{po_fit} function fits functional regression models for partially
+observed functional data, where each curve is only observed over part of the
+common domain.
+}
+\examples{
+# PARTIALLY OBSERVED FUNCTIONAL DATA EXAMPLE
+
+# set seed for reproducibility
+set.seed(123)
+
+# generate example data with partially observed curves
+sim  <- data_generator_po_1d(n = 50, grid_points = 60)
+X    <- sim$noisy_curves_miss
+y    <- sim$response
+grid <- sim$grid
+mp   <- sim$missing_points
+
+# Fit the model using an 'ffpo' term for the partially observed covariate.
+# 'nbasis' sets the number of basis functions for the data reconstruction
+# and for the functional coefficient, respectively.
+fit  <- po_fit(
+  response ~ ffpo(X = X, missing_points = mp, grid = grid, nbasis = c(20, 20)),
+  data = list(response = y, X = X, grid = grid, missing_points = mp)
+)
+
+# Inspect the structure of the returned object
+str(fit, max.level = 1)
+
+# The estimated intercept and the basis coefficients can be accessed directly
+fit$intercept
+fit$theta
+
+# A summary of the underlying fit can be obtained using the summary function
+summary(fit)
+
+}
+\seealso{
+\code{\link{ffpo}}
 }
