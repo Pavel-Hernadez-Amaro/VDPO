@@ -144,6 +144,7 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
     deglist <- vector(mode = "list", length = nffpo_2d)
     Phi_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
     M_ffpo <- vector(mode = "list", length = nffpo_2d) # list of matrices
+    grid_ffpo <- vector(mode = "list", length = nffpo_2d) # list of x/y grids
 
     ffpo2d_counter <- 0
     for (ffpo2d_evaluation in evals[grepl("ffpo_2d", names(evals))]) {
@@ -154,6 +155,10 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
 
       Phi_ffpo[[ffpo2d_counter]] <- ffpo2d_evaluation[["Phi_ffpo2d"]]
       M_ffpo[[ffpo2d_counter]] <- ffpo2d_evaluation[["M_ffpo2d"]] # this is not M, this is M complement
+      grid_ffpo[[ffpo2d_counter]] <- list(
+        x = ffpo2d_evaluation[["points_x"]],
+        y = ffpo2d_evaluation[["points_y"]]
+      )
     }
     foo <- B2XZG_2d(B_all, pord = c(2, 2), c = deglist[[1]]) # we need to fix this to work like deglist in ffvd || multivariate case
 
@@ -193,30 +198,23 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
 
   intercept <- fit$b.fixed[1]
 
-  # Vp_tmp <- calculate_Vp_tmp(fit, non_special_indices = list(), nf = 0, n_coefs_f = 0)
-  #
-  # theta_aux <- calculate_theta_aux(fit, non_special_indices = list(), nf = 0, l.f = NULL)
-  #
-  # covar_theta <- B_res$TMatrix %*% Vp_tmp %*% t(B_res$TMatrix)
-  #
-  # theta_ffvd <- B_res$TMatrix %*% theta_aux
-  #
-  # theta_no_functional <- calculate_theta_no_functional(fit, non_special_indices = list())
-  #
-  # theta_f <- calculate_theta_f(0, l.f = NULL, fit, non_special_indices = list())
-  # Beta_ffvd <- calculate_beta_ffvd(nffvd, data, response, M, L_Phi, B_T, theta_ffvd, deglist)
-  #
+  # Covariance of the spline coefficients (drop the intercept column/row, as in vd_fit)
+  Vp_tmp <- fit$Vp[-1, -1]
+  covar_theta <- foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)
+
   ffpo_2d_evals <- process_evals(evals, type = "ffpo_2d")
+
+  # Reconstruct the coefficient surface(s) and pointwise confidence intervals
+  Beta <- calculate_beta_ffpo_2d(theta_ffpo, covar_theta, Phi_ffpo, grid_ffpo, deglist)
 
   res <- list(
     fit = fit,
-    # Beta = Beta_ffvd,
+    Beta = Beta,
+    intercept = intercept,
     theta = theta_ffpo,
-    # covar_theta = covar_theta,
-    # M = M,
+    covar_theta = covar_theta,
+    M = M_ffpo,
     ffpo_2d_evals = ffpo_2d_evals
-    # theta_no_functional = theta_no_functional,
-    # theta_f = theta_f
   )
 
   class(res) <- "po_2d_fit"
@@ -228,4 +226,38 @@ po_2d_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) 
 #' @export
 summary.po_2d_fit <- function(object, ...) {
   base::summary(object$fit, ...)
+}
+
+#' Reconstruct the coefficient surface and pointwise confidence intervals for
+#' \code{ffpo_2d} terms
+#'
+#' @noRd
+calculate_beta_ffpo_2d <- function(theta, covar_theta, Phi_list, grid_list, deglist,
+                                   level = 0.95) {
+  nterms <- length(Phi_list)
+  z <- stats::qnorm(1 - (1 - level) / 2)
+  out <- vector("list", nterms)
+  start <- 1
+  for (j in seq_len(nterms)) {
+    cj <- prod(deglist[[j]])
+    idx <- start:(start + cj - 1)
+    Phi_B <- Phi_list[[j]]
+    theta_j <- theta[idx]
+    covar_j <- covar_theta[idx, idx, drop = FALSE]
+    beta_vec <- as.numeric(Phi_B %*% theta_j)
+    var_vec <- rowSums((Phi_B %*% covar_j) * Phi_B)
+    se_vec <- sqrt(pmax(var_vec, 0))
+    nx <- length(grid_list[[j]]$x)
+    ny <- length(grid_list[[j]]$y)
+    out[[j]] <- list(
+      x = grid_list[[j]]$x,
+      y = grid_list[[j]]$y,
+      beta = matrix(beta_vec, nrow = nx, ncol = ny),
+      se = matrix(se_vec, nrow = nx, ncol = ny),
+      lower = matrix(beta_vec - z * se_vec, nrow = nx, ncol = ny),
+      upper = matrix(beta_vec + z * se_vec, nrow = nx, ncol = ny)
+    )
+    start <- start + cj
+  }
+  out
 }

@@ -145,6 +145,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
     deglist <- vector(mode = "list", length = nffpo)
     Phi_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
     M_ffpo <- vector(mode = "list", length = nffpo) # list of matrices
+    grid_ffpo <- vector(mode = "list", length = nffpo) # list of grids
 
     ffpo_counter <- 0
     for (ffpo_evaluation in evals[grepl("ffpo", names(evals))]) {
@@ -155,6 +156,7 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
       Phi_ffpo[[ffpo_counter]] <- ffpo_evaluation[["Phi"]]
       M_ffpo[[ffpo_counter]] <- ffpo_evaluation[["M"]]
+      grid_ffpo[[ffpo_counter]] <- ffpo_evaluation[["grid"]]
     }
     foo <- B2XZG_ffpo(B_all, deglist)
 
@@ -194,37 +196,60 @@ po_fit <- function(formula, data, family = stats::gaussian(), offset = NULL) {
 
   intercept <- fit$b.fixed[1]
 
-  # Vp_tmp <- calculate_Vp_tmp(fit, non_special_indices = list(), nf = 0, n_coefs_f = 0)
-  #
-  # theta_aux <- calculate_theta_aux(fit, non_special_indices = list(), nf = 0, l.f = NULL)
-  #
-  # covar_theta <- B_res$TMatrix %*% Vp_tmp %*% t(B_res$TMatrix)
-  #
-  # theta_ffvd <- B_res$TMatrix %*% theta_aux
-  #
-  # theta_no_functional <- calculate_theta_no_functional(fit, non_special_indices = list())
-  #
-  # theta_f <- calculate_theta_f(0, l.f = NULL, fit, non_special_indices = list())
-  # Beta_ffvd <- calculate_beta_ffvd(nffvd, data, response, M, L_Phi, B_T, theta_ffvd, deglist)
-  #
+  # Covariance of the spline coefficients (drop the intercept column/row, as in vd_fit)
+  Vp_tmp <- fit$Vp[-1, -1]
+  covar_theta <- foo$TMatrix %*% Vp_tmp %*% t(foo$TMatrix)
+
   ffpo_evals <- process_evals(evals, type = "ffpo")
+
+  # Reconstruct the functional coefficient(s) and pointwise confidence intervals
+  Beta <- calculate_beta_ffpo(theta_ffpo, covar_theta, Phi_ffpo, grid_ffpo, deglist)
 
   res <- list(
     fit = fit,
-    # Beta = Beta_ffvd,
+    Beta = Beta,
     intercept = intercept,
     theta = theta_ffpo,
-    # covar_theta = covar_theta,
-    # M = M,
+    covar_theta = covar_theta,
+    M = M_ffpo,
     ffpo_evals = ffpo_evals
-    # theta_no_functional = theta_no_functional,
-    # theta_f = theta_f
   )
 
   class(res) <- "po_fit"
   attr(res, "N") <- length(data[[response]])
 
   res
+}
+
+#' Reconstruct the functional coefficient and pointwise confidence intervals for
+#' \code{ffpo} terms
+#'
+#' @noRd
+calculate_beta_ffpo <- function(theta, covar_theta, Phi_list, grid_list, deglist,
+                                level = 0.95) {
+  nterms <- length(Phi_list)
+  z <- stats::qnorm(1 - (1 - level) / 2)
+  out <- vector("list", nterms)
+  start <- 1
+  for (j in seq_len(nterms)) {
+    cj <- deglist[[j]]
+    idx <- start:(start + cj - 1)
+    Phi_B <- Phi_list[[j]]$B
+    theta_j <- theta[idx]
+    covar_j <- covar_theta[idx, idx, drop = FALSE]
+    beta <- as.numeric(Phi_B %*% theta_j)
+    var_beta <- rowSums((Phi_B %*% covar_j) * Phi_B)
+    se <- sqrt(pmax(var_beta, 0))
+    out[[j]] <- data.frame(
+      t = grid_list[[j]],
+      beta = beta,
+      se = se,
+      lower = beta - z * se,
+      upper = beta + z * se
+    )
+    start <- start + cj
+  }
+  out
 }
 
 #' @export

@@ -368,6 +368,7 @@ ffpo <- function(X, missing_points = NULL, grid, bidimensional_grid = FALSE, nba
     X_hat  = L_y,
     Phi    = Phi,
     M      = M,
+    grid   = if (!is_grid_matrix) c(grid) else grid_all,
     nbasis = nbasis
   )
 }
