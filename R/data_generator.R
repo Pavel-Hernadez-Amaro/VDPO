@@ -1016,254 +1016,160 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 }
 
 
-#' Generate 2D functional data for simulation studies
+#' Generate two-dimensional partially observed functional data
 #'
-#' Creates synthetic 2D functional data with optional noise components and different
-#' coefficient patterns. Uses Simpson's rule for accurate integration.
+#' Simulates a scalar response together with partially observed functional
+#' surfaces. The response is built from the integral of each surface against a
+#' fixed coefficient surface, and a rectangular region of each surface can be
+#' left unobserved.
 #'
-#' @param n Number of samples to generate.
-#' @param grid_x Number of points in x-axis grid. Default is 20.
-#' @param grid_y Number of points in y-axis grid. Default is 20.
-#' @param noise_sd Standard deviation of measurement noise. Default is 0.015.
-#' @param rsq Desired R-squared value for the response. Default is 0.95.
-#' @param intercept Intercept added to the linear predictor (or target logit for binomial responses).
-#' @param beta_type Type of coefficient surface ("saddle" or "exp"). Default is "saddle".
-#' @param response_type Type of the response variable ("gaussian" or "binomial"). Default is "gaussian".
-#' @param linear_predictor Integration approach for the linear predictor ("integral" or "linear").
-#' @param a1 Optional fixed value for first stochastic component. If provided, a2 must also be provided.
-#' @param a2 Optional fixed value for second stochastic component. If provided, a1 must also be provided.
-#' @param sub_response Number of intervals for Simpson integration. Default is 50.
-#' @param n_missing Number of holes in every curve.
-#' @param min_distance_x Length of the holes in the x axis.
-#' @param min_distance_y Length of the holes in the y axis.
+#' @param n Number of surfaces to generate.
+#' @param grid_x,grid_y Number of grid points along each axis.
+#' @param intercept Model intercept. For the binomial response it is used as the
+#'   target proportion of successes.
+#' @param noise_sd Standard deviation of the observation noise, relative to the
+#'   standard deviation of each surface.
+#' @param response_type Response distribution, either \code{"binomial"} (the
+#'   default) or \code{"gaussian"}.
+#' @param signal_strength Multiplier controlling the magnitude of the true
+#'   coefficient surface.
+#' @param n_missing Number of unobserved rectangular regions per surface
+#'   (default \code{0}, i.e. fully observed surfaces).
+#' @param min_distance_x,min_distance_y Minimum size of the unobserved regions
+#'   along each axis.
+#' @param verbose If \code{TRUE}, print a short summary of the simulation.
+#'   Defaults to \code{FALSE}.
 #'
-#' @return A list containing:
-#' \itemize{
-#'   \item surfaces: List of n true (noiseless) surfaces
-#'   \item noisy_surfaces: List of n observed (noisy) surfaces
-#'   \item response: Vector of n response values
-#'   \item grid_x: x-axis grid points
-#'   \item grid_y: y-axis grid points
-#'   \item beta: True coefficient surface
-#'   \item stochastic_components: Matrix of a1 and a2 values used for each surface
-#' }
+#' @return A list with the true surfaces (\code{surfaces}), the noisy surfaces
+#'   (\code{noisy_surfaces}), the partially observed surfaces
+#'   (\code{noisy_surfaces_miss}) together with the missing point information
+#'   (\code{miss_points}, \code{missing_points}), the \code{response}, the true
+#'   coefficient surface (\code{beta}), the grids (\code{points_x},
+#'   \code{points_y}) and additional simulation details.
 #'
 #' @examples
-#' # Generate basic 2D functional data with default parameters
-#' data <- data_generator_po_2d(n = 2)
-#'
-#' # Generate data with custom grid size and Gaussian response
-#' data <- data_generator_po_2d(n = 2, grid_x = 30, grid_y = 30, response_type = "gaussian")
-#'
-#' # Generate data with binomial response and saddle-shaped coefficient surface
-#' data <- data_generator_po_2d(n = 2, response_type = "binomial", beta_type = "saddle")
-#'
-#' # Generate data with fixed stochastic components
-#' data <- data_generator_po_2d(n = 2, a1 = 0.1, a2 = -0.2)
-#'
-#' # Introduce missing data with holes along curves
-#' data <- data_generator_po_2d(n = 2, n_missing = 3, min_distance_x = 5, min_distance_y = 5)
+#' set.seed(123)
+#' sim <- data_generator_po_2d(n = 20, grid_x = 10, grid_y = 10,
+#'                             response_type = "gaussian")
+#' str(sim, max.level = 1)
 #'
 #' @export
-data_generator_po_2d <- function(
-    n = 20,
-    grid_x = 20,
-    grid_y = 20,
-    noise_sd = 0.015,
-    rsq = 0.95,
-    intercept = 0.1,
-    beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
-    response_type = c("gaussian", "binomial"),
-    linear_predictor = c("integral", "linear"),
-    a1 = NULL,
-    a2 = NULL,
-    sub_response = 50,
-    n_missing = 1,
-    min_distance_x = NULL,
-    min_distance_y = NULL) {
-  beta_type <- match.arg(beta_type)
+data_generator_po_2d <- function(n = 100, grid_x = 20, grid_y = 20,
+                                 intercept = 0.6, noise_sd = 0.25,
+                                 response_type = c("binomial", "gaussian"),
+                                 signal_strength = 2.5, n_missing = 0,
+                                 min_distance_x = NULL, min_distance_y = NULL,
+                                 verbose = FALSE) {
   response_type <- match.arg(response_type)
-  linear_predictor <- match.arg(linear_predictor)
 
-  # Validate a1 and a2 parameters
-  if (!is.null(a1) && is.null(a2) || is.null(a1) && !is.null(a2)) {
-    stop("Both a1 and a2 must be provided if one is specified", call. = FALSE)
-  }
-
-  if (!is.null(a1)) {
-    if (length(a1) != 1 || length(a2) != 1 || !is.numeric(a1) || !is.numeric(a2)) {
-      stop("a1 and a2 must be single numeric values", call. = FALSE)
-    }
-  }
-
-  if (!is.null(min_distance_x) && is.null(min_distance_y) || is.null(min_distance_x) && !is.null(min_distance_y)) {
-    stop("Both min_distance_x and min_distance_y must be provided if one is specified", call. = FALSE)
-  }
-
-  if (is.null(min_distance_x)) {
-    min_distance_x <- round(1 / 5 * grid_x)
-  }
-
-  if (is.null(min_distance_y)) {
-    min_distance_y <- round(1 / 5 * grid_y)
-  }
-
-  # Create grid points
   x <- seq(0, 1, length.out = grid_x)
   y <- seq(0, 1, length.out = grid_y)
 
-  # Initialize storage
+  target_prop <- if (response_type == "binomial") intercept else 0.5
+
+  if (verbose) {
+    cat("Response type:", response_type, "\n")
+    cat("Sample size:", n, "\n")
+    cat("Grid size:", grid_x, "x", grid_y, "\n")
+    if (response_type == "binomial") cat("Target proportion:", target_prop, "\n")
+  }
+
+  beta_surface <- matrix(nrow = length(x), ncol = length(y))
+  for (i in seq_along(x)) {
+    for (j in seq_along(y)) {
+      beta_surface[i, j] <- signal_strength *
+        (sin(2 * pi * x[i]) * cos(2 * pi * y[j]) + 0.8 * (x[i] - 0.5) * (y[j] - 0.5))
+    }
+  }
+
   surfaces <- vector("list", n)
   noisy_surfaces <- vector("list", n)
-  stochastic_components <- matrix(
-    nrow = n,
-    ncol = 2,
-    dimnames = list(NULL, c("a1", "a2"))
-  )
-  nu <- numeric(n)
+  stochastic_components <- matrix(nrow = n, ncol = 2,
+                                  dimnames = list(NULL, c("a1", "a2")))
+  functional_effects <- numeric(n)
 
+  group1_size <- round(n * target_prop)
+  group_assignment <- c(rep(1, group1_size), rep(2, n - group1_size))
+  group_assignment <- sample(group_assignment)
 
-  # Prepare integration grid
-  n_x <- m_y <- 2 * sub_response
-
-  x_fine <- seq(min(x), max(x), length.out = n_x + 1)
-  y_fine <- seq(min(y), max(y), length.out = m_y + 1)
-
-  h_x <- (max(x_fine) - min(x_fine)) / n_x
-  h_y <- (max(y_fine) - min(y_fine)) / m_y
-
-
-  # Generate beta surface on fine grid
-  if (linear_predictor == "integral") {
-    beta_fine <- if (beta_type == "saddle") {
-      generate_saddle_surface(x_fine, y_fine)
-    } else if (beta_type == "exp") {
-      generate_exp_surface(x_fine, y_fine)
-    } else if (beta_type == "smooth") {
-      generate_smooth_surface(x_fine, y_fine)
-    } else if (beta_type == "peaks") {
-      generate_multipeak_surface(x_fine, y_fine)
-    } else {
-      generate_sinusoidal_surface(x_fine, y_fine)
-    }
-  } else {
-    beta_fine <- if (beta_type == "saddle") {
-      generate_saddle_surface(x, y)
-    } else if (beta_type == "exp") {
-      generate_exp_surface(x, y)
-    } else if (beta_type == "smooth") {
-      generate_smooth_surface(x, y)
-    } else if (beta_type == "peaks") {
-      generate_multipeak_surface(x, y)
-    } else {
-      generate_sinusoidal_surface(x, y)
-    }
-  }
-
-  # Generate beta on original grid for output
-  beta_surface <- if (beta_type == "saddle") {
-    generate_saddle_surface(x, y)
-  } else if (beta_type == "exp") {
-    generate_exp_surface(x, y)
-  } else if (beta_type == "smooth") {
-    generate_smooth_surface(x, y)
-  } else if (beta_type == "peaks") {
-    generate_multipeak_surface(x, y)
-  } else {
-    generate_sinusoidal_surface(x, y)
-  }
-
-
-  # Generate data and compute response
   for (i in 1:n) {
-    # Use fixed values if provided, otherwise generate random components
-    if (!is.null(a1)) {
-      stochastic_components[i, ] <- c(a1, a2)
+    if (group_assignment[i] == 1) {
+      a1 <- rnorm(1, 1.5, 0.3)
+      a2 <- rnorm(1, 1.2, 0.3)
     } else {
-      stochastic_components[i, ] <- c(
-        stats::rnorm(1, 0, 1), # a1
-        stats::rnorm(1, 0, 1) # a2
-      )
+      a1 <- rnorm(1, -1.2, 0.3)
+      a2 <- rnorm(1, -1, 0.3)
     }
+    stochastic_components[i, ] <- c(a1, a2)
 
-    # Generate surface
-    surface_data <- generate_surface(
-      x, y,
-      stochastic_components[i, 1],
-      stochastic_components[i, 2],
-      noise_sd
-    )
-
-    surfaces[[i]] <- surface_data$DATA_T
-    noisy_surfaces[[i]] <- surface_data$DATA_N
-
-
-
-
-    # Generate finer surface for integration
-    if (linear_predictor == "integral") {
-      surface_fine <- generate_surface(
-        x_fine, y_fine,
-        stochastic_components[i, 1],
-        stochastic_components[i, 2],
-        0
-      )$DATA_T
+    true_surface <- matrix(nrow = length(x), ncol = length(y))
+    for (ii in seq_along(x)) {
+      for (jj in seq_along(y)) {
+        true_surface[ii, jj] <- a1 * sin(2 * pi * x[ii]) + a2 * cos(2 * pi * y[jj]) +
+          0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) + 2
+      }
     }
+    surfaces[[i]] <- true_surface
 
-    if (linear_predictor == "integral") {
-      integrand <- surfaces[[i]] %*% beta_surface
+    surface_sd <- sd(as.vector(true_surface))
+    noise_matrix <- matrix(rnorm(length(x) * length(y), 0, noise_sd * surface_sd),
+                           length(x), length(y))
+    noisy_surfaces[[i]] <- true_surface + noise_matrix
 
-      nu[i] <- double_integral(integrand, x, y)
-
-      # Get integration weights
-      # W_delta <- setup_simpson_weights(n_x, m_y, h_x, h_y)
-
-      # Compute double integral using Simpson's rule
-      # nu[i] <- as.double(t(as.vector(surface_fine)) %*%
-      #                      diag(W_delta) %*%
-      #                      as.vector(beta_fine))
-    } else {
-      nu[i] <- mean(surfaces[[i]] * beta_surface)
-
-      # nu[i] <- as.double(t(as.vector(surfaces[[i]])) %*%
-      #                      as.vector(beta_surface))
-    }
+    integrand <- true_surface * beta_surface
+    functional_effects[i] <- mean(integrand) * (max(x) - min(x)) * (max(y) - min(y))
   }
 
-  if (response_type == "gaussian") {
-    # Generate response with desired R-squared
-    var_e <- (1 / rsq - 1) * stats::var(nu)
-    response <- intercept + nu + stats::rnorm(n, 0, sqrt(var_e))
+  if (response_type == "binomial") {
+    probabilities <- plogis(qlogis(target_prop) + functional_effects)
+    response <- rbinom(n, 1, probabilities)
+    final_intercept <- qlogis(target_prop)
   } else {
-    # stats::rbinom(n, 1, (exp(nu) / (1 + exp(nu))))
-
-    aux <- adjust_proportion(intercept, nu, max_iter = 150, tolerance = 0.001)
-
-    response <- aux$y
-    intercept <- aux$intercept
+    rsq <- 0.95
+    var_e <- (1 / rsq - 1) * var(functional_effects)
+    response <- intercept + functional_effects + rnorm(n, 0, sqrt(var_e))
+    final_intercept <- intercept
   }
 
-  noisy_surfaces_miss <- add_miss2(
-    noisy_surfaces,
-    n_missing,
-    min_distance_x,
-    min_distance_y
-  )
+  noisy_surfaces_miss <- add_miss2(noisy_surfaces, n_missing, min_distance_x, min_distance_y)
 
-  list(
-    surfaces = surfaces,
-    noisy_surfaces = noisy_surfaces,
+  simulation_data <- list(
+    surfaces = surfaces, noisy_surfaces = noisy_surfaces,
     noisy_surfaces_miss = noisy_surfaces_miss[[1]],
     miss_points = noisy_surfaces_miss[[2]],
     missing_points = noisy_surfaces_miss[[3]],
-    response = response,
-    nu = nu,
-    intercept = intercept,
-    points_x = x,
-    points_y = y,
-    beta = beta_surface,
-    stochastic_components = stochastic_components
+    response = response, intercept = final_intercept,
+    points_x = x, points_y = y, beta = beta_surface,
+    stochastic_components = stochastic_components,
+    functional_effects = functional_effects,
+    group_assignment = group_assignment,
+    response_type = response_type, signal_strength = signal_strength
   )
+
+  correlation <- cor(functional_effects, response)
+  if (response_type == "binomial") {
+    simple_model <- glm(response ~ functional_effects, family = binomial())
+    simple_pred <- predict(simple_model, type = "response")
+    simple_auc <- tryCatch({
+      if (requireNamespace("pROC", quietly = TRUE)) {
+        as.numeric(pROC::auc(response, simple_pred, quiet = TRUE))
+      } else {
+        NA
+      }
+    }, error = function(e) NA)
+    if (verbose) {
+      cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
+      cat("Simple model AUC:", round(simple_auc, 3), "\n")
+    }
+    simulation_data$diagnostics <- list(correlation = correlation, simple_auc = simple_auc)
+  } else {
+    if (verbose) {
+      cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
+    }
+    simulation_data$diagnostics <- list(correlation = correlation, r_squared = correlation^2)
+  }
+
+  simulation_data
 }
 
 #' Generate saddle-shaped coefficient surface
@@ -1700,233 +1606,3 @@ adjust_proportion <- function(target_prop, functional_effects,
 }
 
 
-#' Generate high-signal 2D functional data with proper interface
-#'
-#' Creates synthetic 2D functional data using the working high-signal approach
-#' but with the same interface as data_generator_po_2d for compatibility
-#'
-#' @param n Number of samples to generate
-#' @param grid_x Number of points in x-axis grid
-#' @param grid_y Number of points in y-axis grid
-#' @param intercept Target proportion for binomial or intercept for Gaussian
-#' @param noise_sd Standard deviation of measurement noise
-#' @param response_type Type of response ("binomial" or "gaussian")
-#' @param signal_strength Strength of discriminative signal (default 2.5)
-#' @param n_missing Not used (kept for compatibility)
-#' @param min_distance_x Not used (kept for compatibility)
-#' @param min_distance_y Not used (kept for compatibility)
-#'
-#' @return A list containing simulated data with same structure as data_generator_po_2d
-#'
-#' @noRd
-data_generator_high_signal <- function(n = 100,
-                                       grid_x = 20,
-                                       grid_y = 20,
-                                       intercept = 0.6,
-                                       noise_sd = 0.25,
-                                       response_type = "binomial",
-                                       signal_strength = 2.5,
-                                       n_missing = 0,
-                                       min_distance_x = NULL,
-                                       min_distance_y = NULL) {
-  # Create coordinate grids
-  x <- seq(0, 1, length.out = grid_x)
-  y <- seq(0, 1, length.out = grid_y)
-
-  if (response_type == "binomial") {
-    target_prop <- intercept
-  } else {
-    target_prop <- 0.5 # Not used for Gaussian
-  }
-
-  cat("=== HIGH-SIGNAL DATA GENERATION ===\n")
-  cat("Response type:", response_type, "\n")
-  cat("Sample size:", n, "\n")
-  cat("Grid size:", grid_x, "x", grid_y, "\n")
-  if (response_type == "binomial") {
-    cat("Target proportion:", target_prop, "\n")
-  }
-
-  # Step 1: Create discriminative coefficient surface
-  beta_surface <- matrix(nrow = length(x), ncol = length(y))
-  for (i in seq_along(x)) {
-    for (j in seq_along(y)) {
-      # Strong discriminative pattern
-      beta_surface[i, j] <- signal_strength * (
-        sin(2 * pi * x[i]) * cos(2 * pi * y[j]) +
-          0.8 * (x[i] - 0.5) * (y[j] - 0.5)
-      )
-    }
-  }
-
-  cat("Beta surface range:", range(beta_surface), "\n")
-
-  # Step 2: Generate functional predictor surfaces
-  surfaces <- vector("list", n)
-  noisy_surfaces <- vector("list", n)
-  stochastic_components <- matrix(
-    nrow = n, ncol = 2,
-    dimnames = list(NULL, c("a1", "a2"))
-  )
-  functional_effects <- numeric(n)
-
-  group1_size <- round(n * target_prop)
-  group_assignment <- c(rep(1, group1_size), rep(2, n - group1_size))
-  group_assignment <- sample(group_assignment)
-
-  for (i in 1:n) {
-    # Generate coefficients based on group membership
-    if (group_assignment[i] == 1) {
-      # Group 1: positive correlation with beta surface
-      a1 <- rnorm(1, 1.5, 0.3)
-      a2 <- rnorm(1, 1.2, 0.3)
-    } else {
-      # Group 2: negative correlation with beta surface
-      a1 <- rnorm(1, -1.2, 0.3)
-      a2 <- rnorm(1, -1.0, 0.3)
-    }
-
-    stochastic_components[i, ] <- c(a1, a2)
-
-    # Generate surface using matching basis functions
-    true_surface <- matrix(nrow = length(x), ncol = length(y))
-    for (ii in seq_along(x)) {
-      for (jj in seq_along(y)) {
-        true_surface[ii, jj] <-
-          a1 * sin(2 * pi * x[ii]) + # Matches beta's sin component
-          a2 * cos(2 * pi * y[jj]) + # Matches beta's cos component
-          0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) + # Matches beta's interaction
-          2.0 # Baseline level
-
-        ## THIS ONE IS TO USE WITH THE double_integral() FUNCTION
-        # true_surface[ii, jj] <-
-        #   a1 * (sin(2*pi*x[ii]) + 1) +                    # Shift to positive
-        #   a2 * (cos(2*pi*y[jj]) + 1) +                    # Shift to positive
-        #   0.5 * (x[ii] - 0.5) * (y[jj] - 0.5) +
-        #   2.0
-      }
-    }
-
-    surfaces[[i]] <- true_surface
-
-    # Add noise proportional to surface variation
-    surface_sd <- sd(as.vector(true_surface))
-    noise_matrix <- matrix(
-      rnorm(length(x) * length(y), 0, noise_sd * surface_sd),
-      length(x), length(y)
-    )
-    noisy_surfaces[[i]] <- true_surface + noise_matrix
-
-    # Compute functional effect (integral)
-    integrand <- true_surface * beta_surface
-    functional_effects[i] <- mean(integrand) * (max(x) - min(x)) * (max(y) - min(y))
-    # functional_effects[i] <- double_integral(integrand, x, y)
-  }
-
-  cat("Functional effects range:", range(functional_effects), "\n")
-  cat("Functional effects std:", sd(functional_effects), "\n")
-
-  # Step 3: Generate response based on type
-  if (response_type == "binomial") {
-    # Binomial response using functional effects
-    # scaled_effects <- scale(functional_effects)[,1] * 1.5
-    scaled_effects <- functional_effects
-
-    probabilities <- plogis(qlogis(target_prop) + scaled_effects)
-    response <- rbinom(n, 1, probabilities)
-
-    cat("Response proportion:", mean(response), "\n")
-    final_intercept <- qlogis(target_prop)
-  } else {
-    # Gaussian response
-    rsq <- 0.95
-    var_e <- (1 / rsq - 1) * var(functional_effects)
-    response <- intercept + functional_effects + rnorm(n, 0, sqrt(var_e))
-
-    cat("Response range:", range(response), "\n")
-    cat("Response mean:", mean(response), "\n")
-    final_intercept <- intercept
-  }
-
-  noisy_surfaces_miss <- add_miss2(
-    noisy_surfaces,
-    n_missing,
-    min_distance_x,
-    min_distance_y
-  )
-
-
-  # Step 4: Create data structure matching data_generator_po_2d output
-  simulation_data <- list(
-    # Core surfaces (same format as original)
-    surfaces = surfaces,
-    noisy_surfaces = noisy_surfaces,
-    noisy_surfaces_miss = noisy_surfaces_miss[[1]],
-
-
-    # Missing data structures (empty for now)
-    miss_points = noisy_surfaces_miss[[2]],
-    missing_points = noisy_surfaces_miss[[3]],
-
-    # Response and parameters
-    response = response,
-    intercept = final_intercept,
-
-    # Grid information (matching original naming)
-    points_x = x,
-    points_y = y,
-
-    # True parameters
-    beta = beta_surface,
-    stochastic_components = stochastic_components,
-
-    # Additional information
-    functional_effects = functional_effects,
-    group_assignment = group_assignment,
-    response_type = response_type,
-    signal_strength = signal_strength
-  )
-
-  # Step 5: Diagnostics
-  if (response_type == "binomial") {
-    correlation <- cor(functional_effects, response)
-    simple_model <- glm(response ~ functional_effects, family = binomial())
-    simple_pred <- predict(simple_model, type = "response")
-
-    simple_auc <- tryCatch(
-      {
-        if (requireNamespace("pROC", quietly = TRUE)) {
-          as.numeric(pROC::auc(response, simple_pred, quiet = TRUE))
-        } else {
-          NA
-        }
-      },
-      error = function(e) NA
-    )
-
-    cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
-    cat("Simple model AUC:", round(simple_auc, 3), "\n")
-
-    if (correlation > 0.3 && !is.na(simple_auc) && simple_auc > 0.7) {
-      cat("SUCCESS: Strong discriminative signal achieved!\n")
-    } else {
-      cat("WARNING: Signal may be insufficient\n")
-    }
-
-    simulation_data$diagnostics <- list(
-      correlation = correlation,
-      simple_auc = simple_auc
-    )
-  } else {
-    # Gaussian diagnostics
-    correlation <- cor(functional_effects, response)
-    cat("Correlation (functional effects vs response):", round(correlation, 3), "\n")
-
-    simulation_data$diagnostics <- list(
-      correlation = correlation,
-      r_squared = correlation^2
-    )
-  }
-
-  return(simulation_data)
-}
