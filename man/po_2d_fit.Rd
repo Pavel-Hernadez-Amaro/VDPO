@@ -23,8 +23,17 @@ An object of class \code{po_2d_fit}. It is a \code{list} containing the
 following items:
 \itemize{
 \item An item named \code{fit} of class \code{sop}. See \link[SOP]{sop.fit}.
+\item An item named \code{Beta} which is a list with one entry per functional term,
+each containing the estimated coefficient surface (\code{beta}), its standard
+error (\code{se}), the lower and upper pointwise confidence limits (\code{lower},
+\code{upper}) and the grids (\code{x}, \code{y}).
+\item An item named \code{intercept} which is the estimated intercept of the model.
 \item An item named \code{theta} which is the basis coefficient vector of the
 estimated bidimensional functional coefficient.
+\item An item named \code{covar_theta} which is the covariance matrix of the basis
+coefficients, used to build the pointwise confidence intervals.
+\item An item named \code{M} which holds the observed domain information for each
+functional term.
 \item An item named \code{ffpo_2d_evals} which is the result of the evaluations of the
 \code{ffpo_2d} terms in the formula.
 }

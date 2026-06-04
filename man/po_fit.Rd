@@ -23,9 +23,17 @@ An object of class \code{po_fit}. It is a \code{list} containing the
 following items:
 \itemize{
 \item An item named \code{fit} of class \code{sop}. See \link[SOP]{sop.fit}.
+\item An item named \code{Beta} which is a list with one \code{data.frame} per
+functional term, each containing the grid (\code{t}), the estimated functional
+coefficient (\code{beta}), its standard error (\code{se}) and the lower and upper
+limits of the pointwise confidence interval (\code{lower}, \code{upper}).
 \item An item named \code{intercept} which is the estimated intercept of the model.
 \item An item named \code{theta} which is the basis coefficient vector of the
 estimated functional coefficient.
+\item An item named \code{covar_theta} which is the covariance matrix of the basis
+coefficients, used to build the pointwise confidence intervals.
+\item An item named \code{M} which holds the observed domain information for each
+functional term.
 \item An item named \code{ffpo_evals} which is the result of the evaluations of the
 \code{ffpo} terms in the formula.
 }
