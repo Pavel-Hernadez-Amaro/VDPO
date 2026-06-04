@@ -18,6 +18,11 @@ Useful links:
 \author{
 \strong{Maintainer}: Pavel Hernandez \email{pavel.amaro96@gmail.com}
 
+Authors:
+\itemize{
+  \item Pavel Hernandez \email{pavel.amaro96@gmail.com}
+}
+
 Other contributors:
 \itemize{
   \item Jose Ignacio Diez \email{jodiezru@pa.uc3m.es} [contractor]
