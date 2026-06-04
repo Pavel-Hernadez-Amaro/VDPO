@@ -16,9 +16,17 @@
 #' following items:
 #'
 #' - An item named `fit` of class \code{sop}. See \link[SOP]{sop.fit}.
+#' - An item named `Beta` which is a list with one \code{data.frame} per
+#' functional term, each containing the grid (`t`), the estimated functional
+#' coefficient (`beta`), its standard error (`se`) and the lower and upper
+#' limits of the pointwise confidence interval (`lower`, `upper`).
 #' - An item named `intercept` which is the estimated intercept of the model.
 #' - An item named `theta` which is the basis coefficient vector of the
 #' estimated functional coefficient.
+#' - An item named `covar_theta` which is the covariance matrix of the basis
+#' coefficients, used to build the pointwise confidence intervals.
+#' - An item named `M` which holds the observed domain information for each
+#' functional term.
 #' - An item named `ffpo_evals` which is the result of the evaluations of the
 #' `ffpo` terms in the formula.
 #'
