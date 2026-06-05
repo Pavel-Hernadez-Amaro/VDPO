@@ -25,6 +25,7 @@ Imports:
     utils,
     Matrix,
     SOP,
+    mgcv,
     splines,
     stats,
     fda,
