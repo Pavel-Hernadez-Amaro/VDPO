@@ -60,6 +60,8 @@ A list with the following items:
   \item{\code{mean_model}}{The fitted univariate mean models (one per
     variable).}
   \item{\code{M_grid}}{The domain grid used.}
+  \item{\code{argvals_u}}{The observation times of each subject, as a list
+    over variables, each a list over subjects.}
 }
 }
 \description{
