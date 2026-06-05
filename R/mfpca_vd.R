@@ -37,17 +37,21 @@
 #'   method used to smooth the score covariances along the domain.
 #'
 #' @return A list with the following items:
-#'
-#' - \code{scores_m}: matrix of multivariate scores.
-#' - \code{efunctions_m}: multivariate eigenfunctions, as a list over domains,
-#'   each a list over variables.
-#' - \code{efunctions_u}: univariate eigenfunctions, as a list over variables.
-#' - \code{scores_u}: matrix of univariate scores.
-#' - \code{evalues_u}: univariate eigenvalues, as a list over variables.
-#' - \code{evalues_m}: multivariate eigenvalues, as a list over domains.
-#' - \code{var_u}: cumulative variance explained by the univariate components.
-#' - \code{mean_model}: the fitted univariate mean models (one per variable).
-#' - \code{M_grid}: the domain grid used.
+#' \describe{
+#'   \item{\code{scores_m}}{Matrix of multivariate scores.}
+#'   \item{\code{efunctions_m}}{Multivariate eigenfunctions, as a list over
+#'     domains, each a list over variables.}
+#'   \item{\code{efunctions_u}}{Univariate eigenfunctions, as a list over
+#'     variables.}
+#'   \item{\code{scores_u}}{Matrix of univariate scores.}
+#'   \item{\code{evalues_u}}{Univariate eigenvalues, as a list over variables.}
+#'   \item{\code{evalues_m}}{Multivariate eigenvalues, as a list over domains.}
+#'   \item{\code{var_u}}{Cumulative variance explained by the univariate
+#'     components.}
+#'   \item{\code{mean_model}}{The fitted univariate mean models (one per
+#'     variable).}
+#'   \item{\code{M_grid}}{The domain grid used.}
+#' }
 #'
 #' @importFrom mgcv gam
 #' @importFrom stats predict
