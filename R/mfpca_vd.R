@@ -413,7 +413,7 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
 #'
 #' @return Called for its side effect (a plot). Invisibly returns \code{NULL}.
 #'
-#' @importFrom graphics lines legend par image
+#' @importFrom graphics lines legend par image layout axis mtext
 #' @importFrom grDevices hcl.colors
 #' @importFrom stats quantile approx
 #' @export
@@ -424,20 +424,35 @@ plot.mfpca_vd <- function(x, type = c("eigenfunctions", "heatmap", "scores"),
   M <- x$M_grid
 
   if (type == "scores") {
-    k    <- components[1:2]
-    cols <- grDevices::hcl.colors(100, "viridis")
-    ord  <- as.integer(cut(M, 100))
+    k     <- components[1:2]
+    ncols <- 100
+    cols  <- grDevices::hcl.colors(ncols, "viridis")
+    rng   <- range(M)
+    brks  <- seq(rng[1], rng[2], length.out = ncols + 1)
+    ord   <- as.integer(cut(M, breaks = brks, include.lowest = TRUE))
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit({graphics::par(op); graphics::layout(1)}, add = TRUE)
+    graphics::layout(matrix(c(1, 2), nrow = 1), widths = c(5, 1))
+    graphics::par(mar = c(5, 4, 4, 1))
     plot(x$scores_m[, k[1]], x$scores_m[, k[2]], col = cols[ord], pch = 19,
          xlab = paste0("Score ", k[1]), ylab = paste0("Score ", k[2]),
          main = "Multivariate scores by domain length", ...)
+    graphics::par(mar = c(5, 0.5, 4, 3.5))
+    graphics::image(1, seq(rng[1], rng[2], length.out = ncols),
+                    matrix(seq_len(ncols), nrow = 1), col = cols,
+                    axes = FALSE, xlab = "", ylab = "")
+    graphics::axis(4)
+    graphics::mtext("Domain length", side = 4, line = 2.3, cex = 0.85)
     return(invisible(NULL))
   }
 
   if (type == "heatmap") {
     k     <- components[1]
-    doms  <- order(M)
-    tg    <- seq(0, max(M), length.out = 100)
-    t_ref <- 0.5 * min(M)
+    Mv    <- vapply(seq_along(x$argvals_u[[variable]]),
+                    function(i) max(x$argvals_u[[variable]][[i]]), numeric(1))
+    doms  <- order(Mv)
+    tg    <- seq(0, max(Mv), length.out = 100)
+    t_ref <- 0.5 * min(Mv)
     Z <- matrix(NA_real_, nrow = length(doms), ncol = length(tg))
     for (r in seq_along(doms)) {
       i  <- doms[r]
@@ -450,7 +465,7 @@ plot.mfpca_vd <- function(x, type = c("eigenfunctions", "heatmap", "scores"),
       valid <- tg <= max(tt)
       if (length(tt) >= 2) Z[r, valid] <- stats::approx(tt, ef, xout = tg[valid], rule = 2)$y
     }
-    graphics::image(x = tg, y = M[doms], z = t(Z),
+    graphics::image(x = tg, y = Mv[doms], z = t(Z),
                     col = grDevices::hcl.colors(100, "viridis"),
                     xlab = "t", ylab = "Domain length",
                     main = paste0("Eigenfunction ", k, " (variable ", variable, ")"), ...)
