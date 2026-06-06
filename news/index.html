@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VDPO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/VDPO-01-introduction.html">Introduction to VDPO</a></li>
     <li><a class="dropdown-item" href="../articles/VDPO-02-vd-models.html">Model fitting for variable domain functional data</a></li>
+    <li><a class="dropdown-item" href="../articles/VDPO-03-pofd.html">Model fitting for partially observed functional data</a></li>
+    <li><a class="dropdown-item" href="../articles/VDPO-04-vd-mfpca.html">Multivariate functional principal component analysis for variable domain data</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -37,10 +39,21 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="vdpo-020">VDPO 0.2.0<a class="anchor" aria-label="anchor" href="#vdpo-020"></a></h2>
+<ul><li>Added support for partially observed functional data. This includes the new functions <code><a href="../reference/ffpo.html">ffpo()</a></code> and <code><a href="../reference/ffpo_2d.html">ffpo_2d()</a></code> for defining partially observed functional terms in model formulae, <code><a href="../reference/po_fit.html">po_fit()</a></code> and <code><a href="../reference/po_2d_fit.html">po_2d_fit()</a></code> for fitting the corresponding regression models, and the data generators <code><a href="../reference/data_generator_po_1d.html">data_generator_po_1d()</a></code> and <code><a href="../reference/data_generator_po_2d.html">data_generator_po_2d()</a></code>.</li>
+<li>
+<code><a href="../reference/po_fit.html">po_fit()</a></code> and <code><a href="../reference/po_2d_fit.html">po_2d_fit()</a></code> now return the estimated functional coefficient together with its pointwise confidence intervals.</li>
+<li>Added <code><a href="../reference/mfpca_vd.html">mfpca_vd()</a></code>, a multivariate functional principal component analysis for variable domain data, together with a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method for the estimated eigenfunctions and scores.</li>
+<li>Added vignettes for the partially observed models and for the variable domain multivariate functional principal component analysis.</li>
+<li>Completed the documentation and added runnable examples for the new functions.</li>
+<li>Fixed a bug in <code><a href="../reference/plot_ci.html">plot_ci()</a></code> where the input object was referenced through the wrong variable, causing the function to error before producing a plot.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="vdpo-010">VDPO 0.1.0<a class="anchor" aria-label="anchor" href="#vdpo-010"></a></h2><p class="text-muted">CRAN release: 2024-10-21</p>
 <ul><li>Initial CRAN submission.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

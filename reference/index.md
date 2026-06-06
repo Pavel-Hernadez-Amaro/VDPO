@@ -7,12 +7,10 @@
 - [`adjust_proportion()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/adjust_proportion.md)
   : Iteratively adjust intercept to achieve target proportion in
   binomial simulation
-- [`data_generator_high_signal()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/data_generator_high_signal.md)
-  : Generate high-signal 2D functional data with proper interface
 - [`data_generator_po_1d()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/data_generator_po_1d.md)
   : Generate 1D functional data (current or legacy)
 - [`data_generator_po_2d()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/data_generator_po_2d.md)
-  : Generate 2D functional data for simulation studies
+  : Generate two-dimensional partially observed functional data
 - [`data_generator_vd()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/data_generator_vd.md)
   : Data generator function for the variable domain case
 - [`ffpo()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/ffpo.md)
@@ -22,12 +20,19 @@
   VDPO formulae
 - [`ffvd()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/ffvd.md)
   : Defining variable domain functional data terms in vd_fit formulae
+- [`mfpca_vd()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/mfpca_vd.md)
+  : Multivariate functional principal component analysis for variable
+  domain data
+- [`plot(`*`<mfpca_vd>`*`)`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot.mfpca_vd.md)
+  : Plot method for variable domain multivariate FPCA
 - [`plot_ci()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot_ci.md)
   : Plot Functional Curves with Confidence Intervals
 - [`po_2d_fit()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/po_2d_fit.md)
-  : Title
+  : Estimation of functional regression models for partially observed
+  bidimensional functional data
 - [`po_fit()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/po_fit.md)
-  : Title
+  : Estimation of functional regression models for partially observed
+  functional data
 - [`vd_fit()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/vd_fit.md)
   : Estimation of the generalized additive functional regression models
   for variable domain functional data

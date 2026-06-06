@@ -1,28 +1,25 @@
-# Generate 2D functional data for simulation studies
+# Generate two-dimensional partially observed functional data
 
-Creates synthetic 2D functional data with optional noise components and
-different coefficient patterns. Uses Simpson's rule for accurate
-integration.
+Simulates a scalar response together with partially observed functional
+surfaces. The response is built from the integral of each surface
+against a fixed coefficient surface, and a rectangular region of each
+surface can be left unobserved.
 
 ## Usage
 
 ``` r
 data_generator_po_2d(
-  n = 20,
+  n = 100,
   grid_x = 20,
   grid_y = 20,
-  noise_sd = 0.015,
-  rsq = 0.95,
-  intercept = 0.1,
-  beta_type = c("saddle", "exp", "smooth", "sinusoidal", "peaks"),
-  response_type = c("gaussian", "binomial"),
-  linear_predictor = c("integral", "linear"),
-  a1 = NULL,
-  a2 = NULL,
-  sub_response = 50,
-  n_missing = 1,
+  intercept = 0.6,
+  noise_sd = 0.25,
+  response_type = c("binomial", "gaussian"),
+  signal_strength = 2.5,
+  n_missing = 0,
   min_distance_x = NULL,
-  min_distance_y = NULL
+  min_distance_y = NULL,
+  verbose = FALSE
 )
 ```
 
@@ -30,108 +27,77 @@ data_generator_po_2d(
 
 - n:
 
-  Number of samples to generate.
+  Number of surfaces to generate.
 
-- grid_x:
+- grid_x, grid_y:
 
-  Number of points in x-axis grid. Default is 20.
-
-- grid_y:
-
-  Number of points in y-axis grid. Default is 20.
-
-- noise_sd:
-
-  Standard deviation of measurement noise. Default is 0.015.
-
-- rsq:
-
-  Desired R-squared value for the response. Default is 0.95.
+  Number of grid points along each axis.
 
 - intercept:
 
-  Intercept added to the linear predictor (or target logit for binomial
-  responses).
+  Model intercept. For the binomial response it is used as the target
+  proportion of successes.
 
-- beta_type:
+- noise_sd:
 
-  Type of coefficient surface ("saddle" or "exp"). Default is "saddle".
+  Standard deviation of the observation noise, relative to the standard
+  deviation of each surface.
 
 - response_type:
 
-  Type of the response variable ("gaussian" or "binomial"). Default is
-  "gaussian".
+  Response distribution, either `"binomial"` (the default) or
+  `"gaussian"`.
 
-- linear_predictor:
+- signal_strength:
 
-  Integration approach for the linear predictor ("integral" or
-  "linear").
-
-- a1:
-
-  Optional fixed value for first stochastic component. If provided, a2
-  must also be provided.
-
-- a2:
-
-  Optional fixed value for second stochastic component. If provided, a1
-  must also be provided.
-
-- sub_response:
-
-  Number of intervals for Simpson integration. Default is 50.
+  Multiplier controlling the magnitude of the true coefficient surface.
 
 - n_missing:
 
-  Number of holes in every curve.
+  Number of unobserved rectangular regions per surface (default `0`,
+  i.e. fully observed surfaces).
 
-- min_distance_x:
+- min_distance_x, min_distance_y:
 
-  Length of the holes in the x axis.
+  Minimum size of the unobserved regions along each axis.
 
-- min_distance_y:
+- verbose:
 
-  Length of the holes in the y axis.
+  If `TRUE`, print a short summary of the simulation. Defaults to
+  `FALSE`.
 
 ## Value
 
-A list containing:
-
-- surfaces: List of n true (noiseless) surfaces
-
-- noisy_surfaces: List of n observed (noisy) surfaces
-
-- response: Vector of n response values
-
-- grid_x: x-axis grid points
-
-- grid_y: y-axis grid points
-
-- beta: True coefficient surface
-
-- stochastic_components: Matrix of a1 and a2 values used for each
-  surface
+A list with the true surfaces (`surfaces`), the noisy surfaces
+(`noisy_surfaces`), the partially observed surfaces
+(`noisy_surfaces_miss`) together with the missing point information
+(`miss_points`, `missing_points`), the `response`, the true coefficient
+surface (`beta`), the grids (`points_x`, `points_y`) and additional
+simulation details.
 
 ## Examples
 
 ``` r
-# Generate basic 2D functional data with default parameters
-data <- data_generator_po_2d(n = 2)
-
-# Generate data with custom grid size and Gaussian response
-data <- data_generator_po_2d(n = 2, grid_x = 30, grid_y = 30, response_type = "gaussian")
-
-# Generate data with binomial response and saddle-shaped coefficient surface
-data <- data_generator_po_2d(n = 2, response_type = "binomial", beta_type = "saddle")
-#> Warning: Maximum iterations reached without convergence. Final error: 0.15
-
-# Generate data with fixed stochastic components
-data <- data_generator_po_2d(n = 2, a1 = 0.1, a2 = -0.2)
-
-# Introduce missing data with holes along curves
-data <- data_generator_po_2d(n = 2, n_missing = 3, min_distance_x = 5, min_distance_y = 5)
-#> Warning: numerical expression has 3 elements: only the first used
-#> Warning: numerical expression has 3 elements: only the first used
-#> Warning: numerical expression has 3 elements: only the first used
-#> Warning: numerical expression has 3 elements: only the first used
+set.seed(123)
+sim <- data_generator_po_2d(n = 20, grid_x = 10, grid_y = 10,
+                            response_type = "gaussian")
+str(sim, max.level = 1)
+#> List of 16
+#>  $ surfaces             :List of 20
+#>  $ noisy_surfaces       :List of 20
+#>  $ noisy_surfaces_miss  :List of 20
+#>  $ miss_points          :List of 20
+#>  $ missing_points       :List of 20
+#>  $ response             : num [1:20] 0.666 0.467 0.5 0.784 0.723 ...
+#>  $ intercept            : num 0.6
+#>  $ points_x             : num [1:10] 0 0.111 0.222 0.333 0.444 ...
+#>  $ points_y             : num [1:10] 0 0.111 0.222 0.333 0.444 ...
+#>  $ beta                 : num [1:10, 1:10] 0.5 1.996 2.74 2.332 0.911 ...
+#>  $ stochastic_components: num [1:20, 1:2] -0.441 -1.155 -1.152 1.268 1.111 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>  $ functional_effects   : num [1:20] -0.0393 -0.1195 -0.1192 0.1531 0.1353 ...
+#>  $ group_assignment     : num [1:20] 2 2 2 1 1 1 1 2 1 1 ...
+#>  $ response_type        : chr "gaussian"
+#>  $ signal_strength      : num 2.5
+#>  $ diagnostics          :List of 2
 ```

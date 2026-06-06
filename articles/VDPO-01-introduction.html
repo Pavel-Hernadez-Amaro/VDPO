@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VDPO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,8 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/VDPO-01-introduction.html">Introduction to VDPO</a></li>
     <li><a class="dropdown-item" href="../articles/VDPO-02-vd-models.html">Model fitting for variable domain functional data</a></li>
+    <li><a class="dropdown-item" href="../articles/VDPO-03-pofd.html">Model fitting for partially observed functional data</a></li>
+    <li><a class="dropdown-item" href="../articles/VDPO-04-vd-mfpca.html">Multivariate functional principal component analysis for variable domain data</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -223,11 +225,11 @@ subject.</p>
 <span></span>
 <span><span class="co"># Access generated components</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">y</span><span class="op">)</span> <span class="co"># Response variable</span></span>
-<span><span class="co">#&gt; [1]  0.22328994 -0.58169677  0.05271251  0.43631241 -0.41264759  0.53602756</span></span>
+<span><span class="co">#&gt; [1] -0.3914839 -0.6984334  0.6987894  0.2349563  0.1290843 -0.6533042</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">X_s</span><span class="op">)</span> <span class="co"># Dimensions of functional covariate</span></span>
 <span><span class="co">#&gt; [1] 100  99</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">$</span><span class="va">x1</span><span class="op">)</span> <span class="co"># Non-functional covariate (if use_x = TRUE)</span></span>
-<span><span class="co">#&gt; [1]  0.6001512  0.1239913 -0.5213500 -1.4971886  1.3049948 -1.1349646</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -0.2725878 -2.0360147 -0.6761392 -0.8548773  0.7612911 -1.0367324</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="output-structure">Output Structure<a class="anchor" aria-label="anchor" href="#output-structure"></a>

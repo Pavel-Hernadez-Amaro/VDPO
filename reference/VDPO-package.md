@@ -20,6 +20,10 @@ Useful links:
 
 **Maintainer**: Pavel Hernandez <pavel.amaro96@gmail.com>
 
+Authors:
+
+- Pavel Hernandez <pavel.amaro96@gmail.com>
+
 Other contributors:
 
 - Jose Ignacio Diez <jodiezru@pa.uc3m.es> \[contractor\]

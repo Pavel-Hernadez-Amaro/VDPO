@@ -142,11 +142,11 @@ complex_sim <- data_generator_vd(
 
 # Access generated components
 head(sim_data$y) # Response variable
-#> [1]  0.22328994 -0.58169677  0.05271251  0.43631241 -0.41264759  0.53602756
+#> [1] -0.3914839 -0.6984334  0.6987894  0.2349563  0.1290843 -0.6533042
 dim(sim_data$X_s) # Dimensions of functional covariate
 #> [1] 100  99
 head(sim_data$x1) # Non-functional covariate (if use_x = TRUE)
-#> [1]  0.6001512  0.1239913 -0.5213500 -1.4971886  1.3049948 -1.1349646
+#> [1] -0.2725878 -2.0360147 -0.6761392 -0.8548773  0.7612911 -1.0367324
 ```
 
 ### Output Structure
