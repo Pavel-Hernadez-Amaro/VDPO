@@ -33,7 +33,7 @@ with \code{Times}.}
 is supplied (default \code{1}).}
 
 \item{m_npcs}{Number of multivariate principal components to retain. If
-\code{NULL}, the number explaining more than 90\% of the variance is used.}
+\code{NULL}, the number explaining more than 90 percent of the variance is used.}
 
 \item{u_npcs}{Number of univariate principal components retained per variable
 (default \code{5}).}
@@ -47,21 +47,21 @@ method used to smooth the score covariances along the domain.}
 \value{
 A list with the following items:
 \describe{
-  \item{\code{scores_m}}{Matrix of multivariate scores.}
-  \item{\code{efunctions_m}}{Multivariate eigenfunctions, as a list over
-    domains, each a list over variables.}
-  \item{\code{efunctions_u}}{Univariate eigenfunctions, as a list over
-    variables.}
-  \item{\code{scores_u}}{Matrix of univariate scores.}
-  \item{\code{evalues_u}}{Univariate eigenvalues, as a list over variables.}
-  \item{\code{evalues_m}}{Multivariate eigenvalues, as a list over domains.}
-  \item{\code{var_u}}{Cumulative variance explained by the univariate
-    components.}
-  \item{\code{mean_model}}{The fitted univariate mean models (one per
-    variable).}
-  \item{\code{M_grid}}{The domain grid used.}
-  \item{\code{argvals_u}}{The observation times of each subject, as a list
-    over variables, each a list over subjects.}
+\item{\code{scores_m}}{Matrix of multivariate scores.}
+\item{\code{efunctions_m}}{Multivariate eigenfunctions, as a list over
+domains, each a list over variables.}
+\item{\code{efunctions_u}}{Univariate eigenfunctions, as a list over
+variables.}
+\item{\code{scores_u}}{Matrix of univariate scores.}
+\item{\code{evalues_u}}{Univariate eigenvalues, as a list over variables.}
+\item{\code{evalues_m}}{Multivariate eigenvalues, as a list over domains.}
+\item{\code{var_u}}{Cumulative variance explained by the univariate
+components.}
+\item{\code{mean_model}}{The fitted univariate mean models (one per
+variable).}
+\item{\code{M_grid}}{The domain grid used.}
+\item{\code{argvals_u}}{The observation times of each subject, as a list
+over variables, each a list over subjects.}
 }
 }
 \description{
@@ -78,6 +78,6 @@ points in columns) holding the actual observation time of every measurement,
 and the domain of subject \eqn{i} is taken as the maximum observed time. With
 \code{M_grid}, the observations are assumed equidistant and \code{M_grid} is a
 vector of length \eqn{N} giving the domain length of each subject, so subject
-\eqn{i} is evaluated on \code{seq(0, M_grid[i], by = 1/Hz)}. Exactly one of
+\eqn{i} is evaluated on \code{seq(0, M_grid[i], by = 1 / Hz)}. Exactly one of
 \code{Times} or \code{M_grid} must be provided.
 }
