@@ -14,20 +14,36 @@ vignette: >
 
 ## Introduction
 
-The VDPO package also provides methods for partially observed functional data,
-where each curve is recorded only on a subset of its domain. This vignette shows
-how to fit a partially observed functional regression model with the `po_fit`
-function and how to inspect the estimated functional coefficient.
+Partially observed functional data arise when each curve is recorded only on part
+of its domain, leaving one or more gaps. This is common when sensors fail for a
+period, when measurements are taken only while a condition holds, or when images
+are partially occluded. Discarding the incomplete curves or imputing the missing
+parts can bias the analysis, so it is preferable to work directly with the
+observed information.
 
-## Data generation
+The `VDPO` package implements a scalar-on-function regression model for this
+setting. The functional covariate and the functional coefficient are represented
+with B-spline bases, and the model is estimated through the mixed model
+representation of penalized splines, which also takes care of the smoothing
+parameters. The approach is described in Hernandez-Amaro et al. (2025).
+
+This vignette shows how to simulate partially observed data, fit the model with
+`po_fit`, and inspect the estimated functional coefficient together with its
+pointwise confidence intervals.
 
 
 ``` r
 library(VDPO)
 ```
 
+## Data generation
+
 The `data_generator_po_1d` function simulates a scalar response together with a
-partially observed functional covariate.
+partially observed functional covariate. Its main arguments control the number of
+curves (`n`), the number of points in the common grid (`grid_points`), the
+response distribution (`response_type`), the shape of the true coefficient
+(`linear_predictor`) and the number of unobserved segments per curve
+(`n_missing`).
 
 
 ``` r
@@ -35,15 +51,27 @@ set.seed(123)
 sim <- data_generator_po_1d(n = 150, grid_points = 80)
 ```
 
-The returned list contains `noisy_curves_miss` (the observed curves, with `NA` on
-the unobserved part of each domain), `missing_points` (the indices of the
-unobserved points), `grid` (the common grid), `response` and `beta` (the true
-functional coefficient).
+The returned list contains the observed curves in `noisy_curves_miss`, with `NA`
+on the unobserved part of each domain, the indices of the unobserved points in
+`missing_points`, the common grid in `grid`, the scalar `response`, and the true
+functional coefficient in `beta`, which we will use to assess the estimate.
+
+
+``` r
+mean(is.na(sim$noisy_curves_miss))
+#> [1] 0.2
+```
 
 ## Model fitting
 
-The functional covariate enters the model through the `ffpo` constructor, and the
-model is fitted with `po_fit`.
+The functional covariate enters the model through the `ffpo` constructor. Its
+arguments are the matrix of observed curves (`X`), the list of unobserved indices
+(`missing_points`), the common `grid`, and the basis specification: `nbasis` gives
+the number of basis functions for the curve representation and for the
+coefficient.
+
+The model is fitted with `po_fit`, which uses the same formula interface as the
+other model-fitting functions in the package.
 
 
 ``` r
@@ -55,9 +83,10 @@ fit <- po_fit(
 )
 ```
 
-The fitted object reports the estimated functional coefficient together with the
-covariance of its basis coefficients, from which pointwise confidence intervals
-are obtained.
+The fitted object is a list of class `po_fit`. It returns the estimated functional
+coefficient (`Beta`), the intercept, the basis coefficients (`theta`) and their
+covariance (`covar_theta`), the observed-domain information (`M`), and the
+evaluations of the functional term (`ffpo_evals`).
 
 
 ``` r
@@ -78,8 +107,8 @@ str(fit, max.level = 1)
 ## Estimated coefficient
 
 The element `Beta` holds, for each functional term, a data frame with the grid
-(`t`), the estimated coefficient (`beta`), its standard error (`se`) and the
-pointwise confidence limits (`lower`, `upper`).
+(`t`), the estimated coefficient (`beta`), its standard error (`se`) and the lower
+and upper limits of the pointwise confidence interval (`lower` and `upper`).
 
 
 ``` r
@@ -94,13 +123,42 @@ head(b)
 #> 6 0.6329114 0.024802314 0.004556353  0.015872026 0.03373260
 ```
 
+The coefficient is displayed together with its confidence band.
+
 
 ``` r
-matplot(b$t, cbind(b$beta, b$lower, b$upper), type = "l",
-        lty = c(1, 2, 2), col = 1, xlab = "t", ylab = expression(beta(t)))
+plot(b$t, b$beta, type = "n", xlab = "t", ylab = expression(beta(t)),
+     ylim = range(c(b$lower, b$upper)))
+polygon(c(b$t, rev(b$t)), c(b$lower, rev(b$upper)),
+        col = grDevices::adjustcolor("#2c7fb8", 0.25), border = NA)
+lines(b$t, b$beta,  col = "#2c7fb8", lwd = 2)
+lines(b$t, b$lower, col = "#2c7fb8", lty = 2)
+lines(b$t, b$upper, col = "#2c7fb8", lty = 2)
+legend("topright", legend = c("Estimate", "95% CI"),
+       col = "#2c7fb8", lty = c(1, 2), lwd = c(2, 1), bty = "n")
 ```
 
-![](includes/VDPO-03-unnamed-chunk-6-1.png)
+![](includes/VDPO-03-unnamed-chunk-7-1.png)
 
-The bidimensional case (partially observed surfaces) follows the same interface
-through `data_generator_po_2d`, `ffpo_2d` and `po_2d_fit`.
+Because the data are simulated, the estimate can be compared with the true
+coefficient. The correlation between the two is high, which confirms that the
+shape of the coefficient is recovered well.
+
+
+``` r
+true_beta <- sim$beta[seq_along(b$beta)]
+cor(b$beta, true_beta)
+#> [1] 0.9938624
+```
+
+## The two-dimensional case
+
+When the functional observations are surfaces that are partially observed, the
+same workflow applies through the analogous functions `data_generator_po_2d`,
+`ffpo_2d` and `po_2d_fit`. The fitted object has the same structure, with the
+estimated coefficient returned as a surface.
+
+## References
+
+Hernandez-Amaro et al. (2025). A new scalar on function generalized additive model
+for partially observed functional data. <doi:10.48550/arXiv.2510.26917>.

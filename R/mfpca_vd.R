@@ -465,10 +465,21 @@ plot.mfpca_vd <- function(x, type = c("eigenfunctions", "heatmap", "scores"),
       valid <- tg <= max(tt)
       if (length(tt) >= 2) Z[r, valid] <- stats::approx(tt, ef, xout = tg[valid], rule = 2)$y
     }
-    graphics::image(x = tg, y = Mv[doms], z = t(Z),
-                    col = grDevices::hcl.colors(100, "viridis"),
+    cols  <- grDevices::hcl.colors(100, "viridis")
+    zr    <- range(Z, na.rm = TRUE)
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit({graphics::par(op); graphics::layout(1)}, add = TRUE)
+    graphics::layout(matrix(c(1, 2), nrow = 1), widths = c(5, 1))
+    graphics::par(mar = c(5, 4, 4, 1))
+    graphics::image(x = tg, y = Mv[doms], z = t(Z), col = cols, zlim = zr,
                     xlab = "t", ylab = "Domain length",
                     main = paste0("Eigenfunction ", k, " (variable ", variable, ")"), ...)
+    graphics::par(mar = c(5, 0.5, 4, 3.5))
+    graphics::image(1, seq(zr[1], zr[2], length.out = 100),
+                    matrix(seq_len(100), nrow = 1), col = cols,
+                    axes = FALSE, xlab = "", ylab = "")
+    graphics::axis(4)
+    graphics::mtext("Eigenfunction value", side = 4, line = 2.3, cex = 0.85)
     return(invisible(NULL))
   }
 
