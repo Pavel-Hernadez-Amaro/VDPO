@@ -1,0 +1,90 @@
+---
+title: "Model fitting for partially observed functional data"
+output:
+  rmarkdown::html_vignette:
+    toc: yes
+    fig_width: 6
+vignette: >
+  %\VignetteIndexEntry{Model fitting for partially observed functional data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  fig.cap = "",
+  fig.path = "includes/VDPO-03-"
+)
+```
+
+## Introduction
+
+The VDPO package also provides methods for partially observed functional data,
+where each curve is recorded only on a subset of its domain. This vignette shows
+how to fit a partially observed functional regression model with the `po_fit`
+function and how to inspect the estimated functional coefficient.
+
+## Data generation
+
+```{r setup}
+library(VDPO)
+```
+
+The `data_generator_po_1d` function simulates a scalar response together with a
+partially observed functional covariate.
+
+```{r}
+set.seed(123)
+sim <- data_generator_po_1d(n = 150, grid_points = 80)
+```
+
+The returned list contains `noisy_curves_miss` (the observed curves, with `NA` on
+the unobserved part of each domain), `missing_points` (the indices of the
+unobserved points), `grid` (the common grid), `response` and `beta` (the true
+functional coefficient).
+
+## Model fitting
+
+The functional covariate enters the model through the `ffpo` constructor, and the
+model is fitted with `po_fit`.
+
+```{r}
+fit <- po_fit(
+  response ~ ffpo(X = sim$noisy_curves_miss, missing_points = sim$missing_points,
+                  grid = sim$grid, nbasis = c(30, 30)),
+  data = list(response = sim$response, X = sim$noisy_curves_miss,
+              grid = sim$grid, missing_points = sim$missing_points)
+)
+```
+
+The fitted object reports the estimated functional coefficient together with the
+covariance of its basis coefficients, from which pointwise confidence intervals
+are obtained.
+
+```{r}
+str(fit, max.level = 1)
+```
+
+## Estimated coefficient
+
+The element `Beta` holds, for each functional term, a data frame with the grid
+(`t`), the estimated coefficient (`beta`), its standard error (`se`) and the
+pointwise confidence limits (`lower`, `upper`).
+
+```{r}
+b <- fit$Beta[[1]]
+head(b)
+```
+
+```{r}
+matplot(b$t, cbind(b$beta, b$lower, b$upper), type = "l",
+        lty = c(1, 2, 2), col = 1, xlab = "t", ylab = expression(beta(t)))
+```
+
+The bidimensional case (partially observed surfaces) follows the same interface
+through `data_generator_po_2d`, `ffpo_2d` and `po_2d_fit`.
