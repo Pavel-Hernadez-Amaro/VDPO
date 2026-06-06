@@ -28,7 +28,7 @@
 #' @param Hz Sampling rate used to build the equidistant grid when \code{M_grid}
 #'   is supplied (default \code{1}).
 #' @param m_npcs Number of multivariate principal components to retain. If
-#'   \code{NULL}, the number explaining more than 90\% of the variance is used.
+#'   \code{NULL}, the number explaining more than 90 percent of the variance is used.
 #' @param u_npcs Number of univariate principal components retained per variable
 #'   (default \code{5}).
 #' @param k_m Dimension of the basis used to model the score covariances along
@@ -51,6 +51,8 @@
 #'   \item{\code{mean_model}}{The fitted univariate mean models (one per
 #'     variable).}
 #'   \item{\code{M_grid}}{The domain grid used.}
+#'   \item{\code{argvals_u}}{The observation times of each subject, as a list
+#'     over variables, each a list over subjects.}
 #' }
 #'
 #' @importFrom mgcv gam
@@ -74,7 +76,7 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
   n_var <- length(Data)
   N <- nrow(Data[[1]])
 
-  fit_Variable <- e_len_u <- npc_u <- var_u <- univ_efunctions <-
+  fit_Variable <- e_len_u <- npc_u <- var_u <- univ_efunctions <- argvals_u <-
     vector(mode = "list", length = n_var)
   scores <- NULL
 
@@ -114,6 +116,15 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
 
     pc_grid <- .get_pcs_vd(xtimes = gridM, covfx = cov_temp, argvals = argvals,
                            Hz = Hz, includezero = TRUE, npcs = u_npcs)
+
+    argvals_u[[ind]] <- lapply(seq_len(N), function(i) {
+      if (!is.null(argvals)) {
+        a <- argvals[i, ]
+        a[seq_len(sum(!is.na(a)))]
+      } else {
+        seq(0, gridM[i], by = 1 / Hz)
+      }
+    })
 
     univ_efunctions[[ind]] <- pc_grid$efunctions
     npc_aux <- sapply(pc_grid$evalues, length)
@@ -204,7 +215,7 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
     score_m[i, ] <- t(as.matrix(scores[i, ])) %*% c_m[[i]]
   }
 
-  list(
+  out <- list(
     scores_m     = score_m,
     efunctions_m = Phi_m,
     efunctions_u = univ_efunctions,
@@ -213,8 +224,11 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
     evalues_m    = v_m,
     var_u        = var_u,
     mean_model   = fit_Variable,
-    M_grid       = gridM
+    M_grid       = gridM,
+    argvals_u    = argvals_u
   )
+  class(out) <- "mfpca_vd"
+  out
 }
 
 #' Build the long format (id, time, y) for one variable
@@ -373,4 +387,103 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
     scores_list[[i]] <- subj_scores
   }
   scores_list
+}
+
+#' Plot method for variable domain multivariate FPCA
+#'
+#' Displays either the estimated eigenfunctions of one variable at several fixed
+#' domain lengths (superimposed lines) or the multivariate scores colored by
+#' domain length.
+#'
+#' @param x An object of class \code{mfpca_vd}.
+#' @param type One of \code{"eigenfunctions"} (the default), \code{"heatmap"} or
+#'   \code{"scores"}. \code{"eigenfunctions"} draws the chosen components at a
+#'   few fixed domains as superimposed lines, \code{"heatmap"} shows one
+#'   component across all domains, and \code{"scores"} plots the multivariate
+#'   scores colored by domain length.
+#' @param variable Index of the functional variable to display when
+#'   \code{type = "eigenfunctions"} or \code{type = "heatmap"} (default \code{1}).
+#' @param components Indices of the components to display (default \code{1:2}).
+#'   For \code{type = "heatmap"} only the first one is used.
+#' @param domains Domain lengths at which to draw the eigenfunctions. If
+#'   \code{NULL}, a few values spanning the observed domains are used.
+#' @param align_sign If \code{TRUE} (the default), the sign of each eigenfunction
+#'   is aligned across domains so the curves overlay consistently.
+#' @param ... Further graphical arguments.
+#'
+#' @return Called for its side effect (a plot). Invisibly returns \code{NULL}.
+#'
+#' @importFrom graphics lines legend par image
+#' @importFrom grDevices hcl.colors
+#' @importFrom stats quantile approx
+#' @export
+plot.mfpca_vd <- function(x, type = c("eigenfunctions", "heatmap", "scores"),
+                          variable = 1, components = 1:2, domains = NULL,
+                          align_sign = TRUE, ...) {
+  type <- match.arg(type)
+  M <- x$M_grid
+
+  if (type == "scores") {
+    k    <- components[1:2]
+    cols <- grDevices::hcl.colors(100, "viridis")
+    ord  <- as.integer(cut(M, 100))
+    plot(x$scores_m[, k[1]], x$scores_m[, k[2]], col = cols[ord], pch = 19,
+         xlab = paste0("Score ", k[1]), ylab = paste0("Score ", k[2]),
+         main = "Multivariate scores by domain length", ...)
+    return(invisible(NULL))
+  }
+
+  if (type == "heatmap") {
+    k     <- components[1]
+    doms  <- order(M)
+    tg    <- seq(0, max(M), length.out = 100)
+    t_ref <- 0.5 * min(M)
+    Z <- matrix(NA_real_, nrow = length(doms), ncol = length(tg))
+    for (r in seq_along(doms)) {
+      i  <- doms[r]
+      tt <- x$argvals_u[[variable]][[i]]
+      ef <- x$efunctions_m[[i]][[variable]][, k]
+      if (align_sign) {
+        ref <- ef[which.min(abs(tt - t_ref))]
+        if (!is.na(ref) && ref < 0) ef <- -ef
+      }
+      valid <- tg <= max(tt)
+      if (length(tt) >= 2) Z[r, valid] <- stats::approx(tt, ef, xout = tg[valid], rule = 2)$y
+    }
+    graphics::image(x = tg, y = M[doms], z = t(Z),
+                    col = grDevices::hcl.colors(100, "viridis"),
+                    xlab = "t", ylab = "Domain length",
+                    main = paste0("Eigenfunction ", k, " (variable ", variable, ")"), ...)
+    return(invisible(NULL))
+  }
+
+  if (is.null(domains)) domains <- stats::quantile(M, c(0.1, 0.4, 0.7, 0.95))
+  idx  <- vapply(domains, function(d) which.min(abs(M - d)), integer(1))
+  cols <- grDevices::hcl.colors(length(idx), "viridis")
+  t_ref <- 0.5 * min(M[idx])
+
+  op <- graphics::par(mfrow = c(1, length(components)))
+  on.exit(graphics::par(op))
+
+  for (k in components) {
+    curves <- lapply(idx, function(i) {
+      tt <- x$argvals_u[[variable]][[i]]
+      ef <- x$efunctions_m[[i]][[variable]][, k]
+      if (align_sign) {
+        ref <- ef[which.min(abs(tt - t_ref))]
+        if (!is.na(ref) && ref < 0) ef <- -ef
+      }
+      list(t = tt, ef = ef)
+    })
+    ylim <- range(unlist(lapply(curves, function(c) c$ef)))
+    plot(NA, xlim = c(0, max(M[idx])), ylim = ylim,
+         xlab = "t", ylab = paste0("Eigenfunction ", k),
+         main = paste0("Eigenfunction ", k, " (variable ", variable, ")"))
+    for (j in seq_along(curves)) {
+      graphics::lines(curves[[j]]$t, curves[[j]]$ef, col = cols[j], lwd = 2)
+    }
+    graphics::legend("topright", legend = round(M[idx], 1), col = cols,
+                     lwd = 2, title = "Domain", bty = "n", cex = 0.8)
+  }
+  invisible(NULL)
 }
