@@ -10,3 +10,5 @@
 ^CRAN-SUBMISSION$
 ^funding$
 ^\.claude$
+^doc$
+^Meta$
