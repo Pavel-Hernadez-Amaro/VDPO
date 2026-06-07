@@ -392,8 +392,8 @@ mfpca_vd <- function(Data, Times = NULL, M_grid = NULL, Hz = 1,
 #' Plot method for variable domain multivariate FPCA
 #'
 #' Displays either the estimated eigenfunctions of one variable at several fixed
-#' domain lengths (superimposed lines) or the multivariate scores colored by
-#' domain length.
+#' domain lengths (superimposed lines), a heatmap of one eigenfunction across
+#' all domains, or the multivariate scores colored by domain length.
 #'
 #' @param x An object of class \code{mfpca_vd}.
 #' @param type One of \code{"eigenfunctions"} (the default), \code{"heatmap"} or
@@ -465,13 +465,25 @@ plot.mfpca_vd <- function(x, type = c("eigenfunctions", "heatmap", "scores"),
       valid <- tg <= max(tt)
       if (length(tt) >= 2) Z[r, valid] <- stats::approx(tt, ef, xout = tg[valid], rule = 2)$y
     }
+
+    # image() needs a strictly increasing axis, so collapse subjects that share
+    # the same domain length (average them) and use the unique domain lengths.
+    yv <- Mv[doms]
+    uy <- sort(unique(yv))
+    Zc <- matrix(NA_real_, nrow = length(uy), ncol = length(tg))
+    for (r in seq_along(uy)) {
+      rows    <- which(yv == uy[r])
+      Zc[r, ] <- colMeans(Z[rows, , drop = FALSE], na.rm = TRUE)
+    }
+    Zc[is.nan(Zc)] <- NA_real_
+
     cols  <- grDevices::hcl.colors(100, "viridis")
-    zr    <- range(Z, na.rm = TRUE)
+    zr    <- range(Zc, na.rm = TRUE)
     op <- graphics::par(no.readonly = TRUE)
     on.exit({graphics::par(op); graphics::layout(1)}, add = TRUE)
     graphics::layout(matrix(c(1, 2), nrow = 1), widths = c(5, 1))
     graphics::par(mar = c(5, 4, 4, 1))
-    graphics::image(x = tg, y = Mv[doms], z = t(Z), col = cols, zlim = zr,
+    graphics::image(x = tg, y = uy, z = t(Zc), col = cols, zlim = zr,
                     xlab = "t", ylab = "Domain length",
                     main = paste0("Eigenfunction ", k, " (variable ", variable, ")"), ...)
     graphics::par(mar = c(5, 0.5, 4, 3.5))
