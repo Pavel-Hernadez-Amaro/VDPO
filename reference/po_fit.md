@@ -139,7 +139,7 @@ summary(fit)
 #> 
 #> 
 #> Fixed terms: 
-#> [1] 0.1229534 0.1145223 0.0503246
+#> [1]  0.1229534 -0.0116623  0.1245468
 #> 
 #> 
 #> Estimated degrees of freedom:

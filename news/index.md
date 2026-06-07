@@ -2,6 +2,8 @@
 
 ## VDPO 0.2.0
 
+CRAN release: 2026-06-07
+
 - Added support for partially observed functional data. This includes
   the new functions
   [`ffpo()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/ffpo.md)
