@@ -8,6 +8,10 @@ where observations are incomplete over the domain of interest. 'VDPO'
 enhances the flexibility and applicability of functional data analysis
 in 'R'. See Amaro et al. (2024)
 [doi:10.48550/arXiv.2401.05839](https://doi.org/10.48550/arXiv.2401.05839)
+, Hernandez-Amaro et al. (2025)
+[doi:10.48550/arXiv.2510.26917](https://doi.org/10.48550/arXiv.2510.26917)
+, and Hernandez-Amaro et al. (2026)
+[doi:10.48550/arXiv.2605.03633](https://doi.org/10.48550/arXiv.2605.03633)
 .
 
 ## See also

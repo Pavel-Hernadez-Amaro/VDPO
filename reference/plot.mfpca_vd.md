@@ -1,8 +1,9 @@
 # Plot method for variable domain multivariate FPCA
 
 Displays either the estimated eigenfunctions of one variable at several
-fixed domain lengths (superimposed lines) or the multivariate scores
-colored by domain length.
+fixed domain lengths (superimposed lines), a heatmap of one
+eigenfunction across all domains, or the multivariate scores colored by
+domain length.
 
 ## Usage
 

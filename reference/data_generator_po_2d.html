@@ -62,6 +62,7 @@ left unobserved.</p>
 <span>  noise_sd <span class="op">=</span> <span class="fl">0.25</span>,</span>
 <span>  response_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"binomial"</span>, <span class="st">"gaussian"</span><span class="op">)</span>,</span>
 <span>  signal_strength <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>  beta_index <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  n_missing <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  min_distance_x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_distance_y <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -99,6 +100,12 @@ default) or <code>"gaussian"</code>.</p></dd>
 <dt id="arg-signal-strength">signal_strength<a class="anchor" aria-label="anchor" href="#arg-signal-strength"></a></dt>
 <dd><p>Multiplier controlling the magnitude of the true
 coefficient surface.</p></dd>
+
+
+<dt id="arg-beta-index">beta_index<a class="anchor" aria-label="anchor" href="#arg-beta-index"></a></dt>
+<dd><p>Integer selecting the shape of the true coefficient
+surface, either <code>1</code> (the default, a wavy surface) or <code>2</code>
+(a simple inclined plane).</p></dd>
 
 
 <dt id="arg-n-missing">n_missing<a class="anchor" aria-label="anchor" href="#arg-n-missing"></a></dt>

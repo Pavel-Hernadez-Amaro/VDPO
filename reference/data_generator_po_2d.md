@@ -16,6 +16,7 @@ data_generator_po_2d(
   noise_sd = 0.25,
   response_type = c("binomial", "gaussian"),
   signal_strength = 2.5,
+  beta_index = 1,
   n_missing = 0,
   min_distance_x = NULL,
   min_distance_y = NULL,
@@ -51,6 +52,11 @@ data_generator_po_2d(
 - signal_strength:
 
   Multiplier controlling the magnitude of the true coefficient surface.
+
+- beta_index:
+
+  Integer selecting the shape of the true coefficient surface, either
+  `1` (the default, a wavy surface) or `2` (a simple inclined plane).
 
 - n_missing:
 
