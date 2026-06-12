@@ -42,6 +42,6 @@ Called for its side effect (a plot). Invisibly returns \code{NULL}.
 }
 \description{
 Displays either the estimated eigenfunctions of one variable at several fixed
-domain lengths (superimposed lines) or the multivariate scores colored by
-domain length.
+domain lengths (superimposed lines), a heatmap of one eigenfunction across
+all domains, or the multivariate scores colored by domain length.
 }

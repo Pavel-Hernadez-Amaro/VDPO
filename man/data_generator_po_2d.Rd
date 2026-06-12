@@ -12,6 +12,7 @@ data_generator_po_2d(
   noise_sd = 0.25,
   response_type = c("binomial", "gaussian"),
   signal_strength = 2.5,
+  beta_index = 1,
   n_missing = 0,
   min_distance_x = NULL,
   min_distance_y = NULL,
@@ -34,6 +35,10 @@ default) or \code{"gaussian"}.}
 
 \item{signal_strength}{Multiplier controlling the magnitude of the true
 coefficient surface.}
+
+\item{beta_index}{Integer selecting the shape of the true coefficient
+surface, either \code{1} (the default, a wavy surface) or \code{2}
+(a simple inclined plane).}
 
 \item{n_missing}{Number of unobserved rectangular regions per surface
 (default \code{0}, i.e. fully observed surfaces).}

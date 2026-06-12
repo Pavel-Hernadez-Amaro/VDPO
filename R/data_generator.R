@@ -1033,6 +1033,9 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 #'   default) or \code{"gaussian"}.
 #' @param signal_strength Multiplier controlling the magnitude of the true
 #'   coefficient surface.
+#' @param beta_index Integer selecting the shape of the true coefficient
+#'   surface, either \code{1} (the default, a wavy surface) or \code{2}
+#'   (a simple inclined plane).
 #' @param n_missing Number of unobserved rectangular regions per surface
 #'   (default \code{0}, i.e. fully observed surfaces).
 #' @param min_distance_x,min_distance_y Minimum size of the unobserved regions
@@ -1057,10 +1060,15 @@ add_miss2 <- function(X, n_missing = 1, min_distance_x = 9, min_distance_y = 9) 
 data_generator_po_2d <- function(n = 100, grid_x = 20, grid_y = 20,
                                  intercept = 0.6, noise_sd = 0.25,
                                  response_type = c("binomial", "gaussian"),
-                                 signal_strength = 2.5, n_missing = 0,
+                                 signal_strength = 2.5, beta_index = 1,
+                                 n_missing = 0,
                                  min_distance_x = NULL, min_distance_y = NULL,
                                  verbose = FALSE) {
   response_type <- match.arg(response_type)
+
+  if (!(beta_index %in% c(1, 2))) {
+    stop("'beta_index' could only be 1 or 2", call. = FALSE)
+  }
 
   x <- seq(0, 1, length.out = grid_x)
   y <- seq(0, 1, length.out = grid_y)
@@ -1074,12 +1082,16 @@ data_generator_po_2d <- function(n = 100, grid_x = 20, grid_y = 20,
     if (response_type == "binomial") cat("Target proportion:", target_prop, "\n")
   }
 
-  beta_surface <- matrix(nrow = length(x), ncol = length(y))
-  for (i in seq_along(x)) {
-    for (j in seq_along(y)) {
-      beta_surface[i, j] <- signal_strength *
-        (sin(2 * pi * x[i]) * cos(2 * pi * y[j]) + 0.8 * (x[i] - 0.5) * (y[j] - 0.5))
-    }
+  if (beta_index == 1) {
+    # wavy surface (original)
+    beta_surface <- signal_strength *
+      outer(x, y, function(xi, yj) {
+        sin(2 * pi * xi) * cos(2 * pi * yj) + 0.8 * (xi - 0.5) * (yj - 0.5)
+      })
+  } else {
+    # simple inclined plane
+    beta_surface <- signal_strength *
+      outer(x, y, function(xi, yj) (xi - 0.5) + (yj - 0.5))
   }
 
   surfaces <- vector("list", n)

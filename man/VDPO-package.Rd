@@ -6,7 +6,7 @@
 \alias{VDPO-package}
 \title{VDPO: Working with and Analyzing Functional Data of Varying Lengths}
 \description{
-Comprehensive set of tools for analyzing and manipulating functional data with non-uniform lengths. This package addresses two common scenarios in functional data analysis: Variable Domain Data, where the observation domain differs across samples, and Partially Observed Data, where observations are incomplete over the domain of interest. 'VDPO' enhances the flexibility and applicability of functional data analysis in 'R'. See Amaro et al. (2024) \doi{10.48550/arXiv.2401.05839}.
+Comprehensive set of tools for analyzing and manipulating functional data with non-uniform lengths. This package addresses two common scenarios in functional data analysis: Variable Domain Data, where the observation domain differs across samples, and Partially Observed Data, where observations are incomplete over the domain of interest. 'VDPO' enhances the flexibility and applicability of functional data analysis in 'R'. See Amaro et al. (2024) \doi{10.48550/arXiv.2401.05839}, Hernandez-Amaro et al. (2025) \doi{10.48550/arXiv.2510.26917}, and Hernandez-Amaro et al. (2026) \doi{10.48550/arXiv.2605.03633}.
 }
 \seealso{
 Useful links:
