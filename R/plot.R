@@ -172,3 +172,134 @@ plot_ci <- function(object, beta_index = 1, curves) {
       plot.subtitle = ggplot2::element_blank()
     )
 }
+
+
+#' Plot method for partially observed functional regression fits
+#'
+#' Displays an estimated functional coefficient of a \code{po_fit} object
+#' together with its pointwise confidence band.
+#'
+#' @param x an object of class \code{po_fit}, as returned by \code{\link{po_fit}}.
+#' @param beta_index an integer selecting which functional coefficient to plot.
+#'   Default is 1.
+#' @param ... currently ignored, included for compatibility with the generic.
+#'
+#' @return A \code{ggplot2} object displaying the estimated coefficient and its
+#'   confidence band.
+#'
+#' @examples
+#' \donttest{
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   set.seed(42)
+#'   data <- data_generator_po_1d(N = 100)
+#'   grid <- seq(0, 1, length.out = ncol(data$X_se))
+#'   fit <- po_fit(y ~ ffpo(X_se, grid = grid), data = data)
+#'   plot(fit)
+#' }
+#' }
+#'
+#' @seealso \code{\link{po_fit}}
+#'
+#' @export
+plot.po_fit <- function(x, beta_index = 1, ...) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("package 'ggplot2' is required for this functionality", call. = FALSE)
+  }
+
+  if (beta_index < 1 || beta_index > length(x$Beta)) {
+    stop(
+      "'beta_index' should be between 1 and the number of functional
+         variables used in the formula",
+      call. = FALSE
+    )
+  }
+
+  # Bindings for global variables
+  t <- NULL
+  beta <- NULL
+  lower <- NULL
+  upper <- NULL
+
+  b <- x$Beta[[beta_index]]
+
+  ggplot2::ggplot(b, ggplot2::aes(x = t)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper),
+                         fill = "#2c7fb8", alpha = 0.25, na.rm = TRUE
+    ) +
+    ggplot2::geom_line(ggplot2::aes(y = beta),
+                       color = "#2c7fb8", linewidth = 1, na.rm = TRUE
+    ) +
+    ggplot2::geom_hline(yintercept = 0, color = "gray50", na.rm = TRUE) +
+    ggplot2::labs(x = "t", y = expression(beta(t))) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      plot.title = ggplot2::element_blank()
+    )
+}
+
+#' Plot method for partially observed bidimensional functional regression fits
+#'
+#' Displays an estimated bidimensional functional coefficient of a
+#' \code{po_2d_fit} object as a heatmap over its two-dimensional domain.
+#'
+#' @param x an object of class \code{po_2d_fit}, as returned by
+#'   \code{\link{po_2d_fit}}.
+#' @param beta_index an integer selecting which coefficient surface to plot.
+#'   Default is 1.
+#' @param ... currently ignored, included for compatibility with the generic.
+#'
+#' @return A \code{ggplot2} object displaying the estimated coefficient surface.
+#'
+#' @seealso \code{\link{po_2d_fit}}
+#'
+#' @export
+plot.po_2d_fit <- function(x, beta_index = 1, ...) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("package 'ggplot2' is required for this functionality", call. = FALSE)
+  }
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("package 'RColorBrewer' is required for this functionality", call. = FALSE)
+  }
+
+  if (beta_index < 1 || beta_index > length(x$Beta)) {
+    stop(
+      "'beta_index' should be between 1 and the number of functional
+         variables used in the formula",
+      call. = FALSE
+    )
+  }
+
+  # Bindings for global variables
+  t1 <- NULL
+  t2 <- NULL
+  beta <- NULL
+
+  b <- x$Beta[[beta_index]]
+
+  surface <- data.frame(
+    t1   = rep(b$x, times = length(b$y)),
+    t2   = rep(b$y, each = length(b$x)),
+    beta = as.numeric(b$beta)
+  )
+
+  lims <- range(surface$beta, na.rm = TRUE)
+
+  ggplot2::ggplot(surface, ggplot2::aes(x = t1, y = t2)) +
+    ggplot2::geom_tile(ggplot2::aes(colour = beta, fill = beta)) +
+    ggplot2::scale_fill_gradientn(
+      name     = "",
+      limits   = lims,
+      colours  = rev(RColorBrewer::brewer.pal(11, "Spectral")),
+      na.value = "white"
+    ) +
+    ggplot2::scale_colour_gradientn(
+      name    = "",
+      limits  = lims,
+      colours = rev(RColorBrewer::brewer.pal(11, "Spectral"))
+    ) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0)) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = expression(t[1]), y = expression(t[2]))
+}
