@@ -73,6 +73,11 @@ link](https://pavel-hernadez-amaro.github.io/VDPO/).
   domain data
 - [`plot(`*`<mfpca_vd>`*`)`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot.mfpca_vd.md)
   : Plot method for variable domain multivariate FPCA
+- [`plot(`*`<po_2d_fit>`*`)`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot.po_2d_fit.md)
+  : Plot method for partially observed bidimensional functional
+  regression fits
+- [`plot(`*`<po_fit>`*`)`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot.po_fit.md)
+  : Plot method for partially observed functional regression fits
 - [`plot_ci()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/plot_ci.md)
   : Plot Functional Curves with Confidence Intervals
 - [`po_2d_fit()`](https://pavel-hernadez-amaro.github.io/VDPO/reference/po_2d_fit.md)
